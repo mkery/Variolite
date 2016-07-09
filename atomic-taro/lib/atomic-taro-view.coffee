@@ -1,11 +1,9 @@
-
-
 module.exports =
 class AtomicTaroView
   constructor: (serializedState) ->
     # Create root element
     @element = document.createElement('div')
-    @element.classList.add('wordcount')
+    @element.classList.add('atomic-taro')
 
     # Create message element
     message = document.createElement('div')

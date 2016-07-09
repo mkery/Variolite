@@ -1,6 +1,5 @@
-{CompositeDisposable} = require 'atom'
 AtomicTaroView = require './atomic-taro-view'
-
+{CompositeDisposable} = require 'atom'
 
 module.exports = AtomicTaro =
   atomicTaroView: null
@@ -9,29 +8,25 @@ module.exports = AtomicTaro =
 
   activate: (state) ->
     @atomicTaroView = new AtomicTaroView(state.atomicTaroViewState)
-    @modalPanel = atom.workspace.addModalPanel(
-      item: this.atomicTaroView.getElement(),
-      visible: false)
+    @modalPanel = atom.workspace.addModalPanel(item: @atomicTaroView.getElement(), visible: false)
 
     # Events subscribed to in atom's system can be easily cleaned up with a CompositeDisposable
     @subscriptions = new CompositeDisposable
 
     # Register command that toggles this view
-    @subscriptions.add atom.commands.add 'atom-workspace', 'wordcount:toggle': => @toggle()
-
+    @subscriptions.add atom.commands.add 'atom-workspace', 'atomic-taro:toggle': => @toggle()
 
   deactivate: ->
-    @modalPanel.destroy();
-    @subscriptions.dispose();
-    @atomicTaroView.destroy();
-
+    @modalPanel.destroy()
+    @subscriptions.dispose()
+    @atomicTaroView.destroy()
 
   serialize: ->
-      atomicTaroViewState: @atomicTaroView.serialize()
+    atomicTaroViewState: @atomicTaroView.serialize()
 
-
-  toggle() {
+  toggle: ->
     console.log 'AtomicTaro was toggled!'
+
     if @modalPanel.isVisible()
       @modalPanel.hide()
     else
