@@ -8,11 +8,12 @@
   "activationCommands": {
     "atom-workspace": "atomic-taro:toggle"
   },
-  "repository": "https://github.com/atom/atomic-taro",
+  "repository": "https://github.com/mkery/AtomicTaro",
   "license": "MIT",
   "engines": {
     "atom": ">=1.0.0 <2.0.0"
   },
   "dependencies": {
+    "atom-space-pen-views": "^2.0.0"
   }
 }
