@@ -1,0 +1,26 @@
+{
+  "context-menu": {
+    "atom-text-editor": [
+      {
+        "label": "Toggle atomic-taro",
+        "command": "atomic-taro:toggle"
+      }
+    ]
+  },
+  "menu": [
+    {
+      "label": "Packages",
+      "submenu": [
+        {
+          "label": "atomic-taro",
+          "submenu": [
+            {
+              "label": "Toggle",
+              "command": "atomic-taro:toggle"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
