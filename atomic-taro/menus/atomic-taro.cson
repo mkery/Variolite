@@ -3,7 +3,7 @@
   'atom-text-editor': [
     {
       'label': 'Toggle atomic-taro'
-      'command': 'atomic-taro:toggle'
+      'command': 'atomic-taro:open'
     }
   ]
 'menu': [
@@ -14,7 +14,7 @@
       'submenu': [
         {
           'label': 'Toggle'
-          'command': 'atomic-taro:toggle'
+          'command': 'atomic-taro:open'
         }
       ]
     ]

@@ -6,7 +6,7 @@
   "keywords": [
   ],
   "activationCommands": {
-    "atom-workspace": "atomic-taro:toggle"
+    "atom-workspace": "atomic-taro:open"
   },
   "repository": "https://github.com/atom/atomic-taro",
   "license": "MIT",
@@ -14,5 +14,6 @@
     "atom": ">=1.0.0 <2.0.0"
   },
   "dependencies": {
+    "atom-space-pen-views": "^2.0.0"
   }
 }
