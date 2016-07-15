@@ -21,9 +21,11 @@ class AtomicTaroView
     $(block_pane).disableSelection()
     @element.appendChild(block_pane)
     segs = segmenter.getSegments()
+    #chunk = segs[0]
     (@addQuestionBox(chunk.code
                      chunk.title
                      block_pane)) for chunk in segs
+    @addJqueryListeners()
 
   getTitle: -> 'ExploratoryView'
 
@@ -48,44 +50,15 @@ class AtomicTaroView
     @element.appendChild(new_box)
 
   addQuestionBox: (codeText, codeTitle, block_pane) ->
+      #container for entire block
       blockDiv = document.createElement('div')
       blockDiv.classList.add('atomic-taro_editor-box')
+      #container for header information like title, meta-data
       headerContainer = document.createElement('div')
       headerContainer.classList.add('atomic-taro_editor-box')
-      boxHeader = document.createElement("div")
-      boxHeader.classList.add('atomic-taro_editor-header')
-      boxHeader.innerHTML = codeTitle
-
-      $ -> $('.atomic-taro_editor-header').on 'click', (ev) ->
-        ev.stopPropagation()
-        name = $(this).text()
-        $(this).html('')
-        $('<input></input').attr({
-              'type': 'text',
-              'name': 'fname',
-              'class': 'txt_sectionname',
-              'size': '30',
-              'value': name
-          }).appendTo(this)
-        $('.txt_sectionname').focus()
-
-      $(@element).on 'blur', '.txt_sectionname', ->
-        name = $(this).val()
-        if /\S/.test(name)
-          $(this).parent().text(name)
-        else
-          $(this).parent().text("No title")
-
-      $ -> $('.atomic-taro_editor-header').on 'keyup', (e) ->
-        if(e.keyCode == 13)
-          name = $(this).children(".txt_sectionname").val() #$('#txt_sectionname').val()
-          if /\S/.test(name)
-            $(this).text(name)
-          else
-            $(this).text("No title")
-
-      headerContainer.appendChild(boxHeader)
+      @addQuestionBox_header(codeTitle, headerContainer)
       blockDiv.appendChild(headerContainer)
+      #container for code editor
       editorContainer = document.createElement('div')
       editorContainer.classList.add('atomic-taro_editor-box')
       te = document.createElement('atom-text-editor')
@@ -93,6 +66,46 @@ class AtomicTaroView
       model_editor.insertText(codeText)
       editorContainer.appendChild(te)
       blockDiv.appendChild(editorContainer)
+      #make block expand/minimize by clicking on the header
       $(headerContainer).click ->
          $(editorContainer).slideToggle('slow')
+      #finally, add to window container for all blocks
       block_pane.appendChild(blockDiv)
+
+    addQuestionBox_header: (codeTitle, headerContainer) ->
+      boxHeader = document.createElement("div")
+      boxHeader.classList.add('atomic-taro_editor-header')
+      $(boxHeader).text(codeTitle)
+      headerContainer.appendChild(boxHeader)
+
+    addJqueryListeners: ->
+      #--------------make header title editable
+      $ -> $('.atomic-taro_editor-header').on 'click', (ev) ->
+        ev.stopPropagation()
+        if $(this).children().length == 0
+          name = $(this).text()
+          $(this).data("section-title", String(name))
+          $(this).html('')
+          $('<input></input').attr({
+                'type': 'text',
+                'name': 'fname',
+                'class': 'txt_sectionname',
+                'size': '30',
+                'value': name
+            }).appendTo(this)
+          $('.txt_sectionname').focus()
+      #--------------make header title editable cont'
+      $(@element).on 'blur', '.txt_sectionname', ->
+        name = $(this).val()
+        if /\S/.test(name)
+          $(this).parent().text(name)
+        else
+          $(this).text($(this).data("section-title"))
+      #--------------make header title editable cont'
+      $ -> $('.atomic-taro_editor-header').on 'keyup', (e) ->
+        if(e.keyCode == 13)
+          name = $(this).children(".txt_sectionname").val() #$('#txt_sectionname').val()
+          if /\S/.test(name)
+            $(this).text(name)
+          else
+            $(this).text($(this).data("section-title"))
