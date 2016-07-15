@@ -21,9 +21,10 @@ class AtomicTaroView
     $(block_pane).disableSelection()
     @element.appendChild(block_pane)
     segs = segmenter.getSegments()
+    chunk = segs[0]
     (@addQuestionBox(chunk.code
                      chunk.title
-                     block_pane)) for chunk in segs
+                     block_pane)) #for chunk in segs
 
   getTitle: -> 'ExploratoryView'
 
@@ -50,8 +51,25 @@ class AtomicTaroView
   addQuestionBox: (codeText, codeTitle, block_pane) ->
       accordian = document.createElement('div')
       accordian.classList.add('atomic-taro_editor-box')
-      boxHeader = document.createElement("h3")
+      boxHeader = document.createElement("div")
+      boxHeader.id = 'boxHeader'
       boxHeader.innerHTML = codeTitle
+      $ -> $('#boxHeader').click ->
+        name = $(this).text()
+        $(this).html('')
+        $('<input></input>').attr({
+              'type': 'text',
+              'name': 'fname',
+              'id': 'txt_sectionname',
+              'size': '30',
+              'value': name
+          }).appendTo('#boxHeader')
+        $('#txt_sectionname').focus()
+
+      $(@element).on 'blur', '#txt_sectionname', ->
+        name = $(this).val()
+        $('#boxHeader').text(name)
+
       #boxHeader.classList.add('atomic-taro_editor-box-header')
       accordian.appendChild(boxHeader)
       editorContainer = document.createElement('div')
@@ -61,6 +79,6 @@ class AtomicTaroView
       model_editor.insertText(codeText)
       editorContainer.appendChild(te)
       accordian.appendChild(editorContainer)
-      $(accordian).click ->
-         $(editorContainer).slideToggle('slow')
+      '''$(accordian).click ->
+         $(editorContainer).slideToggle('slow')'''
       block_pane.appendChild(accordian)
