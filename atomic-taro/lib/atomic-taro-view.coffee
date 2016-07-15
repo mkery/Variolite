@@ -21,10 +21,9 @@ class AtomicTaroView
     $(block_pane).disableSelection()
     @element.appendChild(block_pane)
     segs = segmenter.getSegments()
-    chunk = segs[0]
     (@addQuestionBox(chunk.code
                      chunk.title
-                     block_pane)) #for chunk in segs
+                     block_pane)) for chunk in segs
 
   getTitle: -> 'ExploratoryView'
 
@@ -49,36 +48,51 @@ class AtomicTaroView
     @element.appendChild(new_box)
 
   addQuestionBox: (codeText, codeTitle, block_pane) ->
-      accordian = document.createElement('div')
-      accordian.classList.add('atomic-taro_editor-box')
+      blockDiv = document.createElement('div')
+      blockDiv.classList.add('atomic-taro_editor-box')
+      headerContainer = document.createElement('div')
+      headerContainer.classList.add('atomic-taro_editor-box')
       boxHeader = document.createElement("div")
-      boxHeader.id = 'boxHeader'
+      boxHeader.classList.add('atomic-taro_editor-header')
       boxHeader.innerHTML = codeTitle
-      $ -> $('#boxHeader').click ->
+
+      $ -> $('.atomic-taro_editor-header').on 'click', (ev) ->
+        ev.stopPropagation()
         name = $(this).text()
         $(this).html('')
-        $('<input></input>').attr({
+        $('<input></input').attr({
               'type': 'text',
               'name': 'fname',
-              'id': 'txt_sectionname',
+              'class': 'txt_sectionname',
               'size': '30',
               'value': name
-          }).appendTo('#boxHeader')
-        $('#txt_sectionname').focus()
+          }).appendTo(this)
+        $('.txt_sectionname').focus()
 
-      $(@element).on 'blur', '#txt_sectionname', ->
+      $(@element).on 'blur', '.txt_sectionname', ->
         name = $(this).val()
-        $('#boxHeader').text(name)
+        if /\S/.test(name)
+          $(this).parent().text(name)
+        else
+          $(this).parent().text("No title")
 
-      #boxHeader.classList.add('atomic-taro_editor-box-header')
-      accordian.appendChild(boxHeader)
+      $ -> $('.atomic-taro_editor-header').on 'keyup', (e) ->
+        if(e.keyCode == 13)
+          name = $(this).children(".txt_sectionname").val() #$('#txt_sectionname').val()
+          if /\S/.test(name)
+            $(this).text(name)
+          else
+            $(this).text("No title")
+
+      headerContainer.appendChild(boxHeader)
+      blockDiv.appendChild(headerContainer)
       editorContainer = document.createElement('div')
       editorContainer.classList.add('atomic-taro_editor-box')
       te = document.createElement('atom-text-editor')
       model_editor = te.getModel()
       model_editor.insertText(codeText)
       editorContainer.appendChild(te)
-      accordian.appendChild(editorContainer)
-      '''$(accordian).click ->
-         $(editorContainer).slideToggle('slow')'''
-      block_pane.appendChild(accordian)
+      blockDiv.appendChild(editorContainer)
+      $(headerContainer).click ->
+         $(editorContainer).slideToggle('slow')
+      block_pane.appendChild(blockDiv)
