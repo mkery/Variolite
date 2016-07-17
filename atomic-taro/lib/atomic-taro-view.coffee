@@ -17,7 +17,7 @@ class AtomicTaroView
     @addHeaderBox(header)
     block_pane = document.createElement('div')
     block_pane.classList.add('atomic-taro_block-pane')
-    $(block_pane).sortable()
+    $(block_pane).sortable()#(items: '> .atomic-taro_editor-box, :not(.atomic-taro_editor-textEditor-box)', axis: 'y')
     $(block_pane).disableSelection()
     @element.appendChild(block_pane)
     segs = segmenter.getSegments()
@@ -55,12 +55,12 @@ class AtomicTaroView
       blockDiv.classList.add('atomic-taro_editor-box')
       #container for header information like title, meta-data
       headerContainer = document.createElement('div')
-      headerContainer.classList.add('atomic-taro_editor-box')
+      headerContainer.classList.add('atomic-taro_editor-header-box')
       @addQuestionBox_header(codeTitle, headerContainer)
       blockDiv.appendChild(headerContainer)
       #container for code editor
       editorContainer = document.createElement('div')
-      editorContainer.classList.add('atomic-taro_editor-box')
+      editorContainer.classList.add('atomic-taro_editor-textEditor-box')
       te = document.createElement('atom-text-editor')
       model_editor = te.getModel()
       model_editor.insertText(codeText)
@@ -79,6 +79,10 @@ class AtomicTaroView
       headerContainer.appendChild(boxHeader)
 
     addJqueryListeners: ->
+      #----this prevents dragging the whole block from the code editor section
+      $ -> $('.atomic-taro_editor-textEditor-box').on 'mousedown', (ev) ->
+        ev.stopPropagation()
+
       #--------------make header title editable
       $ -> $('.atomic-taro_editor-header').on 'click', (ev) ->
         ev.stopPropagation()
