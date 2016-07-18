@@ -7,6 +7,17 @@
 .atomic-taro {
 }
 
+.atomic-taro_pane {
+  overflow: scroll;
+  overflow-y: scroll;
+}
+
+atom-text-editor, /* 1 */
+:host {
+  color: @syntax-text-color;
+  background-color: @syntax-background-color;
+}
+
 .atomic-taro_editor-box{
     margin: 0px;
     border: 1px solid @mono-3;

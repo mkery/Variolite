@@ -2,12 +2,17 @@ global.jQuery = global.$ = require 'jquery'
 require 'jquery-ui-browserify'
 #$ = jQuery = require 'jquery'
 #window.jQueryUI = require 'jquery-ui'
+{TextBuffer} = require 'atom'
+{ScrollView} = require 'atom-space-pen-views'
 CodeSegmenter = require './code-segmenter'
+SegmentedBuffer = require './segmented-buffer'
 
 module.exports =
-class AtomicTaroView
+class AtomicTaroView extends ScrollView
+  @plainCodeEditor
 
   constructor: (plainCodeEditor, {@fpath, @protocol}) ->
+    @plainCodeEditor = plainCodeEditor
     console.log "creating new exploratory editor"
     #root element
     @element = document.createElement('div')
@@ -61,9 +66,18 @@ class AtomicTaroView
       #container for code editor
       editorContainer = document.createElement('div')
       editorContainer.classList.add('atomic-taro_editor-textEditor-box')
-      te = document.createElement('atom-text-editor')
-      model_editor = te.getModel()
-      model_editor.insertText(codeText)
+      model_editor = atom.workspace.buildTextEditor(buffer: new SegmentedBuffer(filePath: @plainCodeEditor.getPath()))
+      te = model_editor.getElement()
+      #te = document.createElement('atom-text-editor')
+      #te.setAttribute('data-grammar', atom.grammars.grammarForScopeName("source.py"))
+      #model_editor = te.getModel()
+      #grammar = atom.grammars.grammarForScopeName("source.py")
+      #model_editor.setGrammar(grammar)
+      #console.log grammar
+      #model_editor.insertText(codeText)
+      console.log @plainCodeEditor.getPath()
+      #model_editor.getBuffer().setPath(@plainCodeEditor.getPath())
+      console.log model_editor
       editorContainer.appendChild(te)
       blockDiv.appendChild(editorContainer)
       #make block expand/minimize by clicking on the header
