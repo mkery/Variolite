@@ -61,7 +61,7 @@ class AtomicTaroView extends ScrollView
     new_box.appendChild(te)
     @element.appendChild(new_box)
 
-  addQuestionBox: (codeText, codeTitle, block_pane) ->
+  addQuestionBox: (model_editor, codeTitle, block_pane) ->
       #container for entire block
       blockDiv = document.createElement('div')
       blockDiv.classList.add('atomic-taro_editor-box')
@@ -74,7 +74,7 @@ class AtomicTaroView extends ScrollView
       editorContainer = document.createElement('div')
       editorContainer.classList.add('atomic-taro_editor-textEditor-box')
       # create an editor element
-      model_editor = atom.workspace.buildTextEditor(buffer: new SegmentedBuffer(text: codeText), grammar: atom.grammars.selectGrammar("file.py"))#filePath: @plainCodeEditor.getPath()))
+      #model_editor = atom.workspace.buildTextEditor(buffer: new SegmentedBuffer(text: codeText), grammar: atom.grammars.selectGrammar("file.py"))#filePath: @plainCodeEditor.getPath()))
       te = model_editor.getElement()
       editorContainer.appendChild(te)
       blockDiv.appendChild(editorContainer)
