@@ -8,17 +8,20 @@ module.exports = AtomicTaro =
   modalPanel: null
   subscriptions: null
   plainCodeEditor: null #probably needs refactoring, keep track of prev pane (python file)
-  #toggleFlag: null # to keep newly opened files from triggering this package
 
   activate: (state) ->
-    #default constructor# @atomicTaroView = new AtomicTaroView(state.atomicTaroViewState)
-    #@modalPanel = atom.workspace.addModalPanel(item: @atomicTaroView.getElement(), visible: false)
 
     # Events subscribed to in atom's system can be easily cleaned up with a CompositeDisposable
     @subscriptions = new CompositeDisposable
 
     # Register command that toggles this view
     @subscriptions.add atom.commands.add 'atom-workspace', 'atomic-taro:open': => @open()
+
+    '''
+    We set up an opener such that if the user
+    opens our package while on a python file, it
+    will open our exploratory view of that python file.
+    '''
     atom.workspace.addOpener (uriToOpen, plainCodeEditor) ->
       try
         {protocol, host, pathname} = url.parse(uriToOpen)
@@ -45,15 +48,10 @@ module.exports = AtomicTaro =
     atomicTaroViewState: @atomicTaroView?.serialize()
 
   open: ->
-    console.log 'AtomicTaro was toggled!'
     @addTaroView()
-    '''
-    if @modalPanel.isVisible()
-      @modalPanel.hide()
-    else
-      @modalPanel.show()
-    '''
+
   addTaroView: ->
+    # check if the current file is a python file
     uri = 'tarotaro://file'+atom.workspace.getActiveTextEditor().getPath()
     if uri? and path.extname(uri) is '.py'
       previousActivePane = atom.workspace.getActivePane()

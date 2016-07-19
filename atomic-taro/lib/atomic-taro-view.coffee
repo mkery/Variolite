@@ -1,7 +1,9 @@
+# The following two set up jquery and jquery-ui (it will only work in
+# this browserify version, probably because Atom itself is not a browser)
+# If these do not work, install them locally using npm
 global.jQuery = global.$ = require 'jquery'
 require 'jquery-ui-browserify'
-#$ = jQuery = require 'jquery'
-#window.jQueryUI = require 'jquery-ui'
+
 {TextBuffer} = require 'atom'
 {ScrollView} = require 'atom-space-pen-views'
 CodeSegmenter = require './code-segmenter'
@@ -9,29 +11,33 @@ SegmentedBuffer = require './segmented-buffer'
 
 module.exports =
 class AtomicTaroView extends ScrollView
-  @plainCodeEditor
 
   constructor: (plainCodeEditor, {@fpath, @protocol}) ->
-    @plainCodeEditor = plainCodeEditor
-    console.log "creating new exploratory editor"
+    # plainCodeEditor is the user's original python file
+    plainCodeEditor = plainCodeEditor
+
     #root element
     @element = document.createElement('div')
     @element.classList.add('atomic-taro_pane')
-    segmenter = new CodeSegmenter plainCodeEditor.getText()
+    # chunk the original code into segments
+    segmenter = new CodeSegmenter plainCodeEditor
+    # the header is the code that occurs at the top of the file,
+    # outside of segment boxes
     header = segmenter.getHeader()
     @addHeaderBox(header)
+    # root container for segment boxes
     block_pane = document.createElement('div')
     block_pane.classList.add('atomic-taro_block-pane')
-    $(block_pane).sortable()#(items: '> .atomic-taro_editor-box, :not(.atomic-taro_editor-textEditor-box)', axis: 'y')
+    $(block_pane).sortable({ axis: 'y' }) # < this allows blocks to be re-arranged
     $(block_pane).disableSelection()
     @element.appendChild(block_pane)
     segs = segmenter.getSegments()
-    #chunk = segs[0]
     (@addQuestionBox(chunk.code
                      chunk.title
                      block_pane)) for chunk in segs
     @addJqueryListeners()
 
+  # This is the title that shows up on the tab
   getTitle: -> 'ExploratoryView'
 
   # Returns an object that can be retrieved when package is activated
@@ -41,6 +47,7 @@ class AtomicTaroView extends ScrollView
   # Tear down any state and detach
   destroy: ->
     @element.remove()
+
 
   getElement: ->
     @element
@@ -66,12 +73,11 @@ class AtomicTaroView extends ScrollView
       #container for code editor
       editorContainer = document.createElement('div')
       editorContainer.classList.add('atomic-taro_editor-textEditor-box')
+      # create an editor element
       model_editor = atom.workspace.buildTextEditor(buffer: new SegmentedBuffer(text: codeText), grammar: atom.grammars.selectGrammar("file.py"))#filePath: @plainCodeEditor.getPath()))
       te = model_editor.getElement()
-      
       editorContainer.appendChild(te)
       blockDiv.appendChild(editorContainer)
-      #make block expand/minimize by clicking on the header
       $(headerContainer).click ->
          $(editorContainer).slideToggle('slow')
       #finally, add to window container for all blocks
