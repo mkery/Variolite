@@ -84,18 +84,38 @@ class AtomicTaroView extends ScrollView
       block_pane.appendChild(blockDiv)
 
     addQuestionBox_header: (codeTitle, headerContainer) ->
+      nameContainer = document.createElement("div")
+      nameContainer.classList.add('atomic-taro_editor-header-name-container')
       boxHeader = document.createElement("div")
       boxHeader.classList.add('atomic-taro_editor-header')
       $(boxHeader).text(codeTitle)
-      headerContainer.appendChild(boxHeader)
+      nameContainer.appendChild(boxHeader)
+      #add placeholder for data
+      dateHeader = document.createElement("div")
+      $(dateHeader).text("7/16/19 7:04pm")
+      dateHeader.classList.add('atomic-taro_editor-header-date')
+      nameContainer.appendChild(dateHeader)
+      headerContainer.appendChild(nameContainer)
+      #add placeholders for versions and output
+      outputBox = document.createElement("div")
+      outputBox.classList.add('atomic-taro_editor-header-buttons')
+      $(outputBox).text("in/output")
+      headerContainer.appendChild(outputBox)
+      variantsBox = document.createElement("div")
+      variantsBox.classList.add('atomic-taro_editor-header-buttons')
+      $(variantsBox).text("variants")
+      headerContainer.appendChild(variantsBox)
 
     addJqueryListeners: ->
+      $ -> $('.atomic-taro_editor-header-buttons').each ->
+        $(this).css('min-height', $('.atomic-taro_editor-header-box').outerHeight() - 2)
+
       #----this prevents dragging the whole block from the code editor section
       $ -> $('.atomic-taro_editor-textEditor-box').on 'mousedown', (ev) ->
         ev.stopPropagation()
 
       #--------------make header title editable
-      $ -> $('.atomic-taro_editor-header').on 'click', (ev) ->
+      $ -> $('.atomic-taro_editor-header-name').on 'click', (ev) ->
         ev.stopPropagation()
         if $(this).children().length == 0
           name = $(this).text()
@@ -117,8 +137,8 @@ class AtomicTaroView extends ScrollView
         else
           $(this).text($(this).data("section-title"))
       #--------------make header title editable cont'
-      $ -> $('.atomic-taro_editor-header').on 'keyup', (e) ->
-        if(e.keyCode == 13)
+      $ -> $('.atomic-taro_editor-header-name').on 'keyup', (e) ->
+        if(e.keyCode == 13)# enter key
           name = $(this).children(".txt_sectionname").val() #$('#txt_sectionname').val()
           if /\S/.test(name)
             $(this).text(name)

@@ -3,6 +3,7 @@
 // See https://github.com/atom/atom-dark-ui/blob/master/styles/ui-variables.less
 // for a full listing of what's available.
 @import "ui-variables";
+@import "syntax-variables";
 
 .atomic-taro {
 }
@@ -23,22 +24,42 @@ atom-text-editor, /* 1 */
   //  border: 1px solid @mono-3;
 }
 
+.atomic-taro_editor-header-name-container{
+  display: inline-block;
+  margin-left: 5px;
+}
+
 .atomic-taro_editor-header-box{
   font-family: Inconsolata, Monaco, Consolas, 'Courier New', Courier;
+  font-size: @font-size;
   background-color: @syntax-background-color;
   margin: 0px;
-  border: 1px solid @mono-3;
+  border: 1px solid @syntax-selection-color;//@mono-3;
 }
+.atomic-taro_editor-header-box:hover{ border: 1px solid @mono-2; }
 
-.atomic-taro_editor-header-container{
-    margin-top: 5px;
-    margin-bottom: 5px;
-    border: 1px solid @mono-3;
-}
-
-.atomic-taro_editor-header{
-  padding-bottom: 10px;
-  padding-left: 2px;
-  margin-bottom: 5px;
+.atomic-taro_editor-header-name{
+  padding-bottom: 1px;
+  margin-bottom: 2px;
+  padding-top: 1px;
   display: inline-block;
 }
+
+.atomic-taro_editor-header-date{
+  display: block;
+  //float: left;
+  color: @mono-3;//comment color
+}
+
+.atomic-taro_editor-header-buttons{
+  display: inline-block;
+  float: right;
+  text-align: center;
+  padding-left: 10px;
+  padding-right: 10px;
+  margin: 0px;
+  vertical-align: middle;
+  border: 1px solid @syntax-selection-color;
+  color: @syntax-selection-color;
+}
+.atomic-taro_editor-header-buttons:hover{ color: @hue-1; border: 1px solid @hue-1;}
