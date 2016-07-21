@@ -15,10 +15,10 @@ class AtomicTaroView extends ScrollView
   constructor: (plainCodeEditor, {@fpath, @protocol}) ->
     # plainCodeEditor is the user's original python file
     plainCodeEditor = plainCodeEditor
-
     #root element
     @element = document.createElement('div')
-    @element.classList.add('atomic-taro_pane')
+    @element.classList.add('atomic-taro_pane')#, 'scroll-view')
+
     # chunk the original code into segments
     segmenter = new CodeSegmenter plainCodeEditor
     # the header is the code that occurs at the top of the file,
@@ -87,7 +87,7 @@ class AtomicTaroView extends ScrollView
       nameContainer = document.createElement("div")
       nameContainer.classList.add('atomic-taro_editor-header-name-container')
       boxHeader = document.createElement("div")
-      boxHeader.classList.add('atomic-taro_editor-header')
+      boxHeader.classList.add('atomic-taro_editor-header-name')
       $(boxHeader).text(codeTitle)
       nameContainer.appendChild(boxHeader)
       #add placeholder for data
@@ -105,8 +105,29 @@ class AtomicTaroView extends ScrollView
       variantsBox.classList.add('atomic-taro_editor-header-buttons')
       $(variantsBox).text("variants")
       headerContainer.appendChild(variantsBox)
+      pin = document.createElement("span")
+      pin.classList.add('icon-pin', 'pinButton')
+      headerContainer.appendChild(pin)
 
     addJqueryListeners: ->
+      $ -> $( @element).scroll ->
+        console.log "scrolled!"
+        pinned = $('.atomic-taro_editor-header-box.pinned')
+        console.log(pinned+" pinned!")
+        scroll = $(@element).scrollTop()
+
+        if scroll >= 100
+          pinned.addClass('frozen-top')
+        else sticky.removeClass('frozen-top')
+
+      #----click the pin button
+      $ -> $('.icon-pin').on 'click', (ev) ->
+        $(this).toggleClass('clicked')
+        console.log $(this).position().top+"  position!"
+        $(this).parent().toggleClass('pinned')
+        ev.stopPropagation()
+
+      #----sets header buttons to the full height of the header
       $ -> $('.atomic-taro_editor-header-buttons').each ->
         $(this).css('min-height', $('.atomic-taro_editor-header-box').outerHeight() - 2)
 
@@ -116,6 +137,7 @@ class AtomicTaroView extends ScrollView
 
       #--------------make header title editable
       $ -> $('.atomic-taro_editor-header-name').on 'click', (ev) ->
+        console.log("title clicked!")
         ev.stopPropagation()
         if $(this).children().length == 0
           name = $(this).text()
@@ -129,6 +151,7 @@ class AtomicTaroView extends ScrollView
                 'value': name
             }).appendTo(this)
           $('.txt_sectionname').focus()
+          $('.txt_sectionname').addClass('native-key-bindings')
       #--------------make header title editable cont'
       $(@element).on 'blur', '.txt_sectionname', ->
         name = $(this).val()

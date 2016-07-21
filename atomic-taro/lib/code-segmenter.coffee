@@ -14,7 +14,7 @@ class CodeSegmenter
     chunks = sourceText.split "#ʕ•ᴥ•ʔ"
     @header = chunks[0]
     for i in [1...chunks.length-1] by 2
-      model_editor = atom.workspace.buildTextEditor(buffer: new SegmentedBuffer(text: chunks[i+1]), grammar: atom.grammars.selectGrammar("file.py"))
+      model_editor = atom.workspace.buildTextEditor(buffer: new SegmentedBuffer(text: chunks[i+1]), grammar: atom.grammars.selectGrammar("file.py"),  scrollPastEnd: false)
       text_buffer = model_editor.getBuffer()
       @segments.push {title: chunks[i], code: model_editor}
       text_buffer.onDidChange (e) =>
