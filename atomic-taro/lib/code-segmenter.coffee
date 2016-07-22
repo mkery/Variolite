@@ -1,5 +1,5 @@
 SegmentedBuffer = require './segmented-buffer'
-{Point, Range} = require 'atom'
+{Point, Range, TextBuffer} = require 'atom'
 
 module.exports =
 class CodeSegmenter
@@ -29,7 +29,7 @@ class CodeSegmenter
       header_marker = @sourceEditor.markBufferRange(range: header_range)
       header_text = @sourceEditor.getTextInBufferRange(header_range)
       console.log "header text! "+header_text+" and range "+header_range.start+"  old"+range.start
-      header_editor = atom.workspace.buildTextEditor(buffer: new SegmentedBuffer(text: header_text), grammar: atom.grammars.selectGrammar("file.py"),  scrollPastEnd: false)
+      header_editor = atom.workspace.buildTextEditor(buffer: new TextBuffer(text: header_text), grammar: atom.grammars.selectGrammar("file.py"),  scrollPastEnd: false)
       header_buffer = header_editor.getBuffer()
       @addMiniBufferChangeListener(header_buffer, @sourceBuffer)
       @header = {marker: header_marker, buffer: header_buffer, editor: header_editor}
@@ -39,7 +39,7 @@ class CodeSegmenter
     chunks = segmentText.split "ʔ"
     #console.log "chuncks "+chunks
     #for each segment, create a new mini code editor
-    model_editor = atom.workspace.buildTextEditor(buffer: new SegmentedBuffer(text: chunks[1]), grammar: atom.grammars.selectGrammar("file.py"),  scrollPastEnd: false)
+    model_editor = atom.workspace.buildTextEditor(buffer: new TextBuffer(text: chunks[1]), grammar: atom.grammars.selectGrammar("file.py"),  scrollPastEnd: false)
     #get a text buffer for that segment
     text_buffer = model_editor.getBuffer()
     #add all segments to a dictionary for later access
@@ -62,9 +62,11 @@ class CodeSegmenter
   addMiniBufferChangeListener: (mini_buffer, source_buffer) ->
     mini_buffer.onDidChange (e) =>
       console.log "modified! --"+ e.oldText+"   ++"+ e.newText+" range: "+e.oldRange+" "+e.newRange
+      range = e.oldRange
+
       if(e.newText)
         console.log "attempting to link edit"
         source_buffer.insert(e.oldRange.start, e.newText)
       else if(e.oldText)
         console.log "attempting to link delete"
-        source_buffer.delete(new Range([0, 1], [2, 3]))#e.oldRange)
+        source_buffer.delete(new Range(e.oldRange.start, new Point(e.oldRange.end.row, e.oldRange.end.column + 1)))
