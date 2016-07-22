@@ -7,7 +7,6 @@ require 'jquery-ui-browserify'
 {TextBuffer} = require 'atom'
 {ScrollView} = require 'atom-space-pen-views'
 CodeSegmenter = require './code-segmenter'
-SegmentedBuffer = require './segmented-buffer'
 
 module.exports =
 class AtomicTaroView extends ScrollView
@@ -32,8 +31,8 @@ class AtomicTaroView extends ScrollView
     $(block_pane).disableSelection()
     @element.appendChild(block_pane)
     segs = segmenter.getSegments()
-    (@addQuestionBox(chunk.code
-                     chunk.title
+    (@addQuestionBox(chunk.getEditor()
+                     chunk.getTitle()
                      block_pane)) for chunk in segs
     @addJqueryListeners()
 
@@ -55,7 +54,7 @@ class AtomicTaroView extends ScrollView
   addHeaderBox: (header) ->
     new_box = document.createElement('div')
     #new_box.classList.add('atomic-taro_header-box')
-    model_editor = header.editor
+    model_editor = header.getEditor()
     te = model_editor.getElement()
     new_box.appendChild(te)
     @element.appendChild(new_box)
