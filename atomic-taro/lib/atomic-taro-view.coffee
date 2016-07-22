@@ -52,12 +52,11 @@ class AtomicTaroView extends ScrollView
   getElement: ->
     @element
 
-  addHeaderBox: (codeText) ->
+  addHeaderBox: (header) ->
     new_box = document.createElement('div')
     #new_box.classList.add('atomic-taro_header-box')
-    model_editor = atom.workspace.buildTextEditor(grammar: atom.grammars.selectGrammar("file.py"))#filePath: @plainCodeEditor.getPath()))
+    model_editor = header.editor
     te = model_editor.getElement()
-    model_editor.insertText(codeText)
     new_box.appendChild(te)
     @element.appendChild(new_box)
 
@@ -110,20 +109,21 @@ class AtomicTaroView extends ScrollView
       headerContainer.appendChild(pin)
 
     addJqueryListeners: ->
-      $ -> $( @element).scroll ->
-        console.log "scrolled!"
-        pinned = $('.atomic-taro_editor-header-box.pinned')
-        console.log(pinned+" pinned!")
-        scroll = $(@element).scrollTop()
-
-        if scroll >= 100
-          pinned.addClass('frozen-top')
-        else sticky.removeClass('frozen-top')
-
+      '''$(@element).on 'scroll', ->
+        #console.log "scrolled!"
+        pinned = $('.pinned')
+        if pinned.length > 0
+          pane = atom.workspace.getActivePane()
+          paneElement = atom.views.getView(pane)
+          #console.log($('.pinned').html()+" pinned! scroll top "+$(@element).scrollTop())
+          if pinned.position().top <=1
+            paneElement.appendChild(pinned)
+            #atom.workspace.addTopPanel(item: pinned, visible: true, priority: 10000000000)
+      '''
       #----click the pin button
       $ -> $('.icon-pin').on 'click', (ev) ->
         $(this).toggleClass('clicked')
-        console.log $(this).position().top+"  position!"
+        #console.log $(this).position().top+"  position!"
         $(this).parent().toggleClass('pinned')
         ev.stopPropagation()
 
