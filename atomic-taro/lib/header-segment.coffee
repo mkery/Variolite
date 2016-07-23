@@ -2,7 +2,7 @@
 Segment = require './segment'
 
 '''
-Represents model for a single shared function block.
+Represents the model of a Header Segment.
 '''
 module.exports =
-class SharedFunctionSegment extends Segment
+class HeaderSegment extends Segment

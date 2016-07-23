@@ -1,6 +1,8 @@
 {Point, Range, TextBuffer} = require 'atom'
 
-
+'''
+Represents a single segment of exploratory code.
+'''
 module.exports =
 class Segment
   editor: null
