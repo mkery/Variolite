@@ -3,6 +3,7 @@ AtomicTaroView = require './atomic-taro-view'
 url = require 'url'
 path = require 'path'
 
+#@todo @atomicTaroView isn't really keeping track of anything
 module.exports = AtomicTaro =
   atomicTaroView: null
   modalPanel: null
@@ -17,7 +18,12 @@ module.exports = AtomicTaro =
     # Register command that toggles this view
     # todo: find css selector for textBuffer so we can append the right click menu option there as well
     @subscriptions.add atom.commands.add 'atom-workspace', 'atomic-taro:open': => @open()
+
     @subscriptions.add atom.commands.add 'atom-workspace', 'atomic-taro:tarocopy': => @tarocopy()
+
+    @subscriptions.add atom.commands.add 'atom-workspace', 'core:save', (e) =>
+      @handleSaveEvent(e)
+
 
     '''
     We set up an opener such that if the user
@@ -38,7 +44,6 @@ module.exports = AtomicTaro =
       catch error
         return
       new AtomicTaroView plainCodeEditor, fpath: pathname, protocol
-      #if path.extname(uri) is '.py'
 
   deactivate: ->
     @modalPanel.destroy()
@@ -46,7 +51,7 @@ module.exports = AtomicTaro =
     @atomicTaroView.destroy()
 
   serialize: ->
-    atomicTaroViewState: @atomicTaroView?.serialize()
+    #atomicTaroViewState: @atomicTaroView?.serialize()
 
   tarocopy: ->
     console.log "we copied"
@@ -60,5 +65,15 @@ module.exports = AtomicTaro =
     if uri? and path.extname(uri) is '.py'
       previousActivePane = atom.workspace.getActivePane()
       plainCodeEditor = atom.workspace.getActiveTextEditor()
-      atom.workspace.open(uri, plainCodeEditor, split: 'right', searchAllPanes: true).done (view) ->
-          previousActivePane.activate()
+      atom.workspace.open(uri, plainCodeEditor, split: 'right', searchAllPanes: true)#.done (view) ->
+          #previousActivePane.activate()
+
+
+  getAtomicTaroView: ->
+    @atomicTaroView
+
+  handleSaveEvent: (e) ->
+    editor = atom.workspace.getActivePaneItem()
+    if editor instanceof AtomicTaroView
+        @atomicTaroView = editor
+        @atomicTaroView.saveSegments(e)

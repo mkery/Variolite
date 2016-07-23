@@ -1,13 +1,15 @@
 import os
 import maps
 
-#ʕ•ᴥ•ʔShared Functionsʔ
-def printShared():
-    print "sh"
+
+#ʕ•ᴥ•ʔ%Shared Functionsʔ
+def printShared(x):
+    print "shared"
+
 #ʕ•ᴥ•ʔ
 
 #ʕ•ᴥ•ʔBox 1ʔ
-def box1():
+def box1(x):
     print "box 1"
 #ʕ•ᴥ•ʔ
 
