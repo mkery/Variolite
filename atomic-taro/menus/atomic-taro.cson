@@ -5,7 +5,11 @@
       'label': 'Toggle atomic-taro'
       'command': 'atomic-taro:open'
     }
-  ]
+    {
+      'label': 'Copy Block'
+      'command': 'atomic-taro:tarocopy'
+    }
+]
 'menu': [
   {
     'label': 'Packages'

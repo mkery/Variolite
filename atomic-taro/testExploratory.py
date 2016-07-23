@@ -3,7 +3,7 @@ import maps
 
 #ʕ•ᴥ•ʔShared Functionsʔ
 def printShared():
-    print "shared"
+    print "sh"
 #ʕ•ᴥ•ʔ
 
 #ʕ•ᴥ•ʔBox 1ʔ
