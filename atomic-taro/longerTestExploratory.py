@@ -9,7 +9,7 @@ from parse import *
 inFile = sys.argv[1]
 outFile = sys.argv[2]
 
-#ʕ•ᴥ•ʔShared Functionsʔ
+#ʕ•ᴥ•ʔ%Shared Functionsʔ
 #sort by: if I have catch blocks of size n + kind, how many catch blocks that are of length N and do kind
 # are there
 def sortByQuestion(statement_N, kind_N, blk):

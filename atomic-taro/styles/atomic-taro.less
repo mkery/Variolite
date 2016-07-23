@@ -38,9 +38,9 @@ atom-text-editor, /* 1 */
 }
 .atomic-taro_editor-header-box:hover{ border: 1px solid @mono-2; }
 .atomic-taro_editor-header-box.pinned{
-  position: absolute;
-  top: 0px;
-  left: 0px;
+  position:fixed;
+  z-index: 4;
+  width:inherit;
 }
 
 .atomic-taro_editor-header-name{
@@ -54,6 +54,14 @@ atom-text-editor, /* 1 */
   display: block;
   //float: left;
   color: @mono-3;//comment color
+}
+
+.atomic-taro_editor-shared-function-name{
+  padding-bottom: 1px;
+  margin-bottom: 2px;
+  padding-top: 1px;
+  display: inline-block;
+  color:  @hue-2;
 }
 
 .pinButton{
