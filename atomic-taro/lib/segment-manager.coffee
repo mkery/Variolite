@@ -18,7 +18,10 @@ class SegmentManager
     # pinning
     pinned : []
     scrollPinned : []
-    topOffset : 0
+    offset_top : null
+    top_no_offset : null
+    offset_bottom : null
+    bottom_no_offset : null
 
     constructor: (sourceEditor) ->
       @segments = [] # for some reason this prevents duplicate blocks
@@ -28,7 +31,6 @@ class SegmentManager
       cp.partition()
       @header = cp.getHeader()
       @segments = cp.getSegments()
-      console.log("loaded???? "+@header+"  and segments: "+@segments.length)
       #first thing, partition the source file into segments
 
     getSegments: ->
@@ -88,58 +90,95 @@ class SegmentManager
           else
             $(this).text($(this).data("section-title"))
 
-    addScrollListeners: (element) ->
-      $(element).on 'scroll', {'pinned': @pinned, 'scrollPinned': @scrollPinned, 'element': element}, (ev) ->
-        pinned = ev.data.pinned
-        scrollPinned = ev.data.scrollPinned
-        element = ev.data.element
-        offset_top = $(element).offset().top
-        top_no_offset = 1
-        if scrollPinned.length > 0
-          temp2 = []
-          for tuple in scrollPinned
-            console.log "fixed "
-            header = tuple.header
-            scrollPos = tuple.scroll
-            height = $(header).height()
-            #console.log "poppin "+scrollPos+"  window: "+$(element).scrollTop()
-            if $(element).scrollTop() < scrollPos
-              console.log "poppin "+scrollPos+"  window: "+$(element).scrollTop()+" class "+header.hasClass('pinned')
-              header.toggleClass('pinned')
-              pinned.push(header)
-            else
-              offset_top += height
-              top_no_offset += height
-              temp2.push header
-          scrollPinned = temp2
+    getPinned: ->
+      @pinned
 
-        if pinned.length > 0
-          temp1 = []
-          i = pinned.length
-          while i > 0
-            console.log "pinned "+pinned.length
-            header = pinned[i]
+    resetPinned: ->
+      for segment in @segments
+        if segment.isPinned()
+          segment.resetPinning()
+
+    resetPinnedRemove: ->
+      @pinned = []
+      for segment in @segments
+        if segment.isPinned()
+          @pinned.push segment
+          segment.resetPinning()
+
+    incrementOffsetTop: (n) ->
+      @offset_top += n
+      @top_no_offset += n
+
+    incrementOffsetBottom: (n) ->
+      @offset_bottom += n
+      @bottom_no_offset += n
+
+    # :( scroll is a pain.
+    addScrollListeners: (element) ->
+      $ =>
+        @offset_top = $(element).offset().top
+        @top_no_offset = 0
+        @offset_bottom = $(element).height() + $(element).offset().top
+        @bottom_no_offset = $(element).height()
+
+
+      $(element).on 'scroll', {'manager': @, 'element': element}, (ev) ->
+        manager = ev.data.manager
+        # list of all currently pinned segments
+        pinned = manager.pinned
+        # the root element
+        element = ev.data.element
+        # offset accumulates, so that the segents stack on each other correctly
+        offset_top = manager.offset_top
+        top_no_offset = manager.top_no_offset
+        offset_bottom = manager.offset_bottom
+        bottom_no_offset = manager.bottom_no_offset
+        for segment in pinned
+          console.log "offsets TOP "+offset_top+"  no-offset: "+top_no_offset
+          console.log "offsets BOTTOM "+offset_bottom+" no-offset: "+bottom_no_offset
+          # header div of the pinned segment
+          header = $(segment.getHeader())
+          # ----- pinned to top
+          if segment.isPinnedToTop()
+            scrollPos = header.data("scrollPos")
+            if $(element).scrollTop() < scrollPos
+              segment.unPinFromTop()
+              manager.incrementOffsetTop(header.height() * -1)
+            else if segment.isResetPinTop()
+              console.log "reset top"
+              segment.resetPinTop(offset_top, $(element).scrollTop())
+          # ----- pinned to bottom
+          else if segment.isPinnedToBottom()
+            scrollPos = header.data("scrollPos")
+            if $(element).scrollTop() > scrollPos
+              segment.unPinFromBottom()
+              manager.incrementOffsetBottom(header.height())
+            else if segment.isResetPinBottom()
+              console.log "reset bottom"
+              segment.resetPinBottom(offset_bottom, $(element).scrollTop())
+          # ----- check: pin to top or bottom?
+          else
+            #console.log header.position().top + header.height() + " bottom versus " + bottom_no_offset
             if header.position().top <= top_no_offset
-              console.log "changing "
-              header.toggleClass('pinned')
-              header.css({ top: offset_top+"px", width: $(header).parent().width()+"px"});
-              scrollPinned.push({'header': header, 'scroll': $(element).scrollTop()+0})
-              offset_top += $(header).height()
-              top_no_offset += $(header).height()
-            else
-              console.log "moving free"
-              temp1.push header
-          pinned = temp1
+              segment.pinToTop(offset_top, $(element).scrollTop())
+              console.log "start pinning to top "+offset_top+" when height is "+header.height()
+              manager.incrementOffsetTop(header.height())
+            else if (header.position().top + header.height()) >= bottom_no_offset
+              manager.incrementOffsetBottom(header.height() * -1)
+              segment.pinToBottom(offset_bottom, $(element).scrollTop())
+              console.log "start pinning to bottom"
+
 
       #----click the pin button
-      $ => $('.icon-pin').on 'click', {'pinned': @pinned}, (ev) ->
+      $ => $('.icon-pin').on 'click', {'manager': @}, (ev) ->
         $(this).toggleClass('clicked')
         ev.stopPropagation()
-        #console.log $(this).position().top+"  position!"
-        header = $(this).parent()
-        #console.log "header is "+header
-        pinned = ev.data.pinned
+        segment = $(this).data("segment")
+        pinned = ev.data.manager.getPinned()
         if $(this).hasClass('clicked')
-          pinned.push header
-          #console.log "pinned "+pinned.length+ " "+pinned
-        #header.toggleClass('pinned')
+          pinned.push segment
+          segment.pin()
+          ev.data.manager.resetPinned()
+        else
+          segment.unPin()
+          ev.data.manager.resetPinnedRemove()

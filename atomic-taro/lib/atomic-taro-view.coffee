@@ -27,7 +27,6 @@ class AtomicTaroView# extends ScrollView
     # the header is the code that occurs at the top of the file,
     # outside of segment boxes
     header = @segmentManager.getHeader()
-    console.log header + "is our header!! " + header.getDiv()
     @element.appendChild(header.getDiv())
 
     # root container for segment boxes

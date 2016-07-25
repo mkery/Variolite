@@ -1,0 +1,6 @@
+{Point, Range, TextBuffer} = require 'atom'
+Segment = require './segment'
+
+
+module.exports =
+class HeaderSegment extends Segment

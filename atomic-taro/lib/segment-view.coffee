@@ -9,16 +9,104 @@ module.exports =
 class SegmentView
   segment : null
   segmentDiv : null
+  # header bar that holds interactive components above text editor
+  headerBar : null
+  # pinned
+  pinned : false # in general is the pin button active
+  pinnedToTop : false
+  pinnedToBottom : false
+  repinTop : false
+  repinBottom : false
 
   constructor: (editor, marker, segmentTitle) ->
     @segment = new Segment(editor, marker, segmentTitle)
     @addSegmentDiv()
 
+  getModel: ->
+    @segment
+
   getDiv: ->
     @segmentDiv
 
-  getModel: ->
-    @segment
+  getHeader: ->
+    @headerBar
+
+
+  pin: ->
+    @pinned = true
+
+  isPinned: ->
+    @pinned
+
+  unPin: ->
+    console.log "unpinned!!"
+    @pinned = false
+    if @pinnedToTop
+      @unPinFromTop()
+    else
+      @unPinFromBottom()
+
+  pinToTop: (offset_top, scrollPos) ->
+    header = $(@headerBar)
+    header.data("scrollPos", scrollPos)
+    header.addClass('pinned')
+    header.css({ top: offset_top+"px", width: header.parent().width()+"px"})
+    @pinnedToTop = true
+    @repinTop = false
+    @pinned = true
+
+  pinToBottom: (offset_bottom, scrollPos) ->
+    console.log "bottom is " + offset_bottom + " and scroll " + scrollPos
+    header = $(@headerBar)
+    header.data("scrollPos", scrollPos)
+    header.addClass('pinned')
+    header.css({top: offset_bottom+"px", width: header.parent().width()+"px"})
+    @pinnedToBottom = true
+    @repinBottom = false
+    @pinned = true
+
+  isPinnedToTop: ->
+    @pinnedToTop
+
+  isPinnedToBottom: ->
+    @pinnedToBottom
+
+  resetPinning: ->
+    if @pinnedToTop
+      @repinTop = true
+    else
+      @repinBottom = true
+
+  isResetPinTop: ->
+    @repinTop
+
+  resetPinTop: (offset_top, scrollPos) ->
+    header = $(@headerBar)
+    header.css({ top: offset_top+"px", width: header.parent().width()+"px"})
+    @repinTop = false
+
+  isResetPinBottom: ->
+    @repinBottom
+
+  resetPinBottom: (offset_bottom, scrollPos) ->
+    header = $(@headerBar)
+    header.css({top: offset_bottom+"px", width: header.parent().width()+"px"})
+    @repinBottom = false
+
+  unPinFromTop: ->
+    header = $(@headerBar)
+    header.removeClass('pinned')
+    header.css({top: "auto;"})
+    @pinnedToTop = false
+    @repinTop = false
+
+  unPinFromBottom: ->
+    header = $(@headerBar)
+    header.removeClass('pinned')
+    header.css({top: "auto;"})
+    @pinnedToBottom = false
+    @repinBottom = false
+
 
   addSegmentDiv: () ->
     #container for entire block
@@ -26,15 +114,15 @@ class SegmentView
     @segmentDiv.classList.add('atomic-taro_editor-segment')
     #----------header-------------
     #container for header information like title, meta-data
-    headerContainer = document.createElement('div')
-    headerContainer.classList.add('atomic-taro_editor-header-box')
-    @addHeaderDiv(headerContainer)
-    @segmentDiv.appendChild(headerContainer)
+    @headerBar = document.createElement('div')
+    @headerBar.classList.add('atomic-taro_editor-header-box')
+    @addHeaderDiv(@headerBar)
+    @segmentDiv.appendChild(@headerBar)
     #----------editor-------------
     editorContainer = @addEditorDiv(@segment.getEditor(), @segmentDiv)
     @segmentDiv.appendChild(editorContainer)
     #----------finish
-    $(headerContainer).click ->
+    $(@headerBar).click ->
        $(editorContainer).slideToggle('slow')
 
   addEditorDiv: (model_editor, blockDiv) ->
@@ -72,4 +160,5 @@ class SegmentView
     headerContainer.appendChild(variantsBox)
     pin = document.createElement("span")
     pin.classList.add('icon-pin', 'pinButton')
+    $(pin).data("segment", @)
     headerContainer.appendChild(pin)
