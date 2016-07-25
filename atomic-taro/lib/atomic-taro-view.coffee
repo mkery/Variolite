@@ -22,7 +22,7 @@ class AtomicTaroView# extends ScrollView
     @element.classList.add('atomic-taro_pane')#, 'scroll-view')
 
     # create a segment manager from the original editor
-    @segmentManager = new SegmentManager plainCodeEditor
+    @segmentManager = new SegmentManager(plainCodeEditor, @element)
 
     # the header is the code that occurs at the top of the file,
     # outside of segment boxes

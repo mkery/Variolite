@@ -18,12 +18,10 @@ class SegmentManager
     # pinning
     pinned : []
     scrollPinned : []
-    offset_top : null
-    top_no_offset : null
-    offset_bottom : null
-    bottom_no_offset : null
+    scrollTopDiv : null
+    scrollBotDiv : null
 
-    constructor: (sourceEditor) ->
+    constructor: (sourceEditor, root) ->
       @segments = [] # for some reason this prevents duplicate blocks
       @sourceEditor = sourceEditor
       @sourceBuffer = sourceEditor.getBuffer()
@@ -31,7 +29,13 @@ class SegmentManager
       cp.partition()
       @header = cp.getHeader()
       @segments = cp.getSegments()
-      #first thing, partition the source file into segments
+
+      @scrollTopDiv = document.createElement('div')
+      @scrollTopDiv.classList.add('scrollTopDiv')
+      @scrollBotDiv = document.createElement('div')
+      @scrollBotDiv.classList.add('scrollBotDiv')
+      root.appendChild(@scrollTopDiv)
+      root.appendChild(@scrollBotDiv)
 
     getSegments: ->
       @segments
@@ -105,84 +109,49 @@ class SegmentManager
           @pinned.push segment
           segment.resetPinning()
 
-    incrementOffsetTop: (n) ->
-      @offset_top += n
-      @top_no_offset += n
-
-    incrementOffsetBottom: (n) ->
-      @offset_bottom += n
-      @bottom_no_offset += n
-
     # :( scroll is a pain.
     addScrollListeners: (element) ->
-      '''$ =>
-        @offset_top = $(element).offset().top
-        @top_no_offset = 0
-        @offset_bottom = $(element).height() + $(element).offset().top
-        @bottom_no_offset = $(element).height()'''
+      $ =>
+        element = $(element)
+        offset_bottom = element.height() + element.offset().top
+        $(@scrollBotDiv).css({top: offset_bottom+"px", width: element.width()+"px"})
+        offset_top = element.offset().top
+        $(@scrollTopDiv).css({ top: offset_top+"px", width: element.width()+"px"})
+        console.log "placed scroll divs!!! "+$(@scrollTopDiv).position().bottom+"   ofset "+offset_top
+        console.log "placed scroll divs!!! "+$(@scrollBotDiv).position().top+"   ofset "+offset_bottom
 
-
-      $(element).on 'scroll', {'manager': @, 'element': element}, (ev) ->
-        # list of all currently pinned segments
-        pinned = ev.data.manager.pinned
-        # the root element
+      $(element).on 'scroll', {'element': element, 'manager': @, 'scrollBotDiv': @scrollBotDiv, 'scrollTopDiv': @scrollTopDiv}, (ev) ->
         element = ev.data.element
-        # offset accumulates, so that the segents stack on each other correctly
-        offset_top = $(element).offset().top
-        top_no_offset = 0
-        for segment in pinned
-          console.log "offsets TOP "+offset_top+"  no-offset: "+top_no_offset
-          # header div of the pinned segment
-          header = $(segment.getHeader())
-          # ----- pinned to top
-          if segment.isPinnedToTop()
-            scrollPos = header.data("scrollPos")
-            if $(element).scrollTop() < scrollPos
-              segment.unPinFromTop()
-              offset_top -= header.height()
-              top_no_offset -= header.height()
-            else if segment.isResetPinTop()
-              console.log "reset top"
-              segment.resetPinTop(offset_top, $(element).scrollTop())
-          # ----- check: pin to top or bottom?
-          else if header.position().top <= top_no_offset
-              segment.pinToTop(offset_top, $(element).scrollTop())
-              console.log "start pinning to top "+offset_top+" when height is "+header.height()
-              offset_top += header.height()
-              top_no_offset += header.height()
+        # list of all currently pinned segments
+        segments = ev.data.manager.segments
+        # the root element
+        scrollTopDiv = ev.data.scrollTopDiv
+        scrollBotDiv = ev.data.scrollBotDiv
 
-          ##############--- Bottom ---############
-          offset_bottom = $(element).height() + $(element).offset().top
-          bottom_no_offset = $(element).height()
-          for i in [pinned.length - 1..0] by -1
-            console.log "offsets BOTTOM "+offset_bottom+" no-offset: "+bottom_no_offset
-            # ----- pinned to bottom
-            if segment.isPinnedToBottom()
+        for segment in segments
+          if segment.isPinned()
+            header = $(segment.getHeader())
+            if segment.isPinnedToTop()
+              scrollPos = header.data("scrollPos")
+              if $(element).scrollTop() < scrollPos
+                segment.unPinFromTop()
+            else if segment.isPinnedToBottom()
               scrollPos = header.data("scrollPos")
               if $(element).scrollTop() > scrollPos
                 segment.unPinFromBottom()
-                offset_bottom += header.height()
-                bottom_no_offset += header.height()
-              else if segment.isResetPinBottom()
-                console.log "reset bottom"
-                segment.resetPinBottom(offset_bottom, $(element).scrollTop())
-            # ----- check: pin to top or bottom?
-            else if (header.position().top + header.height()) >= bottom_no_offset
-                offset_bottom -= header.height()
-                bottom_no_offset -= header.height()
-                segment.pinToBottom(offset_bottom, $(element).scrollTop())
-                console.log "start pinning to bottom"
+            if header.position().top < ($(scrollTopDiv).position().top + $(scrollTopDiv).height())
+                console.log "pinning to the top "+$(scrollTopDiv).position().bottom
+                segment.pinToTop(scrollTopDiv, $(element).scrollTop())
+            else if (header.position().top + header.height()) > ($(scrollBotDiv).position().top - $(scrollBotDiv).height())
+                console.log "pinning to the bottom "+$(scrollBotDiv).position()
+                segment.pinToBottom(scrollBotDiv, $(element).scrollTop())
 
       #----click the pin button
       $ => $('.icon-pin').on 'click', {'manager': @}, (ev) ->
         $(this).toggleClass('clicked')
         ev.stopPropagation()
         segment = $(this).data("segment")
-        pinned = ev.data.manager.getPinned()
         if $(this).hasClass('clicked')
-          pinned.push segment
           segment.pin()
-          ev.data.manager.resetPinned()
         else
           segment.unPin()
-          ev.data.manager.resetPinnedRemove()

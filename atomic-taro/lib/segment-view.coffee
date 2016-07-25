@@ -15,8 +15,6 @@ class SegmentView
   pinned : false # in general is the pin button active
   pinnedToTop : false
   pinnedToBottom : false
-  repinTop : false
-  repinBottom : false
 
   constructor: (editor, marker, segmentTitle) ->
     @segment = new Segment(editor, marker, segmentTitle)
@@ -46,23 +44,18 @@ class SegmentView
     else
       @unPinFromBottom()
 
-  pinToTop: (offset_top, scrollPos) ->
+  pinToTop: (scrollTopDiv, scrollPos) ->
     header = $(@headerBar)
     header.data("scrollPos", scrollPos)
-    header.addClass('pinned')
-    header.css({ top: offset_top+"px", width: header.parent().width()+"px"})
+    scrollTopDiv.appendChild(@headerBar)
     @pinnedToTop = true
-    @repinTop = false
     @pinned = true
 
-  pinToBottom: (offset_bottom, scrollPos) ->
-    console.log "bottom is " + offset_bottom + " and scroll " + scrollPos
+  pinToBottom: (scrollBotDiv, scrollPos) ->
     header = $(@headerBar)
     header.data("scrollPos", scrollPos)
-    header.addClass('pinned')
-    header.css({top: offset_bottom+"px", width: header.parent().width()+"px"})
+    scrollBotDiv.appendChild(@headerBar)
     @pinnedToBottom = true
-    @repinBottom = false
     @pinned = true
 
   isPinnedToTop: ->
@@ -71,41 +64,13 @@ class SegmentView
   isPinnedToBottom: ->
     @pinnedToBottom
 
-  resetPinning: ->
-    if @pinnedToTop
-      @repinTop = true
-    else
-      @repinBottom = true
-
-  isResetPinTop: ->
-    @repinTop
-
-  resetPinTop: (offset_top, scrollPos) ->
-    header = $(@headerBar)
-    header.css({ top: offset_top+"px", width: header.parent().width()+"px"})
-    @repinTop = false
-
-  isResetPinBottom: ->
-    @repinBottom
-
-  resetPinBottom: (offset_bottom, scrollPos) ->
-    header = $(@headerBar)
-    header.css({top: offset_bottom+"px", width: header.parent().width()+"px"})
-    @repinBottom = false
-
-  unPinFromTop: ->
-    header = $(@headerBar)
-    header.removeClass('pinned')
-    header.css({top: "auto;"})
+  unPinFromTop: (scrollTopDiv) ->
+    $(scrollTopDiv).removeChild(@headerBar)
     @pinnedToTop = false
-    @repinTop = false
 
-  unPinFromBottom: ->
-    header = $(@headerBar)
-    header.removeClass('pinned')
-    header.css({top: "auto;"})
+  unPinFromBottom: (scrollBotDiv) ->
+    $(scrollBotDiv).removeChild(@headerBar)
     @pinnedToBottom = false
-    @repinBottom = false
 
 
   addSegmentDiv: () ->
