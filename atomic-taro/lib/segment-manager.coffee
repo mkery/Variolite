@@ -115,27 +115,23 @@ class SegmentManager
 
     # :( scroll is a pain.
     addScrollListeners: (element) ->
-      $ =>
+      '''$ =>
         @offset_top = $(element).offset().top
         @top_no_offset = 0
         @offset_bottom = $(element).height() + $(element).offset().top
-        @bottom_no_offset = $(element).height()
+        @bottom_no_offset = $(element).height()'''
 
 
       $(element).on 'scroll', {'manager': @, 'element': element}, (ev) ->
-        manager = ev.data.manager
         # list of all currently pinned segments
-        pinned = manager.pinned
+        pinned = ev.data.manager.pinned
         # the root element
         element = ev.data.element
         # offset accumulates, so that the segents stack on each other correctly
-        offset_top = manager.offset_top
-        top_no_offset = manager.top_no_offset
-        offset_bottom = manager.offset_bottom
-        bottom_no_offset = manager.bottom_no_offset
+        offset_top = $(element).offset().top
+        top_no_offset = 0
         for segment in pinned
           console.log "offsets TOP "+offset_top+"  no-offset: "+top_no_offset
-          console.log "offsets BOTTOM "+offset_bottom+" no-offset: "+bottom_no_offset
           # header div of the pinned segment
           header = $(segment.getHeader())
           # ----- pinned to top
@@ -143,31 +139,39 @@ class SegmentManager
             scrollPos = header.data("scrollPos")
             if $(element).scrollTop() < scrollPos
               segment.unPinFromTop()
-              manager.incrementOffsetTop(header.height() * -1)
+              offset_top -= header.height()
+              top_no_offset -= header.height()
             else if segment.isResetPinTop()
               console.log "reset top"
               segment.resetPinTop(offset_top, $(element).scrollTop())
-          # ----- pinned to bottom
-          else if segment.isPinnedToBottom()
-            scrollPos = header.data("scrollPos")
-            if $(element).scrollTop() > scrollPos
-              segment.unPinFromBottom()
-              manager.incrementOffsetBottom(header.height())
-            else if segment.isResetPinBottom()
-              console.log "reset bottom"
-              segment.resetPinBottom(offset_bottom, $(element).scrollTop())
           # ----- check: pin to top or bottom?
-          else
-            #console.log header.position().top + header.height() + " bottom versus " + bottom_no_offset
-            if header.position().top <= top_no_offset
+          else if header.position().top <= top_no_offset
               segment.pinToTop(offset_top, $(element).scrollTop())
               console.log "start pinning to top "+offset_top+" when height is "+header.height()
-              manager.incrementOffsetTop(header.height())
-            else if (header.position().top + header.height()) >= bottom_no_offset
-              manager.incrementOffsetBottom(header.height() * -1)
-              segment.pinToBottom(offset_bottom, $(element).scrollTop())
-              console.log "start pinning to bottom"
+              offset_top += header.height()
+              top_no_offset += header.height()
 
+          ##############--- Bottom ---############
+          offset_bottom = $(element).height() + $(element).offset().top
+          bottom_no_offset = $(element).height()
+          for i in [pinned.length - 1..0] by -1
+            console.log "offsets BOTTOM "+offset_bottom+" no-offset: "+bottom_no_offset
+            # ----- pinned to bottom
+            if segment.isPinnedToBottom()
+              scrollPos = header.data("scrollPos")
+              if $(element).scrollTop() > scrollPos
+                segment.unPinFromBottom()
+                offset_bottom += header.height()
+                bottom_no_offset += header.height()
+              else if segment.isResetPinBottom()
+                console.log "reset bottom"
+                segment.resetPinBottom(offset_bottom, $(element).scrollTop())
+            # ----- check: pin to top or bottom?
+            else if (header.position().top + header.height()) >= bottom_no_offset
+                offset_bottom -= header.height()
+                bottom_no_offset -= header.height()
+                segment.pinToBottom(offset_bottom, $(element).scrollTop())
+                console.log "start pinning to bottom"
 
       #----click the pin button
       $ => $('.icon-pin').on 'click', {'manager': @}, (ev) ->
