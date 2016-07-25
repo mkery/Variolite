@@ -1,9 +1,11 @@
 import os
 import maps
 
+
 #ʕ•ᴥ•ʔ%Shared Functionsʔ
 def printShared(x):
     print "shared"
+
 #ʕ•ᴥ•ʔ
 
 #ʕ•ᴥ•ʔBox 1ʔ

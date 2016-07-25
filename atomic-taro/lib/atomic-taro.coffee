@@ -16,9 +16,14 @@ module.exports = AtomicTaro =
     @subscriptions = new CompositeDisposable
 
     # Register command that toggles this view
+    # todo: find css selector for textBuffer so we can append the right click menu option there as well
     @subscriptions.add atom.commands.add 'atom-workspace', 'atomic-taro:open': => @open()
+
+    @subscriptions.add atom.commands.add 'atom-workspace', 'atomic-taro:tarocopy': => @tarocopy()
+
     @subscriptions.add atom.commands.add 'atom-workspace', 'core:save', (e) =>
       @handleSaveEvent(e)
+
 
     '''
     We set up an opener such that if the user
@@ -40,7 +45,6 @@ module.exports = AtomicTaro =
         return
       new AtomicTaroView plainCodeEditor, fpath: pathname, protocol
 
-
   deactivate: ->
     @modalPanel.destroy()
     @subscriptions.dispose()
@@ -48,6 +52,9 @@ module.exports = AtomicTaro =
 
   serialize: ->
     #atomicTaroViewState: @atomicTaroView?.serialize()
+
+  tarocopy: ->
+    console.log "we copied"
 
   open: ->
     @addTaroView()
