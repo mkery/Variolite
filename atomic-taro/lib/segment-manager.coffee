@@ -50,9 +50,21 @@ class SegmentManager
     addJqueryListeners: (element) ->
       @addHeaderListeners(element)
       @addScrollListeners(element)
+      @addVariantsListeners(element)
       #----this prevents dragging the whole block from the code editor section
       $ -> $('.atomic-taro_editor-textEditor-box').on 'mousedown', (ev) ->
         ev.stopPropagation()
+
+    addVariantsListeners: (element) ->
+      $ -> $('.variants-hoverMenu').each ->
+        parent  = $(this).parent()
+        topPos = parent.position().top + parent.outerHeight()
+        $(this).css({top : topPos+"px" })
+        $(this).hide()
+
+      #$ -> $('variants-button').on 'hover', (ev) ->
+      #   $('variants-hoverMenu').slideDown('medium')
+
 
     addHeaderListeners: (element) ->
       #----sets header buttons to the full height of the header
