@@ -21,6 +21,8 @@ atom-text-editor, /* 1 */
 
 .atomic-taro_editor-segment{
     margin: 0px;
+    margin-top: 4px;
+    margin-bottom: 4px;
   //  border: 1px solid @mono-3;
 }
 
@@ -68,6 +70,9 @@ atom-text-editor, /* 1 */
   //float: left;
   color: @mono-3;//comment color
 }
+.atomic-taro_editor-header-date.variant{
+   color: @hue-1;
+}
 
 .atomic-taro_editor-shared-function-name{
   padding-bottom: 1px;
@@ -78,12 +83,14 @@ atom-text-editor, /* 1 */
 }
 
 .pinButton{
-  //color: @mono-2;
+  color: @mono-3;
   float: right;
 }
 .pinButton.clicked { color: @hue-1; }
+.pinButton:hover { color: @mono-2; }
 
 .atomic-taro_editor-header-buttons{
+  cursor: pointer;
   display: inline-block;
   float: right;
   text-align: center;
@@ -97,9 +104,46 @@ atom-text-editor, /* 1 */
 .atomic-taro_editor-header-buttons:hover{ color: @hue-1; border: 1px solid @hue-1;}
 
 .variants-hoverMenu{
+  //background-color: pink;
   z-index: 3;
   position: absolute;
-  top: 40px;
+  padding-top: 5px;
+  padding-bottom: 15px;
   right: 0px;
   display:block;
+}
+.variants-hoverMenu-buttons{
+  cursor: pointer;
+  display: inline-block;
+  float: right;
+  text-align: center;
+  padding-left: 10px;
+  padding-right: 10px;
+  margin: 0px;
+  vertical-align: middle;
+  border: 1px solid @syntax-background-color;
+  background-color: @syntax-selection-color;
+  color: @syntax-text-color;
+}
+.variants-hoverMenu-buttons:hover{ color: @hue-1; border: 1px solid @hue-1;}
+
+.variants-container{
+  //margin-bottom: 10px;
+  border-top: 1px solid @hue-1;
+}
+
+.variants-header-box{
+  font-family: Inconsolata, Monaco, Consolas, 'Courier New', Courier;
+  color: @hue-1;
+  font-size: @font-size;
+  background-color: @syntax-background-color;
+  margin: 0px;
+  border: 1px solid @syntax-selection-color;
+  border-left: 3px solid @hue-1;
+  margin-left: 15px;
+}
+.variants-header-box.inactive{
+  color: @mono-3;
+  border: 0px;
+  border-left: 5px solid @mono-3;
 }

@@ -11,6 +11,8 @@ class SegmentView
   segmentDiv : null
   # header bar that holds interactive components above text editor
   headerBar : null
+  # div that contains variant display
+  variantBox : null
   # pinned
   pinned : false # in general is the pin button active
   pinnedToTop : false
@@ -25,6 +27,9 @@ class SegmentView
 
   getDiv: ->
     @segmentDiv
+
+  getVariantsDiv: ->
+    @variantBox
 
   getHeader: ->
     @headerBar
@@ -82,10 +87,18 @@ class SegmentView
     @headerBar = document.createElement('div')
     @headerBar.classList.add('atomic-taro_editor-header-box')
     @addHeaderDiv(@headerBar)
+    #add placeholders for versions and output
+    @addVariantButtons(@headerBar)
+    @addOutputButton(@headerBar)
+    # add pinButton
+    @addPinButton(@headerBar)
     @segmentDiv.appendChild(@headerBar)
     #----------editor-------------
     editorContainer = @addEditorDiv(@segment.getEditor(), @segmentDiv)
     @segmentDiv.appendChild(editorContainer)
+    #---------variants div
+    @addVariantsDiv()
+    @segmentDiv.appendChild(@variantBox)
     #----------finish
     $(@headerBar).click ->
        $(editorContainer).slideToggle('slow')
@@ -114,31 +127,78 @@ class SegmentView
     dateHeader.classList.add('atomic-taro_editor-header-date')
     nameContainer.appendChild(dateHeader)
     headerContainer.appendChild(nameContainer)
-    #add placeholders for versions and output
+
+  addVariantHeaderDiv: (headerContainer) ->
+    nameContainer = document.createElement("div")
+    nameContainer.classList.add('atomic-taro_editor-header-name-container')
+    boxHeader = document.createElement("div")
+    boxHeader.classList.add('atomic-taro_editor-header-name')
+    $(boxHeader).text(@segment.getTitle()+": \"varaint 1\"")
+    nameContainer.appendChild(boxHeader)
+    #add placeholder for data
+    dateHeader = document.createElement("div")
+    $(dateHeader).text("created 7/14/19 5:04pm")
+    dateHeader.classList.add('atomic-taro_editor-header-date.variant')
+    nameContainer.appendChild(dateHeader)
+    headerContainer.appendChild(nameContainer)
+
+  # add a way to pin headers to maintain visibility
+  addPinButton: (headerContainer) ->
+    pin = document.createElement("span")
+    pin.classList.add('icon-pin', 'pinButton')
+    $(pin).data("segment", @)
+    headerContainer.appendChild(pin)
+
+  addVariantButtons: (headerContainer) ->
     variantsBox = document.createElement("div")
     variantsBox.classList.add('atomic-taro_editor-header-buttons')
     variantsBox.classList.add('variants-button')
     $(variantsBox).text("variants")
     headerContainer.appendChild(variantsBox)
     variantsMenu = document.createElement("div")
-    variantsMenu.classList.add('variants-hoverMenu', 'btn-group')
-    buttonShow = document.createElement("button")
-    buttonShow.classList.add('btn')
-    $(buttonShow).text("show")
-    variantsMenu.appendChild(buttonShow)
-    buttonAdd = document.createElement("button")
-    buttonAdd.classList.add('btn')
-    $(buttonAdd).text("add")
-    variantsMenu.appendChild(buttonAdd)
+    variantsMenu.classList.add('variants-hoverMenu')
+    $(variantsMenu).hide()
+    buttonSnapshot = document.createElement("div")
+    buttonSnapshot.classList.add('variants-hoverMenu-buttons')
+    $(buttonSnapshot).html("<span class='icon icon-repo-create'></span><span class='icon icon-device-camera'></span>")
+    variantsMenu.appendChild(buttonSnapshot)
     variantsBox.appendChild(variantsMenu)
-    $(variantsBox).hover ->
-       $(variantsMenu).slideToggle('fast')
+    buttonShow = document.createElement("div")
+    buttonShow.classList.add('variants-hoverMenu-buttons')
+    buttonShow.classList.add('showVariantsButton')
+    $(buttonShow).text("show")
+    $(buttonShow).data("segmentDiv", @)
+    variantsMenu.appendChild(buttonShow)
+    buttonAdd = document.createElement("div")
+    buttonAdd.classList.add('variants-hoverMenu-buttons')
+    buttonAdd.classList.add('createVariantButton')
+    $(buttonAdd).html("<span class='icon icon-repo-create'>create new variant</span>")
+    variantsMenu.appendChild(buttonAdd)
 
+  addOutputButton: (headerContainer) ->
     outputBox = document.createElement("div")
     outputBox.classList.add('atomic-taro_editor-header-buttons')
     $(outputBox).text("in/output")
     headerContainer.appendChild(outputBox)
-    pin = document.createElement("span")
-    pin.classList.add('icon-pin', 'pinButton')
-    $(pin).data("segment", @)
-    headerContainer.appendChild(pin)
+
+  addVariantsDiv: ->
+    @variantBox = document.createElement("div")
+    @variantBox.classList.add('variants-container')
+    varHeader = document.createElement("div")
+    varHeader.classList.add('variants-header-box')
+    @addVariantHeaderDiv(varHeader)
+    @addOutputButton(varHeader)
+    @variantBox.appendChild(varHeader)
+
+    varHeader1 = document.createElement("div")
+    varHeader1.classList.add('variants-header-box', 'inactive')
+    @addVariantHeaderDiv(varHeader1)
+    @addOutputButton(varHeader1)
+    @variantBox.appendChild(varHeader1)
+
+    varHeader2 = document.createElement("div")
+    varHeader2.classList.add('variants-header-box')
+    @addVariantHeaderDiv(varHeader2)
+    @addOutputButton(varHeader2)
+    @variantBox.appendChild(varHeader2)
+    $(@variantBox).hide()

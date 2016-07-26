@@ -54,16 +54,38 @@ class SegmentManager
       #----this prevents dragging the whole block from the code editor section
       $ -> $('.atomic-taro_editor-textEditor-box').on 'mousedown', (ev) ->
         ev.stopPropagation()
+      #---- todo make box resizable
+      '''$ -> $(".atomic-taro_editor-textEditor-box").resizable (ev, ui) ->
+        ui.size.height = ui.originalSize.height'''
+
 
     addVariantsListeners: (element) ->
-      $ -> $('.variants-hoverMenu').each ->
-        parent  = $(this).parent()
-        topPos = parent.position().top + parent.outerHeight()
-        $(this).css({top : topPos+"px" })
-        $(this).hide()
+      '''$ -> $('.variants-hoverMenu').each ->
+        newHeight = parseInt($(this).css('font-size'))
+        $(this).css({height: (newHeight*2.5)+"px"})'''
 
-      #$ -> $('variants-button').on 'hover', (ev) ->
-      #   $('variants-hoverMenu').slideDown('medium')
+      $ -> $('.variants-button').hover ->
+        hoverMenu = $(this).children('.variants-hoverMenu')
+        hoverMenu.slideToggle('fast')
+        topPos = $(this).position().top + $(this).outerHeight() - hoverMenu.css('padding-top')
+        hoverMenu.css({top : topPos+"px" })
+
+      #prevent dragging around or collapsing the header when interacting with these buttons
+      $ -> $('.variants-hoverMenu-buttons').on 'click', (ev) ->
+        console.log "clicked on a button!!!"
+        ev.stopPropagation()
+
+      #prevent dragging around or collapsing the header when interacting with these buttons
+      $ -> $('.atomic-taro_editor-header-buttons').on 'mousedown', (ev) ->
+        ev.stopPropagation()
+
+      $ -> $('.showVariantsButton').on 'click', (ev) ->
+        ev.stopPropagation()
+        segmentDiv = $(this).data('segmentDiv')
+        variantBox = segmentDiv.getVariantsDiv()
+        console.log "show variants!!" + segmentDiv
+        $(variantBox).slideToggle('fast')
+
 
 
     addHeaderListeners: (element) ->
