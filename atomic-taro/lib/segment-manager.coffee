@@ -51,6 +51,7 @@ class SegmentManager
       @addHeaderListeners(element)
       @addScrollListeners(element)
       @addVariantsListeners(element)
+      @addOutputListeners(element)
       #----this prevents dragging the whole block from the code editor section
       $ -> $('.atomic-taro_editor-textEditor-box').on 'mousedown', (ev) ->
         ev.stopPropagation()
@@ -58,6 +59,12 @@ class SegmentManager
       '''$ -> $(".atomic-taro_editor-textEditor-box").resizable (ev, ui) ->
         ui.size.height = ui.originalSize.height'''
 
+    addOutputListeners: (element) ->
+      $ -> $('.output-button').on 'click', (ev) ->
+        ev.stopPropagation()
+        segment = $(this).data('segment')
+        outputDiv = segment.getOutputsDiv()
+        $(outputDiv).slideToggle('fast')
 
     addVariantsListeners: (element) ->
       '''$ -> $('.variants-hoverMenu').each ->

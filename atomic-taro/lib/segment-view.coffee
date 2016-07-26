@@ -31,6 +31,9 @@ class SegmentView
   getVariantsDiv: ->
     @variantBox
 
+  getOutputsDiv: ->
+    @outputDiv
+
   getHeader: ->
     @headerBar
 
@@ -93,6 +96,9 @@ class SegmentView
     # add pinButton
     @addPinButton(@headerBar)
     @segmentDiv.appendChild(@headerBar)
+    #---------output region
+    @addOutputDiv()
+    @segmentDiv.appendChild(@outputDiv)
     #----------editor-------------
     editorContainer = @addEditorDiv(@segment.getEditor(), @segmentDiv)
     @segmentDiv.appendChild(editorContainer)
@@ -178,8 +184,16 @@ class SegmentView
   addOutputButton: (headerContainer) ->
     outputBox = document.createElement("div")
     outputBox.classList.add('atomic-taro_editor-header-buttons')
+    outputBox.classList.add('output-button')
     $(outputBox).text("in/output")
+    $(outputBox).data("segment", @)
     headerContainer.appendChild(outputBox)
+
+  addOutputDiv: ->
+    @outputDiv = document.createElement("div")
+    @outputDiv.classList.add('output-container')
+    $(@outputDiv).text("output information")
+    $(@outputDiv).hide()
 
   addVariantsDiv: ->
     @variantBox = document.createElement("div")
