@@ -1,6 +1,7 @@
-SegmentView = require './segment-view'
-Segment = require './segment'
-SharedFunctionSegment = require './shared-function-segment'
+SegmentView = require './segment-objects/segment-view'
+Segment = require './segment-objects/segment'
+SharedFunctionSegment = require './segment-objects/shared-function-segment'
+
 {Point, Range, TextBuffer} = require 'atom'
 CodePartition = require './code-partition'
 
@@ -50,8 +51,9 @@ class SegmentManager
 
     addJqueryListeners: (element) ->
       @addHeaderListeners(element)
-      @addScrollListeners(element)
+      #@addScrollListeners(element)
       @addVariantsListeners(element)
+      @addOutputListeners(element)
       #----this prevents dragging the whole block from the code editor section
       $ -> $('.atomic-taro_editor-textEditor-box').on 'mousedown', (ev) ->
         ev.stopPropagation()
@@ -59,33 +61,48 @@ class SegmentManager
       '''$ -> $(".atomic-taro_editor-textEditor-box").resizable (ev, ui) ->
         ui.size.height = ui.originalSize.height'''
 
+    addOutputListeners: (element) ->
+      $ -> $(document).on 'click', '.output-button', (ev) ->
+        ev.stopPropagation()
+        segment = $(this).data('segment')
+        outputDiv = segment.getOutputsDiv()
+        $(outputDiv).slideToggle('fast')
 
     addVariantsListeners: (element) ->
-      '''$ -> $('.variants-hoverMenu').each ->
-        newHeight = parseInt($(this).css('font-size'))
-        $(this).css({height: (newHeight*2.5)+"px"})'''
-
-      $ -> $('.variants-button').hover ->
+      #------------- hover for variants button
+      $(document).on 'mouseenter', '.variants-button', ->
         hoverMenu = $(this).children('.variants-hoverMenu')
-        hoverMenu.slideToggle('fast')
+        hoverMenu.slideDown('fast')
         topPos = $(this).position().top + $(this).outerHeight() - hoverMenu.css('padding-top')
         hoverMenu.css({top : topPos+"px" })
+      #------------- hover for variants button
+      $(document).on 'mouseleave', '.variants-button', ->
+        hoverMenu = $(this).children('.variants-hoverMenu')
+        hoverMenu.slideUp('fast')
 
       #prevent dragging around or collapsing the header when interacting with these buttons
-      $ -> $('.variants-hoverMenu-buttons').on 'click', (ev) ->
-        console.log "clicked on a button!!!"
+      $ -> $(document).on 'click', '.variants-hoverMenu-buttons', (ev) ->
         ev.stopPropagation()
 
       #prevent dragging around or collapsing the header when interacting with these buttons
-      $ -> $('.atomic-taro_editor-header-buttons').on 'mousedown', (ev) ->
+      $ -> $(document).on 'click', '.atomic-taro_editor-header-buttons', (ev) ->
         ev.stopPropagation()
 
-      $ -> $('.showVariantsButton').on 'click', (ev) ->
+      '''$ -> $('.showVariantsButton').on 'click', (ev) ->
         ev.stopPropagation()
-        segmentDiv = $(this).data('segmentDiv')
-        variantBox = segmentDiv.getVariantsDiv()
-        console.log "show variants!!" + segmentDiv
-        $(variantBox).slideToggle('fast')
+        segment = $(this).data('segment')
+        variantBox_forward = segment.getVariantsDiv_Forward()
+        variantBox_back = segment.getVariantsDiv_Back()
+        headerDiv = segment.getHeader()
+        editorDiv = segment.getEditorDiv()
+        $(headerDiv).toggleClass('activeVariant')
+        $(editorDiv).toggleClass('activeVariant')
+        $(variantBox_forward).slideToggle(500)
+        $(variantBox_back).slideToggle(500)'''
+
+      '''$ -> $('.createVariantButton').on 'click', (ev) -
+        ev.stopPropagation()
+        segment = $(this).data('segment')'''
 
 
 
@@ -97,7 +114,7 @@ class SegmentManager
 
     addHeaderTitleListeners: (element) ->
       #--------------make header title editable
-      $ -> $('.atomic-taro_editor-header-name').on 'click', (ev) ->
+      $ -> $(document).on 'click', '.atomic-taro_editor-header-name', (ev) ->
         console.log("title clicked!")
         ev.stopPropagation()
         if $(this).children().length == 0
@@ -113,6 +130,7 @@ class SegmentManager
             }).appendTo(this)
           $('.txt_sectionname').focus()
           $('.txt_sectionname').addClass('native-key-bindings')
+
       #--------------make header title editable cont'
       $(element).on 'blur', '.txt_sectionname', ->
         name = $(this).val()
@@ -121,7 +139,7 @@ class SegmentManager
         else
           $(this).text($(this).data("section-title"))
       #--------------make header title editable cont'
-      $ -> $('.atomic-taro_editor-header-name').on 'keyup', (e) ->
+      $(element).on 'keyup', '.atomic-taro_editor-header-name', (e) ->
         if(e.keyCode == 13)# enter key
           name = $(this).children(".txt_sectionname").val() #$('#txt_sectionname').val()
           if /\S/.test(name)
