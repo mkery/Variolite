@@ -17,6 +17,7 @@ class SegmentView
   pinButton : null
   outputButton : null
   variantsButton : null
+  variants_showing : false
   # div that contains the text editor
   editorDiv : null
   # pinned
@@ -43,6 +44,9 @@ class SegmentView
 
   getHeader: ->
     @headerBar
+
+  setVariantsShowing: (bool) ->
+    @variants_showing = bool
 
   makeNonCurrentVariant: ->
     $(@headerBar).removeClass('activeVariant')
@@ -119,9 +123,8 @@ class SegmentView
     @addEditorDiv(@segment.getEditor(), @segmentDiv)
     $(@editorDiv).hide()
     @segmentDiv.appendChild(@editorDiv)
-    #----------finish
-    $(document).on 'click', @headerBar, =>
-       $(@editorDiv).slideToggle('slow')
+    #-----add data such that headerBar can open editor div later on
+    $(@headerBar).data("editorBar", @editorDiv)
 
   addEditorDiv: (model_editor, blockDiv) ->
     #container for code editor
@@ -177,8 +180,12 @@ class SegmentView
       ev.stopPropagation()
       $(@segmentDiv).toggleClass('variant')
       $(@headerBar).toggleClass('activeVariant')
-      #$(@editorDiv).toggleClass('activeVariant')
-      @variantParent.openVariantsDiv()
+      if @variants_showing
+        @variantParent.closeVariantsDiv()
+        @variants_showing = false
+      else
+        @variantParent.openVariantsDiv()
+        @variants_showing = true
     variantsMenu.appendChild(buttonShow)
     buttonAdd = document.createElement("div")
     buttonAdd.classList.add('variants-hoverMenu-buttons')

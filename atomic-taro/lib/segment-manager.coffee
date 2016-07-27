@@ -86,33 +86,21 @@ class SegmentManager
       $ -> $(document).on 'click', '.atomic-taro_editor-header-buttons', (ev) ->
         ev.stopPropagation()
 
-      '''$ -> $('.showVariantsButton').on 'click', (ev) ->
-        ev.stopPropagation()
-        segment = $(this).data('segment')
-        variantBox_forward = segment.getVariantsDiv_Forward()
-        variantBox_back = segment.getVariantsDiv_Back()
-        headerDiv = segment.getHeader()
-        editorDiv = segment.getEditorDiv()
-        $(headerDiv).toggleClass('activeVariant')
-        $(editorDiv).toggleClass('activeVariant')
-        $(variantBox_forward).slideToggle(500)
-        $(variantBox_back).slideToggle(500)'''
-
-      '''$ -> $('.createVariantButton').on 'click', (ev) -
-        ev.stopPropagation()
-        segment = $(this).data('segment')'''
-
 
 
     addHeaderListeners: (element) ->
-      #----sets header buttons to the full height of the header
+      #-------make header/editor open/close
+      $(document).on 'click', '.atomic-taro_editor-header-box', (ev) ->
+        editor = $(this).data('editorBar')
+        $(editor).slideToggle('slow')
+      #------sets header buttons to the full height of the header
       $ -> $('.atomic-taro_editor-header-buttons').each ->
         $(this).css('min-height', $('.atomic-taro_editor-header-box').outerHeight() - 2)
       @addHeaderTitleListeners(element)
 
     addHeaderTitleListeners: (element) ->
       #--------------make header title editable
-      $ -> $(document).on 'click', '.atomic-taro_editor-header-name', (ev) ->
+      $(document).on 'click', '.atomic-taro_editor-header-name', (ev) ->
         console.log("title clicked!")
         ev.stopPropagation()
         if $(this).children().length == 0

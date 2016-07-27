@@ -16,6 +16,7 @@ class ExploratorySegmentView
   pinnedToBottom : false
   # div that contains variant display
   variantBox_forward : null
+  currentVariantBox : null
   variantBox_back: null
 
   constructor: (editor, original_buffer, marker, segmentTitle) ->
@@ -35,12 +36,17 @@ class ExploratorySegmentView
     if $(@variantBox_back).children().length > 0
       $(@variantBox_back).slideDown(500)
 
+  closeVariantsDiv: ->
+    $(@variantBox_forward).slideUp(500)
+    $(@variantBox_back).slideUp(500)
+
   newVariant: ->
     newVariant = @model.newVariant()
     newVarDiv = newVariant.getDiv()
+    newVariant.setVariantsShowing(true)
     $(newVarDiv).hide()
     #add to above box and make sure variantBox_forward is showing
-    @variantBox_forward.appendChild(newVarDiv)
+    @currentVariantBox.appendChild(newVarDiv)
     #$(@variantBox_forward).show()
     @openVariantsDiv()
 
@@ -51,10 +57,13 @@ class ExploratorySegmentView
     # now transition the current variant to the style of a non-current variant
     # and slide in the new variant
     c_div = @currentVariant.getDiv()
+    $(@variantBox_back).prepend($(c_div))
     $(c_div).removeClass('variant')
     $(c_div).addClass 'inactive_variant', complete: =>
       @currentVariant.makeNonCurrentVariant()
       $(newVarDiv).slideToggle 'slow'
+      # finally, make new variant the current variant
+      @currentVariant = newVariant
 
 
   addVariantsDiv: ->
@@ -66,7 +75,9 @@ class ExploratorySegmentView
     @addVariantsDiv_Forward()
     @variantsDiv.appendChild(@variantBox_forward)
     #--------- add all the segments
-    @variantsDiv.appendChild(@currentVariant.getDiv())
+    @currentVariantBox = document.createElement('div')
+    @currentVariantBox.appendChild(@currentVariant.getDiv())
+    @variantsDiv.appendChild(@currentVariantBox)
     #---------variants lower div
     @variantsDiv.appendChild(@variantBox_back)
 
