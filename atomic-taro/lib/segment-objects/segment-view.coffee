@@ -7,13 +7,13 @@ Segment object.
 '''
 module.exports =
 class SegmentView
+  # the class that manages all variants of this segment
+  variantParent : null
+  # the segment
   segment : null
   segmentDiv : null
   # header bar that holds interactive components above text editor
   headerBar : null
-  # div that contains variant display
-  variantBox_forward : null
-  variantBox_back: null
   # div that contains the text editor
   editorDiv : null
   # pinned
@@ -21,7 +21,8 @@ class SegmentView
   pinnedToTop : false
   pinnedToBottom : false
 
-  constructor: (editor, marker, segmentTitle) ->
+  constructor: (variantParent, editor, marker, segmentTitle) ->
+    @variantParent = variantParent
     @segment = new Segment(editor, marker, segmentTitle)
     @addSegmentDiv()
 
@@ -33,12 +34,6 @@ class SegmentView
 
   getEditorDiv: ->
     @editorDiv
-
-  getVariantsDiv_Forward: ->
-    @variantBox_forward
-
-  getVariantsDiv_Back: ->
-    @variantBox_back
 
   getOutputsDiv: ->
     @outputDiv
@@ -92,19 +87,11 @@ class SegmentView
   close: ->
     $(@editorDiv).slideUp('slow')
 
-  makeIntoInactiveVariant: ->
-    @close()
-    $(@headerBar).addClass('variants-header-box')
-
-
 
   addSegmentDiv: () ->
     #container for entire block
     @segmentDiv = document.createElement('div')
     @segmentDiv.classList.add('atomic-taro_editor-segment')
-    #---------variants upper region
-    @addVariantsDiv()
-    @segmentDiv.appendChild(@variantBox_forward)
     #----------header-------------
     #container for header information like title, meta-data
     @headerBar = document.createElement('div')
@@ -122,8 +109,7 @@ class SegmentView
     #----------editor-------------
     @addEditorDiv(@segment.getEditor(), @segmentDiv)
     @segmentDiv.appendChild(@editorDiv)
-    #---------variants lower div
-    @segmentDiv.appendChild(@variantBox_back)
+    $(@editorDiv).hide()
     #----------finish
     $(@headerBar).click =>
        $(@editorDiv).slideToggle('slow')
@@ -149,20 +135,6 @@ class SegmentView
     dateHeader = document.createElement("div")
     $(dateHeader).text("7/16/19 7:04pm")
     dateHeader.classList.add('atomic-taro_editor-header-date')
-    nameContainer.appendChild(dateHeader)
-    headerContainer.appendChild(nameContainer)
-
-  addVariantHeaderDiv: (headerContainer) ->
-    nameContainer = document.createElement("div")
-    nameContainer.classList.add('atomic-taro_editor-header-name-container')
-    boxHeader = document.createElement("div")
-    boxHeader.classList.add('atomic-taro_editor-header-name')
-    $(boxHeader).text(@segment.getTitle()+": \"varaint 1\"")
-    nameContainer.appendChild(boxHeader)
-    #add placeholder for data
-    dateHeader = document.createElement("div")
-    $(dateHeader).text("created 7/14/19 5:04pm")
-    dateHeader.classList.add('atomic-taro_editor-header-date.variant')
     nameContainer.appendChild(dateHeader)
     headerContainer.appendChild(nameContainer)
 
@@ -192,13 +164,19 @@ class SegmentView
     buttonShow.classList.add('showVariantsButton')
     $(buttonShow).text("show")
     $(buttonShow).data("segment", @)
+    $(buttonShow).click (ev) =>
+      ev.stopPropagation()
+      $(@segmentDiv).toggleClass('variant')
+      $(@headerBar).toggleClass('activeVariant')
+      #$(@editorDiv).toggleClass('activeVariant')
+      @variantParent.openVariantsDiv()
     variantsMenu.appendChild(buttonShow)
     buttonAdd = document.createElement("div")
     buttonAdd.classList.add('variants-hoverMenu-buttons')
     buttonAdd.classList.add('createVariantButton')
     $(buttonAdd).html("<span class='icon icon-repo-create'>create new variant</span>")
     $(buttonAdd).click =>
-       @makeIntoInactiveVariant()
+      @variantParent.newVariant()
     variantsMenu.appendChild(buttonAdd)
 
   addOutputButton: (headerContainer) ->
@@ -214,35 +192,3 @@ class SegmentView
     @outputDiv.classList.add('output-container')
     $(@outputDiv).text("output information")
     $(@outputDiv).hide()
-
-  addVariantsDiv: ->
-    @addVariantsDiv_Back()
-    @addVariantsDiv_Forward()
-
-  addVariantsDiv_Forward: ->
-    @variantBox_forward = document.createElement("div")
-    @variantBox_forward.classList.add('variants-container-forward')
-    $(@variantBox_forward).hide()
-
-  addVariantsDiv_Back: ->
-    @variantBox_back = document.createElement("div")
-    @variantBox_back.classList.add('variants-container-back')
-
-    varHeader = document.createElement("div")
-    varHeader.classList.add('variants-header-box')
-    @addVariantHeaderDiv(varHeader)
-    @addOutputButton(varHeader)
-    @variantBox_back.appendChild(varHeader)
-
-    varHeader1 = document.createElement("div")
-    varHeader1.classList.add('variants-header-box', 'inactive')
-    @addVariantHeaderDiv(varHeader1)
-    @addOutputButton(varHeader1)
-    @variantBox_back.appendChild(varHeader1)
-
-    varHeader2 = document.createElement("div")
-    varHeader2.classList.add('variants-header-box')
-    @addVariantHeaderDiv(varHeader2)
-    @addOutputButton(varHeader2)
-    @variantBox_back.appendChild(varHeader2)
-    $(@variantBox_back).hide()

@@ -49,7 +49,7 @@ class SegmentManager
 
     addJqueryListeners: (element) ->
       @addHeaderListeners(element)
-      @addScrollListeners(element)
+      #@addScrollListeners(element)
       @addVariantsListeners(element)
       @addOutputListeners(element)
       #----this prevents dragging the whole block from the code editor section
@@ -81,7 +81,7 @@ class SegmentManager
       $ -> $('.atomic-taro_editor-header-buttons').on 'mousedown', (ev) ->
         ev.stopPropagation()
 
-      $ -> $('.showVariantsButton').on 'click', (ev) ->
+      '''$ -> $('.showVariantsButton').on 'click', (ev) ->
         ev.stopPropagation()
         segment = $(this).data('segment')
         variantBox_forward = segment.getVariantsDiv_Forward()
@@ -91,7 +91,7 @@ class SegmentManager
         $(headerDiv).toggleClass('activeVariant')
         $(editorDiv).toggleClass('activeVariant')
         $(variantBox_forward).slideToggle(500)
-        $(variantBox_back).slideToggle(500)
+        $(variantBox_back).slideToggle(500)'''
 
       '''$ -> $('.createVariantButton').on 'click', (ev) -
         ev.stopPropagation()

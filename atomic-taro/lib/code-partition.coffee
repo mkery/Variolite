@@ -1,4 +1,4 @@
-SegmentView = require './segment-objects/segment-view'
+ExploratorySegmentView = require './segment-objects/exploratory-segment-view'
 SharedFunctionSegmentView = require './segment-objects/shared-function-segment-view'
 HeaderSegmentView = require './segment-objects/header-segment-view'
 {Point, Range, TextBuffer} = require 'atom'
@@ -42,7 +42,7 @@ class CodePartition
         header_marker = @sourceEditor.markBufferRange(range: header_range)
         header_text = @sourceEditor.getTextInBufferRange(header_range)
         header_editor = atom.workspace.buildTextEditor(buffer: new TextBuffer(text: header_text), grammar: atom.grammars.selectGrammar("file.py"),  scrollPastEnd: false)
-        @header = new HeaderSegmentView(header_editor, header_marker, "")
+        @header = new HeaderSegmentView(null, header_editor, header_marker, "")
         @header.getModel().addChangeListeners(sourceBuffer)
       # ---------------------------------------------
 
@@ -57,10 +57,8 @@ class CodePartition
       #add all segments to a dictionary for later access
       if segmentTitle.startsWith("%Shared")# todo, a way to recognize a shared function
         segmentTitle = segmentTitle.substring(1)
-        segment = new SharedFunctionSegmentView(model_editor, marker, segmentTitle)
+        segment = new SharedFunctionSegmentView(null, model_editor, marker, segmentTitle)
       else
-        segment = new SegmentView(model_editor, marker, segmentTitle)
-      #now, while we're setting up the mini code editors,
-      #we want to add some listeners to enable linked editing
-      segment.getModel().addChangeListeners(@sourceBuffer)
+        segment = new ExploratorySegmentView(model_editor, @sourceBuffer, marker, segmentTitle)
+
       @segments.push segment
