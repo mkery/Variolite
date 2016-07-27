@@ -5,6 +5,8 @@
       'label': 'Toggle atomic-taro'
       'command': 'atomic-taro:open'
     }
+  ]
+  'atom-pane': [
     {
       'label': 'Copy Block'
       'command': 'atomic-taro:tarocopy'

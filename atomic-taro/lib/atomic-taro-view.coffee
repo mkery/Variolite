@@ -56,6 +56,9 @@ class AtomicTaroView# extends ScrollView
   saveSegments: (e) ->
     @segmentManager.saveSegments(e)
 
+  copySegment: (e) ->
+    @segmentManager.copySegment(e)
+
   # Tear down any state and detach
   destroy: ->
     @element.remove()

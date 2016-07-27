@@ -136,6 +136,7 @@ class SegmentView
     te = model_editor.getElement()
     @editorDiv.appendChild(te)
 
+
   addHeaderDiv: (headerContainer) ->
     nameContainer = document.createElement("div")
     nameContainer.classList.add('atomic-taro_editor-header-name-container')
