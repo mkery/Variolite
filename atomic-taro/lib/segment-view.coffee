@@ -112,7 +112,7 @@ class SegmentView
     model_editor = @segment.getEditor()
     te = model_editor.getElement()
     editorContainer.appendChild(te)
-    editorContainer
+
 
   addHeaderDiv: (headerContainer) ->
     nameContainer = document.createElement("div")

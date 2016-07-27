@@ -1,3 +1,4 @@
+SegmentView = require './segment-view'
 Segment = require './segment'
 SharedFunctionSegment = require './shared-function-segment'
 {Point, Range, TextBuffer} = require 'atom'
@@ -127,6 +128,18 @@ class SegmentManager
             $(this).text(name)
           else
             $(this).text($(this).data("section-title"))
+
+
+    copySegment: (e) ->
+      editorCopy = e.target.nextElementSibling.firstChild.model
+      titleCopy = e.target.innerText.split("\n")[0] + " - copy"
+      #currently have "null" for marker as we don't know where this copied segment will be marked in the original .py file
+      copiedSegmentView = new SegmentView(editorCopy, null, titleCopy)
+      @segments.push copiedSegmentView
+      '''console.log copiedSegmentView
+      for segment in @segments
+        console.log segment'''
+
 
     getPinned: ->
       @pinned
