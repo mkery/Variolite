@@ -27,20 +27,21 @@ atom-text-editor, /* 1 */
   //  border: 1px solid @mono-3;
 }
 .atomic-taro_editor-segment.variant{
-  border-left: 3px solid @hue-1;
+  border-left: 3px solid @hue-2;//@hue-1;
 }
 .atomic-taro_editor-segment.inactive_variant{
   margin-left: 15px;
   margin-top: 0px;
   margin-bottom: 0px;
+  //border-left: 0px;
 }
 
 
 .atomic-taro_editor-textEditor-box{
   transition: border-width 0.1s ease-in-out;
 }
-.atomic-taro_editor-textEditor-box.activeVariant{
-  border-left: 3px solid @hue-1;
+.atomic-taro_editor-textEditor-box.inactiveVariant{
+  border-left: 3px solid @syntax-background-color;
 }
 
 
@@ -75,11 +76,12 @@ atom-text-editor, /* 1 */
 .atomic-taro_editor-header-box.inactiveVariant{
   color: @hue-1;
   margin: 0px;
-  order: 1px solid @syntax-selection-color;
-  //border-left: 3px solid @hue-1;
+  border: 1px solid @syntax-selection-color;
+  border-left: 3px solid @hue-1;
 }
 .atomic-taro_editor-header-box.inactiveVariant:hover{
   border: 1px solid @mono-2;
+  border-left: 3px solid @hue-1;
 }
 
 
@@ -188,7 +190,7 @@ atom-text-editor, /* 1 */
 }
 
 .variants-container-back{
-  //margin-bottom: 10px;
+  margin-bottom: 10px;
   //border-top: 1px solid @hue-1;
 }
 

@@ -30,23 +30,30 @@ class ExploratorySegmentView
     @variantsDiv
 
   openVariantsDiv: ->
-    #if $(@variantBox_forward).children().length > 0
-    $(@variantBox_forward).slideToggle(500)
-    #if $(@variantBox_back).children().length > 0
-    $(@variantBox_back).slideToggle(500)
+    if $(@variantBox_forward).children().length > 0
+      $(@variantBox_forward).slideDown(500)
+    if $(@variantBox_back).children().length > 0
+      $(@variantBox_back).slideDown(500)
 
   newVariant: ->
     newVariant = @model.newVariant()
     newVarDiv = newVariant.getDiv()
     $(newVarDiv).hide()
+    #add to above box and make sure variantBox_forward is showing
     @variantBox_forward.appendChild(newVarDiv)
-    c_div = @currentVariant.getDiv()
-    c_header = @currentVariant.getHeader()
+    #$(@variantBox_forward).show()
+    @openVariantsDiv()
+
+    # give the new variant the styling of 'current variant'
     $(newVarDiv).addClass('variant')
     $(newVariant.getHeader()).addClass('activeVariant')
-    $(c_div).addClass 'inactive_variant', complete: ->
-      $(c_header).removeClass('activeVariant')
-      $(c_header).addClass('inactiveVariant')
+
+    # now transition the current variant to the style of a non-current variant
+    # and slide in the new variant
+    c_div = @currentVariant.getDiv()
+    $(c_div).removeClass('variant')
+    $(c_div).addClass 'inactive_variant', complete: =>
+      @currentVariant.makeNonCurrentVariant()
       $(newVarDiv).slideToggle 'slow'
 
 

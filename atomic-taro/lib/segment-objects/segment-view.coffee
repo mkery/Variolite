@@ -14,6 +14,9 @@ class SegmentView
   segmentDiv : null
   # header bar that holds interactive components above text editor
   headerBar : null
+  pinButton : null
+  outputButton : null
+  variantsButton : null
   # div that contains the text editor
   editorDiv : null
   # pinned
@@ -41,6 +44,12 @@ class SegmentView
   getHeader: ->
     @headerBar
 
+  makeNonCurrentVariant: ->
+    $(@headerBar).removeClass('activeVariant')
+    $(@headerBar).addClass('inactiveVariant')
+    $(@editorDiv).addClass('inactiveVariant')
+    $(@pinButton).remove()
+    $(@variantsButton).remove()
 
   pin: ->
     @pinned = true
@@ -108,10 +117,10 @@ class SegmentView
     @segmentDiv.appendChild(@outputDiv)
     #----------editor-------------
     @addEditorDiv(@segment.getEditor(), @segmentDiv)
-    @segmentDiv.appendChild(@editorDiv)
     $(@editorDiv).hide()
+    @segmentDiv.appendChild(@editorDiv)
     #----------finish
-    $(@headerBar).click =>
+    $(document).on 'click', @headerBar, =>
        $(@editorDiv).slideToggle('slow')
 
   addEditorDiv: (model_editor, blockDiv) ->
@@ -140,17 +149,17 @@ class SegmentView
 
   # add a way to pin headers to maintain visibility
   addPinButton: (headerContainer) ->
-    pin = document.createElement("span")
-    pin.classList.add('icon-pin', 'pinButton')
-    $(pin).data("segment", @)
-    headerContainer.appendChild(pin)
+    @pinButton = document.createElement("span")
+    @pinButton.classList.add('icon-pin', 'pinButton')
+    $(@pinButton).data("segment", @)
+    headerContainer.appendChild(@pinButton)
 
   addVariantButtons: (headerContainer) ->
-    variantsBox = document.createElement("div")
-    variantsBox.classList.add('atomic-taro_editor-header-buttons')
-    variantsBox.classList.add('variants-button')
-    $(variantsBox).text("variants")
-    headerContainer.appendChild(variantsBox)
+    @variantsButton = document.createElement("div")
+    @variantsButton.classList.add('atomic-taro_editor-header-buttons')
+    @variantsButton.classList.add('variants-button')
+    $(@variantsButton).text("variants")
+    headerContainer.appendChild(@variantsButton)
     variantsMenu = document.createElement("div")
     variantsMenu.classList.add('variants-hoverMenu')
     $(variantsMenu).hide()
@@ -158,7 +167,7 @@ class SegmentView
     buttonSnapshot.classList.add('variants-hoverMenu-buttons')
     $(buttonSnapshot).html("<span class='icon icon-repo-create'></span><span class='icon icon-device-camera'></span>")
     variantsMenu.appendChild(buttonSnapshot)
-    variantsBox.appendChild(variantsMenu)
+    @variantsButton.appendChild(variantsMenu)
     buttonShow = document.createElement("div")
     buttonShow.classList.add('variants-hoverMenu-buttons')
     buttonShow.classList.add('showVariantsButton')
@@ -180,12 +189,12 @@ class SegmentView
     variantsMenu.appendChild(buttonAdd)
 
   addOutputButton: (headerContainer) ->
-    outputBox = document.createElement("div")
-    outputBox.classList.add('atomic-taro_editor-header-buttons')
-    outputBox.classList.add('output-button')
-    $(outputBox).text("in/output")
-    $(outputBox).data("segment", @)
-    headerContainer.appendChild(outputBox)
+    @outputButton = document.createElement("div")
+    @outputButton.classList.add('atomic-taro_editor-header-buttons')
+    @outputButton.classList.add('output-button')
+    $(@outputButton).text("in/output")
+    $(@outputButton).data("segment", @)
+    headerContainer.appendChild(@outputButton)
 
   addOutputDiv: ->
     @outputDiv = document.createElement("div")
