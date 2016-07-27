@@ -11,6 +11,7 @@ class Segment
   title : null
   mirroring : false #testing* to avoid infinite loops in exchange between the two buffers
   linkedEditing: false
+  copied: false
 
   # since we're creating a version directed acrylic graph
   parent: null
@@ -34,6 +35,9 @@ class Segment
   getTitle: ->
     @title
 
+  getCopied: ->
+    @copied
+
   setParent: (parent) ->
     @parent = parent
 
@@ -42,6 +46,9 @@ class Segment
 
   setLinkedEditing: (bool) ->
     @linkedEditing
+
+  setCopied: (bool) ->
+    @copied = bool
 
   #Add change listeners to the segment buffers
   addChangeListeners: (source_buffer) ->

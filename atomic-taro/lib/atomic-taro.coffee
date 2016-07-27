@@ -19,7 +19,7 @@ module.exports = AtomicTaro =
     # todo: find css selector for textBuffer so we can append the right click menu option there as well
     @subscriptions.add atom.commands.add 'atom-workspace', 'atomic-taro:open': => @open()
 
-    @subscriptions.add atom.commands.add 'atom-workspace', 'atomic-taro:tarocopy': => @tarocopy()
+    @subscriptions.add atom.commands.add 'atom-workspace', 'atomic-taro:tarocopy', (e) => @tarocopy(e)
 
     @subscriptions.add atom.commands.add 'atom-workspace', 'core:save', (e) =>
       @handleSaveEvent(e)
@@ -53,8 +53,11 @@ module.exports = AtomicTaro =
   serialize: ->
     #atomicTaroViewState: @atomicTaroView?.serialize()
 
-  tarocopy: ->
-    console.log "we copied"
+  tarocopy: (e) ->
+    editor = atom.workspace.getActivePaneItem()
+    if editor instanceof AtomicTaroView
+        @atomicTaroView = editor
+        @atomicTaroView.copySegment(e)
 
   open: ->
     @addTaroView()
