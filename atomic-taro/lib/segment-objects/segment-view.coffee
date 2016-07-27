@@ -12,7 +12,10 @@ class SegmentView
   # header bar that holds interactive components above text editor
   headerBar : null
   # div that contains variant display
-  variantBox : null
+  variantBox_forward : null
+  variantBox_back: null
+  # div that contains the text editor
+  editorDiv : null
   # pinned
   pinned : false # in general is the pin button active
   pinnedToTop : false
@@ -28,8 +31,14 @@ class SegmentView
   getDiv: ->
     @segmentDiv
 
-  getVariantsDiv: ->
-    @variantBox
+  getEditorDiv: ->
+    @editorDiv
+
+  getVariantsDiv_Forward: ->
+    @variantBox_forward
+
+  getVariantsDiv_Back: ->
+    @variantBox_back
 
   getOutputsDiv: ->
     @outputDiv
@@ -80,11 +89,22 @@ class SegmentView
     $(scrollBotDiv).removeChild(@headerBar)
     @pinnedToBottom = false
 
+  close: ->
+    $(@editorDiv).slideUp('slow')
+
+  makeIntoInactiveVariant: ->
+    @close()
+    $(@headerBar).addClass('variants-header-box')
+
+
 
   addSegmentDiv: () ->
     #container for entire block
     @segmentDiv = document.createElement('div')
     @segmentDiv.classList.add('atomic-taro_editor-segment')
+    #---------variants upper region
+    @addVariantsDiv()
+    @segmentDiv.appendChild(@variantBox_forward)
     #----------header-------------
     #container for header information like title, meta-data
     @headerBar = document.createElement('div')
@@ -100,25 +120,23 @@ class SegmentView
     @addOutputDiv()
     @segmentDiv.appendChild(@outputDiv)
     #----------editor-------------
-    editorContainer = @addEditorDiv(@segment.getEditor(), @segmentDiv)
-    @segmentDiv.appendChild(editorContainer)
-    #---------variants div
-    @addVariantsDiv()
-    @segmentDiv.appendChild(@variantBox)
+    @addEditorDiv(@segment.getEditor(), @segmentDiv)
+    @segmentDiv.appendChild(@editorDiv)
+    #---------variants lower div
+    @segmentDiv.appendChild(@variantBox_back)
     #----------finish
-    $(@headerBar).click ->
-       $(editorContainer).slideToggle('slow')
+    $(@headerBar).click =>
+       $(@editorDiv).slideToggle('slow')
 
   addEditorDiv: (model_editor, blockDiv) ->
     #container for code editor
-    editorContainer = document.createElement('div')
-    editorContainer.classList.add('atomic-taro_editor-textEditor-box')
+    @editorDiv = document.createElement('div')
+    @editorDiv.classList.add('atomic-taro_editor-textEditor-box')
     # create an editor element
     #model_editor = atom.workspace.buildTextEditor(buffer: new SegmentedBuffer(text: codeText), grammar: atom.grammars.selectGrammar("file.py"))#filePath: @plainCodeEditor.getPath()))
     model_editor = @segment.getEditor()
     te = model_editor.getElement()
-    editorContainer.appendChild(te)
-    editorContainer
+    @editorDiv.appendChild(te)
 
   addHeaderDiv: (headerContainer) ->
     nameContainer = document.createElement("div")
@@ -173,12 +191,14 @@ class SegmentView
     buttonShow.classList.add('variants-hoverMenu-buttons')
     buttonShow.classList.add('showVariantsButton')
     $(buttonShow).text("show")
-    $(buttonShow).data("segmentDiv", @)
+    $(buttonShow).data("segment", @)
     variantsMenu.appendChild(buttonShow)
     buttonAdd = document.createElement("div")
     buttonAdd.classList.add('variants-hoverMenu-buttons')
     buttonAdd.classList.add('createVariantButton')
     $(buttonAdd).html("<span class='icon icon-repo-create'>create new variant</span>")
+    $(buttonAdd).click =>
+       @makeIntoInactiveVariant()
     variantsMenu.appendChild(buttonAdd)
 
   addOutputButton: (headerContainer) ->
@@ -196,23 +216,33 @@ class SegmentView
     $(@outputDiv).hide()
 
   addVariantsDiv: ->
-    @variantBox = document.createElement("div")
-    @variantBox.classList.add('variants-container')
+    @addVariantsDiv_Back()
+    @addVariantsDiv_Forward()
+
+  addVariantsDiv_Forward: ->
+    @variantBox_forward = document.createElement("div")
+    @variantBox_forward.classList.add('variants-container-forward')
+    $(@variantBox_forward).hide()
+
+  addVariantsDiv_Back: ->
+    @variantBox_back = document.createElement("div")
+    @variantBox_back.classList.add('variants-container-back')
+
     varHeader = document.createElement("div")
     varHeader.classList.add('variants-header-box')
     @addVariantHeaderDiv(varHeader)
     @addOutputButton(varHeader)
-    @variantBox.appendChild(varHeader)
+    @variantBox_back.appendChild(varHeader)
 
     varHeader1 = document.createElement("div")
     varHeader1.classList.add('variants-header-box', 'inactive')
     @addVariantHeaderDiv(varHeader1)
     @addOutputButton(varHeader1)
-    @variantBox.appendChild(varHeader1)
+    @variantBox_back.appendChild(varHeader1)
 
     varHeader2 = document.createElement("div")
     varHeader2.classList.add('variants-header-box')
     @addVariantHeaderDiv(varHeader2)
     @addOutputButton(varHeader2)
-    @variantBox.appendChild(varHeader2)
-    $(@variantBox).hide()
+    @variantBox_back.appendChild(varHeader2)
+    $(@variantBox_back).hide()

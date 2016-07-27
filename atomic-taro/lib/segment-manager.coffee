@@ -1,5 +1,5 @@
-Segment = require './segment'
-SharedFunctionSegment = require './shared-function-segment'
+Segment = require './segment-objects/segment'
+SharedFunctionSegment = require './segment-objects/shared-function-segment'
 {Point, Range, TextBuffer} = require 'atom'
 CodePartition = require './code-partition'
 
@@ -67,10 +67,6 @@ class SegmentManager
         $(outputDiv).slideToggle('fast')
 
     addVariantsListeners: (element) ->
-      '''$ -> $('.variants-hoverMenu').each ->
-        newHeight = parseInt($(this).css('font-size'))
-        $(this).css({height: (newHeight*2.5)+"px"})'''
-
       $ -> $('.variants-button').hover ->
         hoverMenu = $(this).children('.variants-hoverMenu')
         hoverMenu.slideToggle('fast')
@@ -79,7 +75,6 @@ class SegmentManager
 
       #prevent dragging around or collapsing the header when interacting with these buttons
       $ -> $('.variants-hoverMenu-buttons').on 'click', (ev) ->
-        console.log "clicked on a button!!!"
         ev.stopPropagation()
 
       #prevent dragging around or collapsing the header when interacting with these buttons
@@ -88,10 +83,19 @@ class SegmentManager
 
       $ -> $('.showVariantsButton').on 'click', (ev) ->
         ev.stopPropagation()
-        segmentDiv = $(this).data('segmentDiv')
-        variantBox = segmentDiv.getVariantsDiv()
-        console.log "show variants!!" + segmentDiv
-        $(variantBox).slideToggle('fast')
+        segment = $(this).data('segment')
+        variantBox_forward = segment.getVariantsDiv_Forward()
+        variantBox_back = segment.getVariantsDiv_Back()
+        headerDiv = segment.getHeader()
+        editorDiv = segment.getEditorDiv()
+        $(headerDiv).toggleClass('activeVariant')
+        $(editorDiv).toggleClass('activeVariant')
+        $(variantBox_forward).slideToggle(500)
+        $(variantBox_back).slideToggle(500)
+
+      '''$ -> $('.createVariantButton').on 'click', (ev) -
+        ev.stopPropagation()
+        segment = $(this).data('segment')'''
 
 
 

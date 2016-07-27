@@ -6,9 +6,9 @@ require 'jquery-ui-browserify'
 
 {TextBuffer} = require 'atom'
 {ScrollView} = require 'atom-space-pen-views'
-Segment = require './segment'
+Segment = require './segment-objects/segment'
 SegmentManager = require './segment-manager'
-SharedFunctionSegment = require './shared-function-segment'
+SharedFunctionSegment = require './segment-objects/shared-function-segment'
 
 module.exports =
 class AtomicTaroView# extends ScrollView

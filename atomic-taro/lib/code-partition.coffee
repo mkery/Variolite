@@ -1,6 +1,6 @@
-SegmentView = require './segment-view'
-SharedFunctionSegmentView = require './shared-function-segment-view'
-HeaderSegmentView = require './header-segment-view'
+SegmentView = require './segment-objects/segment-view'
+SharedFunctionSegmentView = require './segment-objects/shared-function-segment-view'
+HeaderSegmentView = require './segment-objects/header-segment-view'
 {Point, Range, TextBuffer} = require 'atom'
 
 '''
