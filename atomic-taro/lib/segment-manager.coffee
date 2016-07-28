@@ -45,6 +45,13 @@ class SegmentManager
     getHeader: ->
       @header
 
+    serialize: ->
+      console.log "SEGMENT MANAGER SERIALIZE"
+      header: @header.serialize()
+      for seg in @segments
+        #console.log seg
+        seg.serialize()
+
     saveSegments: (e) ->
       console.log "saving segments!"
       @sourceBuffer.save()
@@ -137,11 +144,13 @@ class SegmentManager
 
 
     copySegment: (e) ->
-      editorCopy = e.target.nextElementSibling.firstChild.model
+      console.log "copying yah"
+      console.log e.target
+      '''editorCopy = e.target.nextElementSibling.firstChild.model
       titleCopy = e.target.innerText.split("\n")[0] + " - copy"
       #currently have "null" for marker as we don't know where this copied segment will be marked in the original .py file
       copiedSegmentView = new SegmentView(editorCopy, null, titleCopy)
-      @segments.push copiedSegmentView
+      @segments.push copiedSegmentView'''
       '''console.log copiedSegmentView
       for segment in @segments
         console.log segment'''

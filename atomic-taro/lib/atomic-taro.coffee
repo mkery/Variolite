@@ -51,10 +51,14 @@ module.exports = AtomicTaro =
     @atomicTaroView.destroy()
 
   serialize: ->
-    #atomicTaroViewState: @atomicTaroView?.serialize()
+    atomicTaroViewState: @atomicTaroView?.serialize()
 
   tarocopy: ->
     console.log "we copied"
+    editor = atom.workspace.getActivePaneItem()
+    if editor instanceof AtomicTaroView
+        @atomicTaroView = editor
+        @atomicTaroView.copySegment()
 
   open: ->
     @addTaroView()
@@ -77,3 +81,5 @@ module.exports = AtomicTaro =
     if editor instanceof AtomicTaroView
         @atomicTaroView = editor
         @atomicTaroView.saveSegments(e)
+        cereal = @serialize()
+        console.log cereal

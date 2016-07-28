@@ -7,28 +7,32 @@ Segment object.
 '''
 module.exports =
 class SegmentView
-  # the class that manages all variants of this segment
-  variantParent : null
-  # the segment
-  segment : null
-  segmentDiv : null
-  # header bar that holds interactive components above text editor
-  headerBar : null
-  pinButton : null
-  outputButton : null
-  variantsButton : null
-  variants_showing : false
-  # div that contains the text editor
-  editorDiv : null
-  # pinned
-  pinned : false # in general is the pin button active
-  pinnedToTop : false
-  pinnedToBottom : false
 
-  constructor: (variantParent, editor, marker, segmentTitle) ->
-    @variantParent = variantParent
+  constructor: (@variantParent, editor, marker, segmentTitle) ->
+    @segmentDiv = null
+    # header bar that holds interactive components above text editor
+    @headerBar = null
+    @pinButton = null
+    @outputButton = null
+    @variantsButton = null
+    @variants_showing = false
+    # div that contains the text editor
+    @editorDiv = null
+    # pinned
+    @pinned = false # in general is the pin button active
+    @pinnedToTop = false
+    @pinnedToBottom = false
+
+    # the segment
     @segment = new Segment(editor, marker, segmentTitle)
     @addSegmentDiv()
+
+  serialize: ->
+    #todo add ui
+    @segment.serialize()
+
+  variantSerialize: ->
+    @segment.variantSerialize()
 
   getModel: ->
     @segment

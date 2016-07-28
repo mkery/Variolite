@@ -7,22 +7,26 @@ Segment object.
 '''
 module.exports =
 class ExploratorySegmentView
-  model : null
-  currentVariant : null
-  variantsDiv : null
-  # pinned
-  pinned : false # in general is the pin button active
-  pinnedToTop : false
-  pinnedToBottom : false
-  # div that contains variant display
-  variantBox_forward : null
-  currentVariantBox : null
-  variantBox_back: null
 
   constructor: (editor, original_buffer, marker, segmentTitle) ->
     @model = new ExploratorySegment(@, editor, original_buffer, marker, segmentTitle)
     @currentVariant = @model.getCurrentVariant()
+    # divs
+    @variantsDiv = null
+    # pinned
+    @pinned = false # in general is the pin button active
+    @pinnedToTop = false
+    @pinnedToBottom = false
+    # div that contains variant display
+    @variantBox_forward = null
+    @currentVariantBox = null
+    @variantBox_back = null
+
     @addVariantsDiv()
+
+  serialize: ->
+    #todo
+    @model.serialize()
 
   getModel: ->
     @model

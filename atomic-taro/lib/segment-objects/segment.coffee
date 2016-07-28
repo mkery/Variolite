@@ -5,22 +5,30 @@ Represents a single segment of exploratory code.
 '''
 module.exports =
 class Segment
-  editor: null
-  buffer: null
-  marker : null
-  title : null
-  mirroring : false #testing* to avoid infinite loops in exchange between the two buffers
-  linkedEditing: false
 
-  # since we're creating a version directed acrylic graph
-  parent: null
-  child: null
+  constructor: (@editor, @marker, @title, @elder = null, @children = []) ->
+    @buffer = @editor.getBuffer()
+    @mirroring = false
+    @linkedEditing = false
 
-  constructor: (mini_editor, marker, title) ->
-    @editor = mini_editor
-    @buffer = mini_editor.getBuffer()
-    @marker = marker
-    @title = title
+  serialize: ->
+    title: @title
+
+  variantSerialize: ->#todo capture elders
+    title : @title
+    text : @buffer.getText()
+    #elder: if @elder then @fullySerialize(@elder) else null
+    #console.log "I am "
+    #console.log @
+    #console.log @children
+    #console.log "grandkids"
+    #if (@children.length > 0) then console.log(@children[0].getChildren())
+    children: if (@children.length > 0) then (child.variantSerialize() for child in @children) else null
+
+  fullySerialize: (segment) ->
+    console.log segment
+    title : segment.getTitle()
+    text : segment.getBuffer().getText()
 
   getEditor: ->
     @editor
@@ -34,11 +42,19 @@ class Segment
   getTitle: ->
     @title
 
-  setParent: (parent) ->
-    @parent = parent
+  setTitle: (title) ->
+    @title = title
 
-  setChild: (child) ->
-    @child = child
+  setElder: (parent) ->
+    @elder = parent
+
+  addChild: (child) ->
+    console.log @title+" am getting a new child"
+    @children.push child
+
+  getChildren: ->
+    console.log @title+" have N children "+@children.length
+    @children
 
   setLinkedEditing: (bool) ->
     @linkedEditing

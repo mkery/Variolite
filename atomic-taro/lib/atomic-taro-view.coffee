@@ -13,10 +13,12 @@ SharedFunctionSegment = require './segment-objects/shared-function-segment'
 module.exports =
 class AtomicTaroView# extends ScrollView
   segmentManager : null
+  sourceFile : null
 
-  constructor: (plainCodeEditor, {@fpath, @protocol}) ->
+  constructor: (plainCodeEditor, {fpath, protocol}) ->
     # plainCodeEditor is the user's original python file
     plainCodeEditor = plainCodeEditor
+    @sourceFile = fpath
     #root element
     @element = document.createElement('div')
     @element.classList.add('atomic-taro_pane')#, 'scroll-view')
@@ -50,7 +52,8 @@ class AtomicTaroView# extends ScrollView
 
   # Returns an object that can be retrieved when package is activated
   serialize: ->
-    'todo'
+    sourceFile: @sourceFile?
+    segments: @segmentManager.serialize()
 
   #since atom doesn't know how ot save our editor, we manually set this up
   saveSegments: (e) ->
