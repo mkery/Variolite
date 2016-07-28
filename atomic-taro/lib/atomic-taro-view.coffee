@@ -15,7 +15,12 @@ class AtomicTaroView# extends ScrollView
   segmentManager : null
   sourceFile : null
 
-  constructor: (plainCodeEditor, {fpath, protocol}) ->
+  constructor: (statePath, plainCodeEditor, {fpath, protocol}) ->
+    $.getJSON (statePath), (state) =>
+      console.log "JSON found"
+      console.log state
+      @deserialize(state)
+
     # plainCodeEditor is the user's original python file
     plainCodeEditor = plainCodeEditor
     @sourceFile = fpath
@@ -54,6 +59,11 @@ class AtomicTaroView# extends ScrollView
   serialize: ->
     sourceFile: @sourceFile?
     segments: @segmentManager.serialize()
+
+  deserialize: (state) ->
+    atomicTaroViewState =  state.atomicTaroViewState
+    segments = atomicTaroViewState.segments
+    @segmentManager.deserialize(segments)
 
   #since atom doesn't know how ot save our editor, we manually set this up
   saveSegments: (e) ->

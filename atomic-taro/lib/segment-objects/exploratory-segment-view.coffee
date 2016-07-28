@@ -28,6 +28,13 @@ class ExploratorySegmentView
     #todo
     @model.serialize()
 
+  deserialize: (state) ->
+    currentVariant = state.currentVariant
+    title = currentVariant.title
+    @title = title
+    @currentVariant.setTitle(title)
+    console.log "title is "+@title
+
   getModel: ->
     @model
 

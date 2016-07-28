@@ -47,9 +47,13 @@ class SegmentManager
 
     serialize: ->
       header: @header.serialize()
-      for seg in @segments
-        #console.log seg
-        seg.serialize()
+      segments: (seg.serialize() for seg in @segments)
+
+    deserialize: (state) ->
+      header = state.header
+      saveSegs = state.segments
+      for value, index in @segments
+        value.deserialize(saveSegs[index])
 
     saveSegments: (e) ->
       console.log "saving segments!"
@@ -126,10 +130,12 @@ class SegmentManager
           $('.txt_sectionname').addClass('native-key-bindings')
 
       #--------------make header title editable cont'
-      $(element).on 'blur', '.txt_sectionname', ->
-        name = $(this).val()
+      $(element).on 'blur', '.atomic-taro_editor-header-name', ->
+        name = $(this).children(".txt_sectionname").val()
         if /\S/.test(name)
-          $(this).parent().text(name)
+          $(this).text(name)
+          segment = $(this).data("segment")
+          segment.setTitle(name)
         else
           $(this).text($(this).data("section-title"))
       #--------------make header title editable cont'
@@ -138,6 +144,8 @@ class SegmentManager
           name = $(this).children(".txt_sectionname").val() #$('#txt_sectionname').val()
           if /\S/.test(name)
             $(this).text(name)
+            segment = $(this).data("segment")
+            segment.setTitle(name)
           else
             $(this).text($(this).data("section-title"))
 

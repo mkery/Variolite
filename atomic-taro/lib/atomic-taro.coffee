@@ -32,7 +32,7 @@ module.exports = AtomicTaro =
     opens our package while on a python file, it
     will open our exploratory view of that python file.
     '''
-    atom.workspace.addOpener (uriToOpen, plainCodeEditor) ->
+    atom.workspace.addOpener (uriToOpen, plainCodeEditor) =>
       try
         {protocol, host, pathname} = url.parse(uriToOpen)
       catch error
@@ -45,7 +45,12 @@ module.exports = AtomicTaro =
         pathname = decodeURI(pathname) if pathname
       catch error
         return
-      new AtomicTaroView plainCodeEditor, fpath: pathname, protocol
+      lastIndex = @filePath.lastIndexOf('/')
+      folder = @filePath.substring(0, lastIndex)
+      fileName = @filePath.substring(lastIndex + 1).split(".")[0]
+      statePath = folder+"/"+fileName+".taro"
+      @atomicTaroView = new AtomicTaroView statePath, plainCodeEditor, fpath: pathname, protocol
+      @atomicTaroView
 
   deactivate: ->
     @modalPanel.destroy()
@@ -78,16 +83,17 @@ module.exports = AtomicTaro =
   getAtomicTaroView: ->
     @atomicTaroView
 
+
+
   handleSaveEvent: (e) ->
     editor = atom.workspace.getActivePaneItem()
     if editor instanceof AtomicTaroView
         @atomicTaroView = editor
         @atomicTaroView.saveSegments(e)
         cereal = @serialize()
-        console.log "FILEPATH"
-        console.log @filePath
         lastIndex = @filePath.lastIndexOf('/')
         folder = @filePath.substring(0, lastIndex)
+        fileName = @filePath.substring(lastIndex + 1).split(".")[0]
 
-        fs.writeFile (folder+"/project.taro"), JSON.stringify(cereal), (error) ->
+        fs.writeFile (folder+"/"+fileName+".taro"), JSON.stringify(cereal), (error) ->
           console.error("Error writing file", error) if error

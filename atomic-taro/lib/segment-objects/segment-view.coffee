@@ -12,6 +12,7 @@ class SegmentView
     @segmentDiv = null
     # header bar that holds interactive components above text editor
     @headerBar = null
+    @nameHeader = null
     @pinButton = null
     @outputButton = null
     @variantsButton = null
@@ -31,6 +32,9 @@ class SegmentView
     #todo add ui
     @segment.serialize()
 
+  deserialize: (state) ->
+    console.log "SEGMENTS"
+
   variantSerialize: ->
     @segment.variantSerialize()
 
@@ -48,6 +52,10 @@ class SegmentView
 
   getHeader: ->
     @headerBar
+
+  setTitle: (t) ->
+    $(@nameHeader).text(t)
+    @segment.setTitle(t)
 
   setVariantsShowing: (bool) ->
     @variants_showing = bool
@@ -144,10 +152,11 @@ class SegmentView
   addHeaderDiv: (headerContainer) ->
     nameContainer = document.createElement("div")
     nameContainer.classList.add('atomic-taro_editor-header-name-container')
-    boxHeader = document.createElement("div")
-    boxHeader.classList.add('atomic-taro_editor-header-name')
-    $(boxHeader).text(@segment.getTitle())
-    nameContainer.appendChild(boxHeader)
+    @nameHeader = document.createElement("div")
+    @nameHeader.classList.add('atomic-taro_editor-header-name')
+    $(@nameHeader).data("segment", @segment)
+    $(@nameHeader).text(@segment.getTitle())
+    nameContainer.appendChild(@nameHeader)
     #add placeholder for data
     dateHeader = document.createElement("div")
     $(dateHeader).text("7/16/19 7:04pm")
