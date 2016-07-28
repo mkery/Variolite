@@ -151,17 +151,25 @@ class SegmentManager
 
 
     copySegment: (e) ->
-      codeText = e.target.nextElementSibling.nextElementSibling.firstChild.model.buffer.lines
-      len = codeText.length
-      editorCopy = atom.workspace.buildTextEditor()#filePath: @plainCodeEditor.getPath()))
-      fullCodeText = codeText.join("\n")
-      codeRange = new Range(new Point(0, 0), new Point(len, 0))
-      editorCopy.setTextInBufferRange(codeRange, fullCodeText)
-      titleCopy = e.target.innerText.split("\n")[0] + " - copy"
-      #currently have "null" for marker as we don't know where this copied segment will be marked in the original .py file
-      copiedSegmentView = new SegmentView(null, editorCopy, null, titleCopy)
-      copiedSegmentView.getModel().setCopied(true)
-      @segments.push copiedSegmentView
+      if(e.target.outerHTML.includes("atomic-taro_editor-header-box"))
+        codeText = e.target.nextElementSibling.nextElementSibling.firstChild.model.buffer.lines
+        len = codeText.length
+        editorCopy = atom.workspace.buildTextEditor()#filePath: @plainCodeEditor.getPath()))
+        fullCodeText = codeText.join("\n")
+        codeRange = new Range(new Point(0, 0), new Point(len, 0))
+        editorCopy.setTextInBufferRange(codeRange, fullCodeText)
+        titleCopy = e.target.innerText.split("\n")[0] + " - copy" #probably also want to add date or something else here in case they copy this block multiple times
+        #currently have "null" for marker as we don't know where this copied segment will be marked in the original .py file
+        copiedSegmentView = new SegmentView(null, editorCopy, null, titleCopy)
+        copiedSegmentView.getModel().setCopied(true)
+        @segments.push copiedSegmentView
+        '''for s in @segments
+          console.log s'''
+      else
+        return
+
+    pasteSegment: (e) ->
+      #console.log "made it to pasteSegment"
 
 
     getPinned: ->

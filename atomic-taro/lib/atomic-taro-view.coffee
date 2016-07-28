@@ -27,7 +27,10 @@ class AtomicTaroView# extends ScrollView
     #root element
     @element = document.createElement('div')
     @element.classList.add('atomic-taro_pane')#, 'scroll-view')
-
+    atom.contextMenu.add {'atom-pane': [{label: 'Copy Segment', command: 'atomic-taro:tarocopy'}]}
+    atom.contextMenu.add {'atom-pane': [{label: 'Paste Segment', command: 'atomic-taro:taropaste'}]}
+    atom.contextMenu.add {'atom-text-editor': [{label: 'Paste Segment', command: 'atomic-taro:taropaste'}]}
+    #atom.commands.add 'atom-workspace', 'atomic-taro:tarocopy', (e) => @tarocopy(e)
     # create a segment manager from the original editor
     @segmentManager = new SegmentManager(plainCodeEditor, @element)
 
@@ -71,6 +74,9 @@ class AtomicTaroView# extends ScrollView
 
   copySegment: (e) ->
     @segmentManager.copySegment(e)
+
+  pasteSegment: (e) ->
+    @segmentManager.pasteSegment(e)
 
   # Tear down any state and detach
   destroy: ->
