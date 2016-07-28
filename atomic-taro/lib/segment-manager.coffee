@@ -144,16 +144,17 @@ class SegmentManager
 
 
     copySegment: (e) ->
-      console.log "copying yah"
-      console.log e.target
-      '''editorCopy = e.target.nextElementSibling.firstChild.model
+      codeText = e.target.nextElementSibling.nextElementSibling.firstChild.model.buffer.lines
+      len = codeText.length
+      editorCopy = atom.workspace.buildTextEditor()#filePath: @plainCodeEditor.getPath()))
+      fullCodeText = codeText.join("\n")
+      codeRange = new Range(new Point(0, 0), new Point(len, 0))
+      editorCopy.setTextInBufferRange(codeRange, fullCodeText)
       titleCopy = e.target.innerText.split("\n")[0] + " - copy"
       #currently have "null" for marker as we don't know where this copied segment will be marked in the original .py file
-      copiedSegmentView = new SegmentView(editorCopy, null, titleCopy)
-      @segments.push copiedSegmentView'''
-      '''console.log copiedSegmentView
-      for segment in @segments
-        console.log segment'''
+      copiedSegmentView = new SegmentView(null, editorCopy, null, titleCopy)
+      copiedSegmentView.getModel().setCopied(true)
+      @segments.push copiedSegmentView
 
 
     getPinned: ->

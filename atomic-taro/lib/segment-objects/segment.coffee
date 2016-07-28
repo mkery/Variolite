@@ -10,6 +10,7 @@ class Segment
     @buffer = @editor.getBuffer()
     @mirroring = false
     @linkedEditing = false
+    @copied = false
 
   serialize: ->
     title: @title
@@ -52,12 +53,18 @@ class Segment
     console.log @title+" am getting a new child"
     @children.push child
 
+  getCopied: ->
+    @copied
+
   getChildren: ->
     console.log @title+" have N children "+@children.length
     @children
 
   setLinkedEditing: (bool) ->
     @linkedEditing
+
+  setCopied: (bool) ->
+    @copied = bool
 
   #Add change listeners to the segment buffers
   addChangeListeners: (source_buffer) ->
