@@ -19,11 +19,6 @@ class Segment
     title : @title
     text : @buffer.getText()
     #elder: if @elder then @fullySerialize(@elder) else null
-    #console.log "I am "
-    #console.log @
-    #console.log @children
-    #console.log "grandkids"
-    #if (@children.length > 0) then console.log(@children[0].getChildren())
     children: if (@children.length > 0) then (child.variantSerialize() for child in @children) else null
 
   fullySerialize: (segment) ->

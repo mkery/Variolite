@@ -2,6 +2,7 @@ AtomicTaroView = require './atomic-taro-view'
 {CompositeDisposable} = require 'atom'
 url = require 'url'
 path = require 'path'
+fs = require 'fs'
 
 #@todo @atomicTaroView isn't really keeping track of anything
 module.exports = AtomicTaro =
@@ -9,6 +10,7 @@ module.exports = AtomicTaro =
   modalPanel: null
   subscriptions: null
   plainCodeEditor: null #probably needs refactoring, keep track of prev pane (python file)
+  filePath : null
 
   activate: (state) ->
 
@@ -64,6 +66,7 @@ module.exports = AtomicTaro =
 
   addTaroView: ->
     # check if the current file is a python file
+    @filePath = atom.workspace.getActiveTextEditor().getPath()
     uri = 'tarotaro://file'+atom.workspace.getActiveTextEditor().getPath()
     if uri? and path.extname(uri) is '.py'
       previousActivePane = atom.workspace.getActivePane()
@@ -81,4 +84,10 @@ module.exports = AtomicTaro =
         @atomicTaroView = editor
         @atomicTaroView.saveSegments(e)
         cereal = @serialize()
-        console.log cereal
+        console.log "FILEPATH"
+        console.log @filePath
+        lastIndex = @filePath.lastIndexOf('/')
+        folder = @filePath.substring(0, lastIndex)
+
+        fs.writeFile (folder+"/project.taro"), JSON.stringify(cereal), (error) ->
+          console.error("Error writing file", error) if error

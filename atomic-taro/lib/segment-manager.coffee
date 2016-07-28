@@ -46,7 +46,6 @@ class SegmentManager
       @header
 
     serialize: ->
-      console.log "SEGMENT MANAGER SERIALIZE"
       header: @header.serialize()
       for seg in @segments
         #console.log seg
