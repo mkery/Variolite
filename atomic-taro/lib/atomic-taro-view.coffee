@@ -4,13 +4,13 @@
 global.jQuery = global.$ = require 'jquery'
 require 'jquery-ui-browserify'
 
-{TextBuffer} = require 'atom'
+{Point, Range, TextBuffer} = require 'atom'
 {ScrollView} = require 'atom-space-pen-views'
 Segment = require './segment-objects/segment'
 ExploratorySegmentView = require './segment-objects/exploratory-segment-view'
 SegmentManager = require './segment-manager'
 SharedFunctionSegment = require './segment-objects/shared-function-segment'
-
+CodePartition = require './code-partition'
 module.exports =
 class AtomicTaroView# extends ScrollView
   segmentManager : null
@@ -90,8 +90,15 @@ class AtomicTaroView# extends ScrollView
         $(block_pane).sortable({ axis: 'y' }) # < this allows blocks to be re-arranged
         $(block_pane).disableSelection()
         @element.appendChild(block_pane)
-        console.log div
+        #console.log div
         block_pane.appendChild(div)
+        bufferLineCount = segment.getModel().getLineCount()
+        endOfFile = @segmentManager.sourceEditor.getLastBufferRow() + 1
+        codeRange = new Range(new Point(endOfFile, 0), new Point(endOfFile + bufferLineCount, 0))
+        marker = @segmentManager.sourceEditor.markBufferRange(codeRange)
+        codeText =  "#ʕ•ᴥ•ʔ" + segment.getModel().getTitle() + "ʔ\n" + segment.getModel().getBuffer().getText() + "\n#ʕ•ᴥ•ʔ"
+        @segmentManager.sourceEditor.setTextInBufferRange(codeRange, codeText)
+        segment.getModel().addChangeListeners(@segmentManager.sourceBuffer)
     #@segmentManager.pasteSegment(e)
 
   # Tear down any state and detach

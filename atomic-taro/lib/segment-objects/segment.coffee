@@ -29,6 +29,9 @@ class Segment
   getEditor: ->
     @editor
 
+  getLineCount: ->
+    @editor.getLineCount()
+
   getBuffer: ->
     @buffer
 

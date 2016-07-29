@@ -28,6 +28,9 @@ class CodePartition
   getHeader: ->
     @header
 
+  getSplitString: ->
+    @splitString
+
   partition: () ->
     @sourceEditor.scan new RegExp(@splitString+'(.*(\n)*)+?'+@splitString, 'g'), (match) =>
       # create a marker for this range so that we can keep track
