@@ -7,6 +7,7 @@ require 'jquery-ui-browserify'
 {TextBuffer} = require 'atom'
 {ScrollView} = require 'atom-space-pen-views'
 Segment = require './segment-objects/segment'
+ExploratorySegmentView = require './segment-objects/exploratory-segment-view'
 SegmentManager = require './segment-manager'
 SharedFunctionSegment = require './segment-objects/shared-function-segment'
 
@@ -76,7 +77,22 @@ class AtomicTaroView# extends ScrollView
     @segmentManager.copySegment(e)
 
   pasteSegment: (e) ->
-    @segmentManager.pasteSegment(e)
+    segs = @segmentManager.getSegments()
+    for segment in segs
+      console.log segment
+      div = segment.getDiv()
+      if segment instanceof ExploratorySegmentView
+        continue
+      else if segment.getModel().getCopied() == true
+        block_pane = document.createElement('div')
+        block_pane.classList.add('atomic-taro_block-pane')
+        # make segments draggable in this div
+        $(block_pane).sortable({ axis: 'y' }) # < this allows blocks to be re-arranged
+        $(block_pane).disableSelection()
+        @element.appendChild(block_pane)
+        console.log div
+        block_pane.appendChild(div)
+    #@segmentManager.pasteSegment(e)
 
   # Tear down any state and detach
   destroy: ->

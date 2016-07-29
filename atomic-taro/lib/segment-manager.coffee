@@ -1,7 +1,7 @@
 SegmentView = require './segment-objects/segment-view'
 Segment = require './segment-objects/segment'
 SharedFunctionSegment = require './segment-objects/shared-function-segment'
-
+ExploratorySegmentView = require './segment-objects/exploratory-segment-view'
 {Point, Range, TextBuffer} = require 'atom'
 CodePartition = require './code-partition'
 
@@ -152,9 +152,20 @@ class SegmentManager
 
     copySegment: (e) ->
       if(e.target.outerHTML.includes("atomic-taro_editor-header-box"))
+        i = 0
+        for s in @segments
+          #console.log s
+          if(s instanceof ExploratorySegmentView)
+            i++
+            continue
+          else if(s.getModel().getCopied() == true)
+            s.getModel().setCopied(false)
+            break
+          else
+            i++
         codeText = e.target.nextElementSibling.nextElementSibling.firstChild.model.buffer.lines
         len = codeText.length
-        editorCopy = atom.workspace.buildTextEditor()#filePath: @plainCodeEditor.getPath()))
+        editorCopy = atom.workspace.buildTextEditor(grammar: atom.grammars.selectGrammar("file.py"))#filePath: @plainCodeEditor.getPath()))
         fullCodeText = codeText.join("\n")
         codeRange = new Range(new Point(0, 0), new Point(len, 0))
         editorCopy.setTextInBufferRange(codeRange, fullCodeText)
@@ -163,14 +174,30 @@ class SegmentManager
         copiedSegmentView = new SegmentView(null, editorCopy, null, titleCopy)
         copiedSegmentView.getModel().setCopied(true)
         @segments.push copiedSegmentView
+        console.log copiedSegmentView
         '''for s in @segments
           console.log s'''
       else
         return
 
     pasteSegment: (e) ->
+      #find the segment that is to be pasted - in order to be pasted it's gotta be copied
+      i = 0
+      for s in @segments
+        #console.log s
+        if(s instanceof ExploratorySegmentView)
+          i++
+          continue
+        else if(s.getModel().getCopied() == true)
+          break
+        else
+          i++
+      console.log @segments[i] #this is the one!!!
+      #so we need to append this new segment to the bottom of the editor
+      #then we place a corresponding marker in the original .py file??
+      #ye
       #console.log "made it to pasteSegment"
-
+      #@segments[i].addSegmentDiv()
 
     getPinned: ->
       @pinned
