@@ -10,6 +10,7 @@ class ExploratorySegment
 
   constructor: (view, editor, original_buffer, marker, segmentTitle) ->
     @view = view
+    @rootTitle = segmentTitle
     first = new SegmentView(view, editor, marker, segmentTitle)
     first.getModel().addChangeListeners(original_buffer)
     @currentVariant = first
@@ -24,12 +25,14 @@ class ExploratorySegment
   getVariants: ->
     @variants
 
+  getRootTitle: ->
+    @rootTitle
 
   newVariant: ->
     currentModel = @currentVariant.getModel()
     text = currentModel.getBuffer().getText()
     marker = currentModel.getMarker()
-    title = "\"unnamed variant\""
+    title = @rootTitle+": \"unnamed variant\""
     model_editor = atom.workspace.buildTextEditor(buffer: new TextBuffer(text: text), grammar: atom.grammars.selectGrammar("file.py"),  scrollPastEnd: false)
     newVariant = new SegmentView(@view, model_editor, marker, title)
     newVariantModel = newVariant.getModel()

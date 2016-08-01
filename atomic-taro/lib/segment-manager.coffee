@@ -16,7 +16,6 @@ class SegmentManager
     sourceBuffer: null
     # segments/header
     segments: []
-    header: null
     # pinning
     pinned : []
     scrollPinned : []
@@ -27,9 +26,8 @@ class SegmentManager
       @segments = [] # for some reason this prevents duplicate blocks
       @sourceEditor = sourceEditor
       @sourceBuffer = sourceEditor.getBuffer()
-      CodePartition cp = new CodePartition(@sourceEditor, @sourceBuffer, @header, @segments)
+      CodePartition cp = new CodePartition(@sourceEditor, @sourceBuffer, @segments)
       cp.partition()
-      @header = cp.getHeader()
       @segments = cp.getSegments()
 
       @scrollTopDiv = document.createElement('div')
@@ -42,15 +40,10 @@ class SegmentManager
     getSegments: ->
       @segments
 
-    getHeader: ->
-      @header
-
     serialize: ->
-      header: @header.serialize()
       segments: (seg.serialize() for seg in @segments)
 
     deserialize: (state) ->
-      header = state.header
       saveSegs = state.segments
       for value, index in @segments
         value.deserialize(saveSegs[index])
@@ -101,10 +94,6 @@ class SegmentManager
 
 
     addHeaderListeners: (element) ->
-      #-------make header/editor open/close
-      $(document).on 'click', '.atomic-taro_editor-header-box', (ev) ->
-        editor = $(this).data('editorBar')
-        $(editor).slideToggle('slow')
       #------sets header buttons to the full height of the header
       $ -> $('.atomic-taro_editor-header-buttons').each ->
         $(this).css('min-height', $('.atomic-taro_editor-header-box').outerHeight() - 2)
@@ -112,7 +101,7 @@ class SegmentManager
 
     addHeaderTitleListeners: (element) ->
       #--------------make header title editable
-      $(document).on 'click', '.atomic-taro_editor-header-name', (ev) ->
+      $(document).on 'dblclick', '.atomic-taro_editor-header-name', (ev) ->
         console.log("title clicked!")
         ev.stopPropagation()
         if $(this).children().length == 0
@@ -132,22 +121,22 @@ class SegmentManager
       #--------------make header title editable cont'
       $(element).on 'blur', '.atomic-taro_editor-header-name', ->
         name = $(this).children(".txt_sectionname").val()
-        if /\S/.test(name)
-          $(this).text(name)
-          segment = $(this).data("segment")
+        #if /\S/.test(name)
+        $(this).text(name)
+        '''segment = $(this).data("segment")
           segment.setTitle(name)
         else
-          $(this).text($(this).data("section-title"))
+          $(this).text($(this).data("section-title"))'''
       #--------------make header title editable cont'
       $(element).on 'keyup', '.atomic-taro_editor-header-name', (e) ->
         if(e.keyCode == 13)# enter key
           name = $(this).children(".txt_sectionname").val() #$('#txt_sectionname').val()
-          if /\S/.test(name)
-            $(this).text(name)
-            segment = $(this).data("segment")
+          #if /\S/.test(name)
+          $(this).text(name)
+          '''segment = $(this).data("segment")
             segment.setTitle(name)
           else
-            $(this).text($(this).data("section-title"))
+            $(this).text($(this).data("section-title"))'''
 
 
     copySegment: (e) ->

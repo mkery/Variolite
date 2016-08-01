@@ -21,7 +21,6 @@ class ExploratorySegmentView
     @variantBox_forward = null
     @currentVariantBox = null
     @variantBox_back = null
-
     @addVariantsDiv()
 
   serialize: ->
@@ -29,14 +28,18 @@ class ExploratorySegmentView
     @model.serialize()
 
   deserialize: (state) ->
-    currentVariant = state.currentVariant
+    '''currentVariant = state.currentVariant
     title = currentVariant.title
     @title = title
     @currentVariant.setTitle(title)
-    console.log "title is "+@title
+    console.log "title is "+@title'''
 
   getModel: ->
     @model
+
+  getRootTitle: ->
+    @model.getRootTitle()
+
 
   getDiv: ->
     @variantsDiv
@@ -98,7 +101,7 @@ class ExploratorySegmentView
     nameContainer.classList.add('atomic-taro_editor-header-name-container')
     boxHeader = document.createElement("div")
     boxHeader.classList.add('atomic-taro_editor-header-name')
-    $(boxHeader).text("variant 1")
+    $(boxHeader).text(@getRootTitle()+": \"variant x\"")
     nameContainer.appendChild(boxHeader)
     #add placeholder for data
     dateHeader = document.createElement("div")

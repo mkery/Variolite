@@ -8,7 +8,7 @@ def printShared(x):
 
 #ʕ•ᴥ•ʔ
 
-#ʕ•ᴥ•ʔBox 1ʔ
+#ʕ•ᴥ•ʔʔ
 def box1(x):
     print "box 1"
 #ʕ•ᴥ•ʔ

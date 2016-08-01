@@ -31,17 +31,12 @@ class AtomicTaroView# extends ScrollView
     # create a segment manager from the original editor
     @segmentManager = new SegmentManager(plainCodeEditor, @element)
 
-    # the header is the code that occurs at the top of the file,
-    # outside of segment boxes
-    header = @segmentManager.getHeader()
-    @element.appendChild(header.getDiv())
-
     # root container for segment boxes
     block_pane = document.createElement('div')
     block_pane.classList.add('atomic-taro_block-pane')
     # make segments draggable in this div
-    $(block_pane).sortable({ axis: 'y' }) # < this allows blocks to be re-arranged
-    $(block_pane).disableSelection()
+    #$(block_pane).sortable({ axis: 'y' }) # < this allows blocks to be re-arranged
+    #$(block_pane).disableSelection()
     @element.appendChild(block_pane)
     # now add in each segment to the div
     segs = @segmentManager.getSegments()

@@ -9,51 +9,76 @@ segments readable by our tool.
 '''
 module.exports =
 class CodePartition
-  splitString: "#ʕ•ᴥ•ʔ"
-  splitSize: 6
-  header: null
-  segments: null
+  startString: "#ʕ•ᴥ•ʔ#"
+  endString: "##ʕ•ᴥ•ʔ"
+  splitSize: 7
+  segments: []
   sourceBuffer: null
   sourceEditor: null
 
-  constructor: (sourceEditor, sourceBuffer, header, segments) ->
+  constructor: (sourceEditor, sourceBuffer, segments) ->
     @sourceEditor = sourceEditor
     @sourceBuffer = sourceBuffer
-    @header = header
     @segments = segments
 
   getSegments: ->
     @segments
 
-  getHeader: ->
-    @header
+  partition: ->
+    console.log "starting partition!"
+    startBeacon = []
+    @sourceEditor.scan new RegExp('#ʕ•ᴥ•ʔ#', 'g'), (match) =>
+      #console.log "found #ʕ•ᴥ•ʔ#!"
+      startBeacon.push match
 
-  partition: () ->
-    @sourceEditor.scan new RegExp(@splitString+'(.*(\n)*)+?'+@splitString, 'g'), (match) =>
+    endBeacon = []
+    @sourceEditor.scan new RegExp('##ʕ•ᴥ•ʔ', 'g'), (match) =>
+      endBeacon.push match
+      #console.log "found ##ʕ•ᴥ•ʔ!"
+
+    if startBeacon.length == 0
+      header_marker = null
+      header_text = @sourceBuffer.getText()
+      header_editor = atom.workspace.buildTextEditor(buffer: new TextBuffer(text: header_text), grammar: atom.grammars.selectGrammar("file.py"),  scrollPastEnd: false)
+      header = new HeaderSegmentView(null, header_editor, header_marker, "")
+      @segments.push header
+      #@header.getModel().addChangeListeners(sourceBuffer)
+
+    else
+      @addSegments(startBeacon, endBeacon)
+
+    console.log "end partition"
+
+  addSegments: (startBeacon, endBeacon) ->
+    length = Math.min(startBeacon.length, endBeacon.length)
+    prev = new Point(0,0)
+    for i in [0...length]
+      sb = startBeacon[i]
+      eb = endBeacon[i]
+
       # create a marker for this range so that we can keep track
-      range = match.range
+      range = new Range(sb.range.start, eb.range.end)
       marker = @sourceEditor.markBufferRange(range)
 
       # ---------------------------------------------
       #if segments is empty, this is the first match,
       # also capture the header
-      if @segments.length <= 0
-        header_range = new Range(new Point(0,0), range.start)
-        header_marker = @sourceEditor.markBufferRange(range: header_range)
-        header_text = @sourceEditor.getTextInBufferRange(header_range)
-        header_editor = atom.workspace.buildTextEditor(buffer: new TextBuffer(text: header_text), grammar: atom.grammars.selectGrammar("file.py"),  scrollPastEnd: false)
-        @header = new HeaderSegmentView(null, header_editor, header_marker, "")
-        @header.getModel().addChangeListeners(sourceBuffer)
+      if (range.start.row - prev.row) > 1 or (range.start.col - prev.col) > 1
+        @addNormalCodeSegment(prev, range.start)
       # ---------------------------------------------
 
       # now, substring of text we will show
-      segmentText = match.matchText.substring(6, match.matchText.length - 6)
+      segmentText = @sourceEditor.getTextInBufferRange(range)
       #console.log "segments "+segmentText
-      chunks = segmentText.split "ʔ"
-      segmentTitle = chunks[0]
+      segmentTitle = ""
+      segmentCode = segmentText.substring(7, segmentText.length - 7)
+      chunks = segmentCode.split "ʔ"
+      if chunks.length > 1
+        segmentTitle = chunks[0]
+        segmentCode = chunks[1]
       #console.log "chuncks "+chunks
       #for each segment, create a new mini code editor
-      model_editor = atom.workspace.buildTextEditor(buffer: new TextBuffer(text: chunks[1]), grammar: atom.grammars.selectGrammar("file.py"),  scrollPastEnd: false)
+      model_editor = atom.workspace.buildTextEditor(buffer: new TextBuffer(text: segmentCode), grammar: atom.grammars.selectGrammar("file.py"),  scrollPastEnd: false)
       #add all segments to a dictionary for later access
       if segmentTitle.startsWith("%Shared")# todo, a way to recognize a shared function
         segmentTitle = segmentTitle.substring(1)
@@ -62,3 +87,17 @@ class CodePartition
         segment = new ExploratorySegmentView(model_editor, @sourceBuffer, marker, segmentTitle)
 
       @segments.push segment
+      prev = range.end
+
+    endPoint = @sourceBuffer.getEndPosition()
+    if (endPoint.row - prev.row) > 1 or (endPoint.col - prev.col) > 1
+      @addNormalCodeSegment(prev, endPoint)
+
+  addNormalCodeSegment: (startPoint, endPoint) ->
+    header_range = new Range(startPoint, endPoint)
+    header_marker = @sourceEditor.markBufferRange(range: header_range)
+    header_text = @sourceEditor.getTextInBufferRange(header_range)
+    header_editor = atom.workspace.buildTextEditor(buffer: new TextBuffer(text: header_text), grammar: atom.grammars.selectGrammar("file.py"),  scrollPastEnd: false)
+    header = new HeaderSegmentView(null, header_editor, header_marker, "")
+    header.getModel().addChangeListeners(sourceBuffer)
+    @segments.push header

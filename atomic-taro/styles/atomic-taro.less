@@ -120,6 +120,8 @@ atom-text-editor, /* 1 */
   margin-bottom: 2px;
   padding-top: 1px;
   display: inline-block;
+  min-height: 10px;
+  min-width: 15px;
 }
 
 .atomic-taro_editor-header-date{
@@ -129,6 +131,20 @@ atom-text-editor, /* 1 */
 }
 .atomic-taro_editor-header-date.variant{
    color: @hue-1;
+}
+
+.atomic-taro_editor-header-varIcon{
+    display: inline;
+    float: right;
+    margin-left: 10px;
+    color: @mono-3;
+}
+.icon-primitive-square{
+  margin-left: 1px;
+  margin-right: 1px;
+}
+.icon-primitive-square.active{
+  color: @hue-1;
 }
 
 .atomic-taro_editor-shared-function-name{
@@ -197,7 +213,7 @@ atom-text-editor, /* 1 */
 .output-container{
   font-family: Inconsolata, Monaco, Consolas, 'Courier New', Courier;
   font-size: @font-size;
-  background-color: @syntax-background-color;
+  background-color: @syntax-selection-color;
   margin: 0px;
   border: 1px solid @syntax-selection-color;//@mono-3;
   height: 40px;

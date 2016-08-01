@@ -13,6 +13,7 @@ class SegmentView
     # header bar that holds interactive components above text editor
     @headerBar = null
     @nameHeader = null
+    @rootNameHeader = null
     @pinButton = null
     @outputButton = null
     @variantsButton = null
@@ -133,10 +134,7 @@ class SegmentView
     @segmentDiv.appendChild(@outputDiv)
     #----------editor-------------
     @addEditorDiv(@segment.getEditor(), @segmentDiv)
-    $(@editorDiv).hide()
     @segmentDiv.appendChild(@editorDiv)
-    #-----add data such that headerBar can open editor div later on
-    $(@headerBar).data("editorBar", @editorDiv)
 
   addEditorDiv: (model_editor, blockDiv) ->
     #container for code editor
@@ -152,6 +150,11 @@ class SegmentView
   addHeaderDiv: (headerContainer) ->
     nameContainer = document.createElement("div")
     nameContainer.classList.add('atomic-taro_editor-header-name-container')
+    '''if @variantParent
+      @rootNameHeader = document.createElement("div")
+      @rootNameHeader.classList.add('atomic-taro_editor-header-name')
+      $(@rootNameHeader).data("segment", @segment)
+      $(@rootNameHeader).text(@variantParent.getRootTitle())'''
     @nameHeader = document.createElement("div")
     @nameHeader.classList.add('atomic-taro_editor-header-name')
     $(@nameHeader).data("segment", @segment)
@@ -159,10 +162,21 @@ class SegmentView
     nameContainer.appendChild(@nameHeader)
     #add placeholder for data
     dateHeader = document.createElement("div")
-    $(dateHeader).text("7/16/19 7:04pm")
+    downIcon = document.createElement("span")
+    downIcon.classList.add('icon-chevron-down')
+    $(downIcon).click =>
+      $(@editorDiv).slideToggle('slow')
     dateHeader.classList.add('atomic-taro_editor-header-date')
+    dateHeader.appendChild(downIcon)
+    date = document.createElement("span")
+    $(date).text($.datepicker.formatDate('yy/mm/dd', new Date()))
+    dateHeader.appendChild(date)
     nameContainer.appendChild(dateHeader)
     headerContainer.appendChild(nameContainer)
+    varIcons = document.createElement("span")
+    varIcons.classList.add('atomic-taro_editor-header-varIcon')
+    $(varIcons).html("<span class='icon-primitive-square'></span><span class='icon-primitive-square active'></span>")
+    headerContainer.appendChild(varIcons)
 
   # add a way to pin headers to maintain visibility
   addPinButton: (headerContainer) ->
