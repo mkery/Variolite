@@ -14,6 +14,7 @@ ExploratorySegmentView = require './segment-objects/exploratory-segment-view'
 VariantView = require './segment-objects/variant-view'
 AnnotationProcessorBuffer = require './annotation-processor-buffer'
 
+
 module.exports =
 class AtomicTaroView# extends ScrollView
   variantManager : null
@@ -36,8 +37,12 @@ class AtomicTaroView# extends ScrollView
     #root element
     @element = document.createElement('div')
     @element.classList.add('atomic-taro_pane')#, 'scroll-view')
+
     @element.appendChild(@exploratoryEditor.getElement())
 
+    atom.contextMenu.add {'atom-pane': [{label: 'Copy Segment', command: 'atomic-taro:tarocopy'}]}
+    atom.contextMenu.add {'atom-pane': [{label: 'Paste Segment', command: 'atomic-taro:taropaste'}]}
+    atom.contextMenu.add {'atom-text-editor': [{label: 'Paste Segment', command: 'atomic-taro:taropaste'}]}
 
     # root container for variant boxes
     block_pane = document.createElement('div')
@@ -105,6 +110,31 @@ class AtomicTaroView# extends ScrollView
     footerElement = variant.getFooter()
     fm = @exploratoryEditor.markScreenPosition(end)
     @exploratoryEditor.decorateMarker(marker, {type: 'block', position: 'after', item: footerElement})
+
+  pasteSegment: (e) ->
+    segs = @segmentManager.getSegments()
+    for segment in segs
+      console.log segment
+      div = segment.getDiv()
+      if segment instanceof ExploratorySegmentView
+        continue
+      else if segment.getModel().getCopied() == true
+        block_pane = document.createElement('div')
+        block_pane.classList.add('atomic-taro_block-pane')
+        # make segments draggable in this div
+        $(block_pane).sortable({ axis: 'y' }) # < this allows blocks to be re-arranged
+        $(block_pane).disableSelection()
+        @element.appendChild(block_pane)
+        #console.log div
+        block_pane.appendChild(div)
+        bufferLineCount = segment.getModel().getLineCount()
+        endOfFile = @segmentManager.sourceEditor.getLastBufferRow() + 1
+        codeRange = new Range(new Point(endOfFile, 0), new Point(endOfFile + bufferLineCount, 0))
+        marker = @segmentManager.sourceEditor.markBufferRange(codeRange)
+        codeText =  "#ʕ•ᴥ•ʔ" + segment.getModel().getTitle() + "ʔ\n" + segment.getModel().getBuffer().getText() + "\n#ʕ•ᴥ•ʔ"
+        @segmentManager.sourceEditor.setTextInBufferRange(codeRange, codeText)
+        segment.getModel().addChangeListeners(@segmentManager.sourceBuffer)
+    #@segmentManager.pasteSegment(e)
 
   # Tear down any state and detach
   destroy: ->

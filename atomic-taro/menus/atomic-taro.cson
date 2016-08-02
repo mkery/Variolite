@@ -15,7 +15,7 @@
       'label': 'Wrap in Variant'
       'command': 'atomic-taro:taronewvariant'
     }
-]
+  ]
 'menu': [
   {
     'label': 'Packages'
