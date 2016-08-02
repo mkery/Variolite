@@ -5,6 +5,7 @@ import sys
 import math
 import Pmf
 
+
 #ʕ•ᴥ•ʔ#
 def distance(x0, y0, x1, y1):
 	return math.sqrt((x1-x0)**2 + (y1-y0)**2)
@@ -12,6 +13,8 @@ def distance(x0, y0, x1, y1):
 def computeNorm(x, y):
 	return math.sqrt (x**2 + y**2)
 ##ʕ•ᴥ•ʔ
+
+
 
 def computeAngle (p1, p2):
 	dot = 0
@@ -26,6 +29,7 @@ def computeAngle (p1, p2):
 		dot = -1
 
 	return math.acos(dot)*180/math.pi
+
 #ʕ•ᴥ•ʔ#
 def compute_AllAngles (trip):
 	dV =  np.diff(trip, axis = 0) #x1-x0 and y1-y0
@@ -35,6 +39,7 @@ def compute_AllAngles (trip):
 		np.append(angles, [ang, dV[i][2]]) #append angle with timepoint
 	return angles
 ##ʕ•ᴥ•ʔ
+
 
 """def findSpeed_Dist(trip):
 	v = []

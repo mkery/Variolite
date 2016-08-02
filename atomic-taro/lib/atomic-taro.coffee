@@ -2,7 +2,7 @@ AtomicTaroView = require './atomic-taro-view'
 {CompositeDisposable} = require 'atom'
 url = require 'url'
 path = require 'path'
-fs = require 'fs'
+
 
 #@todo @atomicTaroView isn't really keeping track of anything
 module.exports = AtomicTaro =
@@ -25,7 +25,6 @@ module.exports = AtomicTaro =
 
     @subscriptions.add atom.commands.add 'atom-workspace', 'core:save', (e) =>
       @handleSaveEvent(e)
-
 
     '''
     We set up an opener such that if the user
@@ -52,6 +51,7 @@ module.exports = AtomicTaro =
       @atomicTaroView = new AtomicTaroView statePath, plainCodeEditor, fpath: pathname, protocol
       @atomicTaroView
 
+
   deactivate: ->
     @modalPanel.destroy()
     @subscriptions.dispose()
@@ -64,7 +64,7 @@ module.exports = AtomicTaro =
     editor = atom.workspace.getActivePaneItem()
     if editor instanceof AtomicTaroView
         @atomicTaroView = editor
-        @atomicTaroView.copySegment(e)
+        @atomicTaroView.copyVariant(e)
 
   open: ->
     @addTaroView()
@@ -89,7 +89,7 @@ module.exports = AtomicTaro =
     editor = atom.workspace.getActivePaneItem()
     if editor instanceof AtomicTaroView
         @atomicTaroView = editor
-        @atomicTaroView.saveSegments(e)
+        @atomicTaroView.saveVariants(e)
         cereal = @serialize()
         lastIndex = @filePath.lastIndexOf('/')
         folder = @filePath.substring(0, lastIndex)

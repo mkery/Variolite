@@ -3,77 +3,159 @@
 # If these do not work, install them locally using npm
 global.jQuery = global.$ = require 'jquery'
 require 'jquery-ui-browserify'
+fs = require 'fs'
 
 {TextBuffer} = require 'atom'
 {ScrollView} = require 'atom-space-pen-views'
-Segment = require './segment-objects/segment'
-SegmentManager = require './segment-manager'
-SharedFunctionSegment = require './segment-objects/shared-function-segment'
+VariantsManager = require './variants-manager'
+Variant = require './variant'
+VariantView = require './variant-view'
+AnnotationProcessorBuffer = require './annotation-processor-buffer'
 
 module.exports =
 class AtomicTaroView# extends ScrollView
-  segmentManager : null
+  variantManager : null
   sourceFile : null
 
-  constructor: (statePath, plainCodeEditor, {fpath, protocol}) ->
-    $.getJSON (statePath), (state) =>
-      console.log "JSON found"
-      console.log state
-      @deserialize(state)
+  constructor: (statePath, sourceEditor) ->
+    # try to get saved meta data for this file, if there is any
+    @deserialize(statePath)
 
-    # plainCodeEditor is the user's original python file
-    plainCodeEditor = plainCodeEditor
-    @sourceFile = fpath
+    @sourceEditor = sourceEditor
+    # exploratoryEditor is the python file modified to show our visualization things
+    @exploratoryEditor = @initExploratoryEditor(@sourceEditor)
+    variantWidth = @sourceEditor.getElement().getWidth()
+    variants = @initVariants(@exploratoryEditor, variantWidth)
+
+    # create a variant manager
+    @variantsManager = new VariantsManager(variants)
+
     #root element
     @element = document.createElement('div')
     @element.classList.add('atomic-taro_pane')#, 'scroll-view')
+    @element.appendChild(@exploratoryEditor.getElement())
 
-    # create a segment manager from the original editor
-    @segmentManager = new SegmentManager(plainCodeEditor, @element)
 
-    # root container for segment boxes
+    # root container for variant boxes
     block_pane = document.createElement('div')
     block_pane.classList.add('atomic-taro_block-pane')
-    # make segments draggable in this div
-    #$(block_pane).sortable({ axis: 'y' }) # < this allows blocks to be re-arranged
-    #$(block_pane).disableSelection()
     @element.appendChild(block_pane)
-    # now add in each segment to the div
-    segs = @segmentManager.getSegments()
-    for segment in segs
-      div = segment.getDiv()
-      block_pane.appendChild(div)
 
-    # finally, add jquery listeners for all the interactions
-    @addJqueryListeners()
+
+
+  # init Exploratory Editor
+  initExploratoryEditor: (sourceEditor) ->
+    sourceCode = sourceEditor.getBuffer().getText()
+    exploratoryEditor = atom.workspace.buildTextEditor(buffer: new AnnotationProcessorBuffer(text: sourceCode), grammar: atom.grammars.selectGrammar("file.py"),  scrollPastEnd: false)
+    exploratoryEditor
+
+
 
   # This is the title that shows up on the tab
   getTitle: -> 'ExploratoryView'
 
+
+
   # Returns an object that can be retrieved when package is activated
   serialize: ->
-    sourceFile: @sourceFile?
-    segments: @segmentManager.serialize()
+    #sourceFile: @sourceFile?
+    #variants: @variantManager.serialize()
 
-  deserialize: (state) ->
-    atomicTaroViewState =  state.atomicTaroViewState
-    segments = atomicTaroViewState.segments
-    @segmentManager.deserialize(segments)
+
+
+  deserialize: (statePath) ->
+    # try to get saved meta data for this file, if there is any
+    $.getJSON (statePath), (state) =>
+        console.log "JSON found"
+        console.log state
+        #atomicTaroViewState =  state.atomicTaroViewState
+        #variants = atomicTaroViewState.variants
+        #@variantManager.deserialize(variants)
+      .fail ->
+        console.log "No saved taro file found."
+
+
 
   #since atom doesn't know how ot save our editor, we manually set this up
-  saveSegments: (e) ->
-    @segmentManager.saveSegments(e)
+  saveVariants: (e) ->
+    @variantManager.saveVariants(e)
 
-  copySegment: (e) ->
-    @segmentManager.copySegment(e)
+
+
+  copyVariant: (e) ->
+    @variantManager.copyVariant(e)
+
+
 
   # Tear down any state and detach
   destroy: ->
     @element.remove()
 
+
+
   # Gets the root element
   getElement: ->
     @element
 
+
+
   addJqueryListeners: ->
-    @segmentManager.addJqueryListeners(@element)
+    @variantManager.addJqueryListeners(@element)
+
+
+
+  initVariants: (editor, width) ->
+    startBeacon = []
+    editor.scan new RegExp('#ʕ•ᴥ•ʔ#', 'g'), (match) =>
+      startBeacon.push(match)
+
+    endBeacon = []
+    editor.scan new RegExp('##ʕ•ᴥ•ʔ', 'g'), (match) =>
+      endBeacon.push(match)
+      #console.log "found ##ʕ•ᴥ•ʔ!"
+
+    @addVariants(editor, startBeacon, endBeacon, width)
+
+
+
+  addVariants: (editor, startBeacon, endBeacon, variantWidth) ->
+    length = Math.min(startBeacon.length, endBeacon.length)
+    rowDeletedOffset = 0
+    variantList = []
+
+    for i in [0...length]
+      sb = startBeacon[i]
+      eb = endBeacon[i]
+
+      # create a marker for this range so that we can keep track
+      #range = new Range(new Point(sb.range.start.row - rowDeletedOffset, sb.range.start.col), new Point(eb.range.end.row - rowDeletedOffset, eb.range.end.col))
+      range = [sb.range.start, eb.range.end]
+      marker = editor.markBufferRange(range, invalidate: 'never')
+      start = range[0]
+      end = range[1]
+      '''
+      below, useful for debug!!!
+      dec = @sourceEditor.decorateMarker(marker, type: 'highlight', class: 'highlight-green')
+      '''
+
+      variant = new VariantView(editor, marker, "", variantWidth)
+      variantList.push(variant)
+
+      headerElement = variant.getHeader()
+      hm = editor.markScreenPosition([start.row - 1, start.col], invalidate: 'never')
+      editor.decorateMarker(hm, {type: 'block', position: 'after', item: headerElement})
+
+      footerElement = variant.getFooter()
+      fm = editor.markScreenPosition(end)
+      editor.decorateMarker(marker, {type: 'block', position: 'after', item: footerElement})
+
+      # now, trim annotations
+      '''editorBuffer = editor.getBuffer()
+      rowStart = sb.range.start.row
+      rowEnd = eb.range.end.row
+      editorBuffer.deleteRow(rowStart - rowDeletedOffset)
+      rowDeletedOffset += 1
+      editorBuffer.deleteRow(rowEnd - rowDeletedOffset)
+      rowDeletedOffset += 1'''
+
+      variantList

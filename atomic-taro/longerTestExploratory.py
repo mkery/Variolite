@@ -9,7 +9,7 @@ from parse import *
 inFile = sys.argv[1]
 outFile = sys.argv[2]
 
-#ʕ•ᴥ•ʔ%Shared Functionsʔ
+#ʕ•ᴥ•ʔ#
 #sort by: if I have catch blocks of size n + kind, how many catch blocks that are of length N and do kind
 # are there
 def sortByQuestion(statement_N, kind_N, blk):
@@ -267,9 +267,9 @@ def parseExpression(desc):
         else:
             c_EXPRESSION["unaccounted"] += 1
             lines.append(methd)
-#ʕ•ᴥ•ʔ
+##ʕ•ᴥ•ʔ
 
-#ʕ•ᴥ•ʔCount returns, throwsʔ
+#ʕ•ᴥ•ʔ#Count returns, throwsʔ
 lines = []
 c_RETURN = {"TOTAL" : 0, "LITERAL" : 0, "NOTHING" : 0, "OTHER" : 0}
 c_THROW = {"TOTAL" : 0}
@@ -332,9 +332,9 @@ print unaccounted + c_EXPRESSION["unaccounted"]
 with open(outFile, 'w') as outfile:
     for l in lines:
         outfile.write("{}\n".format(l))
-#ʕ•ᴥ•ʔ
+##ʕ•ᴥ•ʔ
 
-#ʕ•ᴥ•ʔCount throwsʔ
+#ʕ•ᴥ•ʔ#Count throwsʔ
 header = []
 
 testc = 0 #debug only
@@ -389,9 +389,9 @@ with open(outFile, "w") as outfile:
             statement_mean= (float(grouping[proj]["Statement Count"]))/(float (grouping[proj]["Catch"]))
         outfile.write(proj +"," + str(grouping[proj]["File Count"]) + "," + str(grouping[proj]["Try"]) + "," + str(grouping[proj]["Catch"]) + "," + str(statement_mean)+ ","
                         + str(grouping[proj]["Nested Try"]) + "," + str(grouping[proj]["Nested Catch"]) + "\n")
-#ʕ•ᴥ•ʔ
+##ʕ•ᴥ•ʔ
 
-#ʕ•ᴥ•ʔCount returnsʔ
+#ʕ•ᴥ•ʔ#Count returnsʔ
 
 #parses description of try/catch block into csv components, and then counts
 #the number of instances of each component, eg. RETURN or THROW
@@ -475,4 +475,4 @@ print countReturns
 with open(outFile, 'w') as outfile:
     for ret in countReturns:
         outfile.write(ret +","+str(countReturns[ret])+"\n")
-#ʕ•ᴥ•ʔ
+##ʕ•ᴥ•ʔ

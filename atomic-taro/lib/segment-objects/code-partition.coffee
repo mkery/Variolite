@@ -25,7 +25,7 @@ class CodePartition
     @segments
 
   partition: ->
-    console.log "starting partition!"
+
     startBeacon = []
     @sourceEditor.scan new RegExp('#ʕ•ᴥ•ʔ#', 'g'), (match) =>
       #console.log "found #ʕ•ᴥ•ʔ#!"
@@ -47,7 +47,7 @@ class CodePartition
     else
       @addSegments(startBeacon, endBeacon)
 
-    console.log "end partition"
+
 
   addSegments: (startBeacon, endBeacon) ->
     length = Math.min(startBeacon.length, endBeacon.length)
