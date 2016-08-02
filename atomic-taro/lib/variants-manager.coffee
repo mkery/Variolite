@@ -1,10 +1,6 @@
-SegmentView = require './segment-objects/segment-view'
-Segment = require './segment-objects/segment'
-SharedFunctionSegment = require './segment-objects/shared-function-segment'
-
 {Point, Range, TextBuffer} = require 'atom'
-VariantPartition = require './variant-partition'
-
+Variant = require './variant'
+VariantView = require './variant-view'
 '''
 This class is essentially the model behind the atomic-taro-view, as it
 manages all of the segments and all of their interactions.
@@ -42,8 +38,10 @@ class VariantsManager
       $(document).on 'mouseenter', '.variants-button', ->
         hoverMenu = $(this).children('.variants-hoverMenu')
         hoverMenu.slideDown('fast')
-        topPos = $(this).position().top + $(this).outerHeight() - hoverMenu.css('padding-top')
-        hoverMenu.css({top : topPos+"px" })
+        topPos = $(this).position().top + $(this).outerHeight() + hoverMenu.css('padding-top')
+        rightPos = $(this).position().left + $(this).width() + hoverMenu.width()/4
+        console.log "right pos?? "+rightPos
+        hoverMenu.css({top : topPos+"px" , right : rightPos+"px"})
       #------------- hover for variants button
       $(document).on 'mouseleave', '.variants-button', ->
         hoverMenu = $(this).children('.variants-hoverMenu')
@@ -82,7 +80,7 @@ class VariantsManager
                 'value': name
             }).appendTo(this)
           $('.txt_sectionname').focus()
-          $('.txt_sectionname').addClass('native-key-bindings')
+          #$('.txt_sectionname').addClass('native-key-bindings')
 
       #--------------make header title editable cont'
       $(element).on 'blur', '.atomic-taro_editor-header-name', ->

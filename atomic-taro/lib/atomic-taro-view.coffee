@@ -6,9 +6,11 @@ require 'jquery-ui-browserify'
 fs = require 'fs'
 
 {TextBuffer} = require 'atom'
+{Point, Range} = require 'atom'
 {ScrollView} = require 'atom-space-pen-views'
 VariantsManager = require './variants-manager'
 Variant = require './variant'
+ExploratorySegmentView = require './segment-objects/exploratory-segment-view'
 VariantView = require './variant-view'
 AnnotationProcessorBuffer = require './annotation-processor-buffer'
 
@@ -24,7 +26,8 @@ class AtomicTaroView# extends ScrollView
     @sourceEditor = sourceEditor
     # exploratoryEditor is the python file modified to show our visualization things
     @exploratoryEditor = @initExploratoryEditor(@sourceEditor)
-    variantWidth = @sourceEditor.getElement().getWidth()
+
+    variantWidth = @sourceEditor.getElement().getWidth() - 20
     variants = @initVariants(@exploratoryEditor, variantWidth)
 
     # create a variant manager
@@ -130,17 +133,30 @@ class AtomicTaroView# extends ScrollView
       # create a marker for this range so that we can keep track
       #range = new Range(new Point(sb.range.start.row - rowDeletedOffset, sb.range.start.col), new Point(eb.range.end.row - rowDeletedOffset, eb.range.end.col))
       range = [sb.range.start, eb.range.end]
+      start = new Point(range[0].row - rowDeletedOffset, range[0].col)
+      end = new Point(range[1].row - rowDeletedOffset, range[1].col)
+      range = [start, end]
       marker = editor.markBufferRange(range, invalidate: 'never')
-      start = range[0]
-      end = range[1]
-      '''
-      below, useful for debug!!!
-      dec = @sourceEditor.decorateMarker(marker, type: 'highlight', class: 'highlight-green')
-      '''
 
-      variant = new VariantView(editor, marker, "", variantWidth)
+      '''below, useful for debug!!!'''
+      #dec = editor.decorateMarker(marker, type: 'highlight', class: 'highlight-green')
+
+      # now, trim annotations
+      editorBuffer = editor.getBuffer()
+      rowStart = sb.range.start.row
+      title = editorBuffer.lineForRow(rowStart - rowDeletedOffset)
+      rowEnd = eb.range.end.row
+      editorBuffer.deleteRow(rowStart - rowDeletedOffset)
+      rowDeletedOffset += 1
+      editorBuffer.deleteRow(rowEnd - rowDeletedOffset)
+      rowDeletedOffset += 1
+
+      #get title from removed annotation
+      title = title.substring(7)
+
+      #finally, make the new variant!
+      variant = new ExploratorySegmentView(editor, marker, title, variantWidth)
       variantList.push(variant)
-
       headerElement = variant.getHeader()
       hm = editor.markScreenPosition([start.row - 1, start.col], invalidate: 'never')
       editor.decorateMarker(hm, {type: 'block', position: 'after', item: headerElement})
@@ -149,13 +165,5 @@ class AtomicTaroView# extends ScrollView
       fm = editor.markScreenPosition(end)
       editor.decorateMarker(marker, {type: 'block', position: 'after', item: footerElement})
 
-      # now, trim annotations
-      '''editorBuffer = editor.getBuffer()
-      rowStart = sb.range.start.row
-      rowEnd = eb.range.end.row
-      editorBuffer.deleteRow(rowStart - rowDeletedOffset)
-      rowDeletedOffset += 1
-      editorBuffer.deleteRow(rowEnd - rowDeletedOffset)
-      rowDeletedOffset += 1'''
-
-      variantList
+    #return
+    variantList

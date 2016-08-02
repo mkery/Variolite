@@ -1,5 +1,5 @@
 {Point, Range, TextBuffer} = require 'atom'
-SegmentView = require './segment-view'
+VariantView = require '../variant-view'
 
 '''
 Represents a single segment of exploratory code *including* variants of that
@@ -8,11 +8,10 @@ code. Thus, this segment contains multiple segments, one for each variant
 module.exports =
 class ExploratorySegment
 
-  constructor: (view, editor, original_buffer, marker, segmentTitle) ->
+  constructor: (view, editor, marker, segmentTitle, segmentWidth) ->
     @view = view
     @rootTitle = segmentTitle
-    first = new SegmentView(view, editor, marker, segmentTitle)
-    first.getModel().addChangeListeners(original_buffer)
+    first = new VariantView(view, editor, marker, segmentTitle, segmentWidth)
     @currentVariant = first
 
   serialize: ->

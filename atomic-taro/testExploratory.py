@@ -2,7 +2,7 @@ import os
 import maps
 
 
-#ʕ•ᴥ•ʔ#Shared Functionsʔ
+#ʕ•ᴥ•ʔ#Shared Functions
 def printShared(x):
     print "shared"
 
@@ -13,7 +13,7 @@ def box1(x):
     print "box 1"
 ##ʕ•ᴥ•ʔ
 
-#ʕ•ᴥ•ʔ#Box 2ʔ
+#ʕ•ᴥ•ʔ#Box 2
 def box2():
     print "box 2"
-#ʕ•ᴥ•ʔ
+##ʕ•ᴥ•ʔ

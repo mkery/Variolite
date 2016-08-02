@@ -8,7 +8,7 @@ variant object.
 module.exports =
 class VariantView
 
-  constructor: (sourceEditor, marker, variantTitle, @divWidth) ->
+  constructor: (@variantParent, sourceEditor, marker, variantTitle, @divWidth) ->
     # header bar that holds interactive components above text editor
     @headerBar = null
     @footerBar = null
@@ -191,23 +191,22 @@ class VariantView
     buttonShow.classList.add('showVariantsButton')
     $(buttonShow).text("show")
     $(buttonShow).data("variant", @)
-    '''$(buttonShow).click (ev) =>
+    $(buttonShow).click (ev) =>
       ev.stopPropagation()
-      $(@variantDiv).toggleClass('variant')
       $(@headerBar).toggleClass('activeVariant')
       if @variants_showing
         @variantParent.closeVariantsDiv()
         @variants_showing = false
       else
         @variantParent.openVariantsDiv()
-        @variants_showing = true'''
+        @variants_showing = true
     variantsMenu.appendChild(buttonShow)
     buttonAdd = document.createElement("div")
     buttonAdd.classList.add('variants-hoverMenu-buttons')
     buttonAdd.classList.add('createVariantButton')
     $(buttonAdd).html("<span class='icon icon-repo-create'>create new variant</span>")
-    '''$(buttonAdd).click =>
-      @variantParent.newVariant()'''
+    $(buttonAdd).click =>
+      @variantParent.newVariant()
     variantsMenu.appendChild(buttonAdd)
 
   addOutputButton: (headerContainer) ->

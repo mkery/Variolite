@@ -8,8 +8,8 @@ Segment object.
 module.exports =
 class ExploratorySegmentView
 
-  constructor: (editor, original_buffer, marker, segmentTitle) ->
-    @model = new ExploratorySegment(@, editor, original_buffer, marker, segmentTitle)
+  constructor: (editor, marker, segmentTitle, segmentWidth) ->
+    @model = new ExploratorySegment(@, editor, marker, segmentTitle, segmentWidth)
     @currentVariant = @model.getCurrentVariant()
     # divs
     @variantsDiv = null
@@ -40,6 +40,11 @@ class ExploratorySegmentView
   getRootTitle: ->
     @model.getRootTitle()
 
+  getHeader: ->
+    @variantsDiv
+
+  getFooter: ->
+    @footerDiv
 
   getDiv: ->
     @variantsDiv
@@ -56,7 +61,7 @@ class ExploratorySegmentView
 
   newVariant: ->
     newVariant = @model.newVariant()
-    newVarDiv = newVariant.getDiv()
+    newVarDiv = newVariant.getHeader()
     newVariant.setVariantsShowing(true)
     $(newVarDiv).hide()
     #add to above box and make sure variantBox_forward is showing
@@ -70,7 +75,7 @@ class ExploratorySegmentView
 
     # now transition the current variant to the style of a non-current variant
     # and slide in the new variant
-    c_div = @currentVariant.getDiv()
+    c_div = @currentVariant.getHeader()
     $(@variantBox_back).prepend($(c_div))
     $(c_div).removeClass('variant')
     $(c_div).addClass 'inactive_variant', complete: =>
@@ -81,7 +86,7 @@ class ExploratorySegmentView
 
 
   addVariantsDiv: ->
-    #container for entire block
+    #container for header + above
     @variantsDiv = document.createElement('div')
     @variantsDiv.classList.add('atomic-taro_editor-exploratory-variants')
     #---------variants upper region
@@ -90,11 +95,12 @@ class ExploratorySegmentView
     @variantsDiv.appendChild(@variantBox_forward)
     #--------- add all the segments
     @currentVariantBox = document.createElement('div')
-    @currentVariantBox.appendChild(@currentVariant.getDiv())
+    @currentVariantBox.appendChild(@currentVariant.getHeader())
     @variantsDiv.appendChild(@currentVariantBox)
-    #---------variants lower div
-    @variantsDiv.appendChild(@variantBox_back)
 
+    @footerDiv = document.createElement('div')
+    @footerDiv.appendChild(@currentVariant.getFooter())
+    @footerDiv.appendChild(@variantBox_back)
 
   addVariantHeaderDiv: (headerContainer) ->
     nameContainer = document.createElement("div")
