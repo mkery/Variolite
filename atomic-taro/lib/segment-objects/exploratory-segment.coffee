@@ -1,5 +1,5 @@
 {Point, Range, TextBuffer} = require 'atom'
-VariantView = require '../variant-view'
+VariantView = require './variant-view'
 
 '''
 Represents a single segment of exploratory code *including* variants of that

@@ -9,9 +9,9 @@ fs = require 'fs'
 {Point, Range} = require 'atom'
 {ScrollView} = require 'atom-space-pen-views'
 VariantsManager = require './variants-manager'
-Variant = require './variant'
+Variant = require './segment-objects/variant'
 ExploratorySegmentView = require './segment-objects/exploratory-segment-view'
-VariantView = require './variant-view'
+VariantView = require './segment-objects/variant-view'
 AnnotationProcessorBuffer = require './annotation-processor-buffer'
 
 module.exports =
@@ -27,8 +27,8 @@ class AtomicTaroView# extends ScrollView
     # exploratoryEditor is the python file modified to show our visualization things
     @exploratoryEditor = @initExploratoryEditor(@sourceEditor)
 
-    variantWidth = @sourceEditor.getElement().getWidth() - 20
-    variants = @initVariants(@exploratoryEditor, variantWidth)
+    @variantWidth = @sourceEditor.getElement().getWidth() - 20
+    variants = @initVariants(@exploratoryEditor, @variantWidth)
 
     # create a variant manager
     @variantsManager = new VariantsManager(variants)
@@ -57,7 +57,8 @@ class AtomicTaroView# extends ScrollView
   # This is the title that shows up on the tab
   getTitle: -> 'ExploratoryView'
 
-
+  deactivate: ->
+    @variantsManager.deactivate()
 
   # Returns an object that can be retrieved when package is activated
   serialize: ->
@@ -89,6 +90,21 @@ class AtomicTaroView# extends ScrollView
     @variantManager.copyVariant(e)
 
 
+  wrapNewVariant: (e) ->
+    range = @exploratoryEditor.getSelectedBufferRange()
+    start = range.start
+    end = range.end
+    marker = @exploratoryEditor.markBufferRange(range, invalidate: 'never')
+    #finally, make the new variant!
+    variant = new ExploratorySegmentView(@exploratoryEditor, marker, "", @variantWidth)
+    @variantManager.addVariant(variant)
+    headerElement = variant.getHeader()
+    hm = @exploratoryEditor.markScreenPosition([start.row - 1, start.col], invalidate: 'never')
+    @exploratoryEditor.decorateMarker(hm, {type: 'block', position: 'after', item: headerElement})
+
+    footerElement = variant.getFooter()
+    fm = @exploratoryEditor.markScreenPosition(end)
+    @exploratoryEditor.decorateMarker(marker, {type: 'block', position: 'after', item: footerElement})
 
   # Tear down any state and detach
   destroy: ->

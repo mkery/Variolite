@@ -1,6 +1,6 @@
 {Point, Range, TextBuffer} = require 'atom'
-Variant = require './variant'
-VariantView = require './variant-view'
+Variant = require './segment-objects/variant'
+VariantView = require './segment-objects/variant-view'
 '''
 This class is essentially the model behind the atomic-taro-view, as it
 manages all of the segments and all of their interactions.
@@ -13,6 +13,12 @@ class VariantsManager
       @variants = variants # for some reason this prevents duplicate blocks
       @addJqueryListeners()
 
+    deactivate: ->
+      for v in @variants
+        v.deactivate()
+
+    addVariant: (v) ->
+      @variants.push v
 
     addJqueryListeners: (element) ->
       @addHeaderListeners(element)

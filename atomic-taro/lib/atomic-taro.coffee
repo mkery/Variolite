@@ -23,6 +23,8 @@ module.exports = AtomicTaro =
 
     @subscriptions.add atom.commands.add 'atom-workspace', 'atomic-taro:tarocopy', (e) => @tarocopy(e)
 
+    @subscriptions.add atom.commands.add 'atom-workspace', 'atomic-taro:taronewvariant', (e) => @taroWrapVariant(e)
+
     @subscriptions.add atom.commands.add 'atom-workspace', 'core:save', (e) =>
       @handleSaveEvent(e)
 
@@ -55,6 +57,7 @@ module.exports = AtomicTaro =
   deactivate: ->
     @modalPanel.destroy()
     @subscriptions.dispose()
+    @atomicTaroView.deactivate()
     @atomicTaroView.destroy()
 
   serialize: ->
@@ -65,6 +68,12 @@ module.exports = AtomicTaro =
     if editor instanceof AtomicTaroView
         @atomicTaroView = editor
         @atomicTaroView.copyVariant(e)
+
+  taroWrapVariant: (e) ->
+    editor = atom.workspace.getActivePaneItem()
+    if editor instanceof AtomicTaroView
+        @atomicTaroView = editor
+        @atomicTaroView.wrapNewVariant(e)
 
   open: ->
     @addTaroView()

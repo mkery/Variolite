@@ -10,6 +10,10 @@
     {
       'label': 'Copy Block'
       'command': 'atomic-taro:tarocopy'
+    },
+    {
+      'label': 'Wrap in Variant'
+      'command': 'atomic-taro:taronewvariant'
     }
 ]
 'menu': [

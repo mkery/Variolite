@@ -23,6 +23,9 @@ class ExploratorySegmentView
     @variantBox_back = null
     @addVariantsDiv()
 
+  deactivate: ->
+    @currentVariant.deactivate()
+
   serialize: ->
     #todo
     @model.serialize()

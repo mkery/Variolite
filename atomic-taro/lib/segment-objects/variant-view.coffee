@@ -1,17 +1,17 @@
 {Point, Range, TextBuffer} = require 'atom'
-Segment = require './segment'
+Variant = require './variant'
 
 '''
-Segment view represents the visual appearance of a Segment, and contains a
-Segment object.
+variant view represents the visual appearance of a variant, and contains a
+variant object.
 '''
 module.exports =
-class SegmentView
+class VariantView
 
-  constructor: (@variantParent, editor, marker, segmentTitle) ->
-    @segmentDiv = null
+  constructor: (@variantParent, sourceEditor, marker, variantTitle, @divWidth) ->
     # header bar that holds interactive components above text editor
     @headerBar = null
+    @footerBar = null
     @nameHeader = null
     @rootNameHeader = null
     @pinButton = null
@@ -25,25 +25,28 @@ class SegmentView
     @pinnedToTop = false
     @pinnedToBottom = false
 
-    # the segment
-    @segment = new Segment(editor, marker, segmentTitle)
-    @addSegmentDiv()
+    # the variant
+    @variant = new Variant(sourceEditor, marker, variantTitle)
+    @buildVariantDiv()
+
+  deactivate: ->
+    @model.getMarker().destroy()
 
   serialize: ->
     #todo add ui
-    @segment.serialize()
+    @variant.serialize()
 
   deserialize: (state) ->
-    console.log "SEGMENTS"
+    console.log "variantS"
 
   variantSerialize: ->
-    @segment.variantSerialize()
+    @variant.variantSerialize()
 
   getModel: ->
-    @segment
+    @variant
 
-  getDiv: ->
-    @segmentDiv
+  getFooter: ->
+    @footerBar
 
   getEditorDiv: ->
     @editorDiv
@@ -56,7 +59,7 @@ class SegmentView
 
   setTitle: (t) ->
     $(@nameHeader).text(t)
-    @segment.setTitle(t)
+    @variant.setTitle(t)
 
   setVariantsShowing: (bool) ->
     @variants_showing = bool
@@ -114,37 +117,24 @@ class SegmentView
     $(@editorDiv).slideUp('slow')
 
 
-  addSegmentDiv: () ->
-    #container for entire block
-    @segmentDiv = document.createElement('div')
-    @segmentDiv.classList.add('atomic-taro_editor-segment')
+  buildVariantDiv: () ->
     #----------header-------------
     #container for header information like title, meta-data
     @headerBar = document.createElement('div')
     @headerBar.classList.add('atomic-taro_editor-header-box')
+    $(@headerBar).width(@divWidth)
     @addHeaderDiv(@headerBar)
     #add placeholders for versions and output
     @addVariantButtons(@headerBar)
-    @addOutputButton(@headerBar)
+    #@addOutputButton(@headerBar)
     # add pinButton
-    @addPinButton(@headerBar)
-    @segmentDiv.appendChild(@headerBar)
+    #@addPinButton(@headerBar)
     #---------output region
-    @addOutputDiv()
-    @segmentDiv.appendChild(@outputDiv)
-    #----------editor-------------
-    @addEditorDiv(@segment.getEditor(), @segmentDiv)
-    @segmentDiv.appendChild(@editorDiv)
+    #@addOutputDiv()
+    #@headerBar.appendChild(@outputDiv)
 
-  addEditorDiv: (model_editor, blockDiv) ->
-    #container for code editor
-    @editorDiv = document.createElement('div')
-    @editorDiv.classList.add('atomic-taro_editor-textEditor-box')
-    # create an editor element
-    #model_editor = atom.workspace.buildTextEditor(buffer: new SegmentedBuffer(text: codeText), grammar: atom.grammars.selectGrammar("file.py"))#filePath: @plainCodeEditor.getPath()))
-    model_editor = @segment.getEditor()
-    te = model_editor.getElement()
-    @editorDiv.appendChild(te)
+    @footerBar = document.createElement('div')
+    @footerBar.classList.add('atomic-taro_editor-footer-box')
 
 
   addHeaderDiv: (headerContainer) ->
@@ -153,19 +143,19 @@ class SegmentView
     '''if @variantParent
       @rootNameHeader = document.createElement("div")
       @rootNameHeader.classList.add('atomic-taro_editor-header-name')
-      $(@rootNameHeader).data("segment", @segment)
+      $(@rootNameHeader).data("variant", @variant)
       $(@rootNameHeader).text(@variantParent.getRootTitle())'''
     @nameHeader = document.createElement("div")
     @nameHeader.classList.add('atomic-taro_editor-header-name')
-    $(@nameHeader).data("segment", @segment)
-    $(@nameHeader).text(@segment.getTitle())
+    $(@nameHeader).data("variant", @variant)
+    $(@nameHeader).text(@variant.getTitle())
     nameContainer.appendChild(@nameHeader)
     #add placeholder for data
     dateHeader = document.createElement("div")
     downIcon = document.createElement("span")
     downIcon.classList.add('icon-chevron-down')
     $(downIcon).click =>
-      $(@editorDiv).slideToggle('slow')
+      @variant.collapse()
     dateHeader.classList.add('atomic-taro_editor-header-date')
     dateHeader.appendChild(downIcon)
     date = document.createElement("span")
@@ -182,7 +172,7 @@ class SegmentView
   addPinButton: (headerContainer) ->
     @pinButton = document.createElement("span")
     @pinButton.classList.add('icon-pin', 'pinButton')
-    $(@pinButton).data("segment", @)
+    $(@pinButton).data("variant", @)
     headerContainer.appendChild(@pinButton)
 
   addVariantButtons: (headerContainer) ->
@@ -203,10 +193,9 @@ class SegmentView
     buttonShow.classList.add('variants-hoverMenu-buttons')
     buttonShow.classList.add('showVariantsButton')
     $(buttonShow).text("show")
-    $(buttonShow).data("segment", @)
+    $(buttonShow).data("variant", @)
     $(buttonShow).click (ev) =>
       ev.stopPropagation()
-      $(@segmentDiv).toggleClass('variant')
       $(@headerBar).toggleClass('activeVariant')
       if @variants_showing
         @variantParent.closeVariantsDiv()
@@ -228,7 +217,7 @@ class SegmentView
     @outputButton.classList.add('atomic-taro_editor-header-buttons')
     @outputButton.classList.add('output-button')
     $(@outputButton).text("in/output")
-    $(@outputButton).data("segment", @)
+    $(@outputButton).data("variant", @)
     headerContainer.appendChild(@outputButton)
 
   addOutputDiv: ->
