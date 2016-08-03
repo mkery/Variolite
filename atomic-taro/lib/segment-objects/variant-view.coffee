@@ -39,7 +39,10 @@ class VariantView
     @model.serialize()
 
   deserialize: (state) ->
-    console.log "variantS"
+    @model.deserialize(state)
+    $(@versionBookmarkBar).empty()
+    @addNameBookmarkBar(@versionBookmarkBar)
+    $(@dateHeader).text(@model.getDate())
 
   variantSerialize: ->
     @model.variantSerialize()

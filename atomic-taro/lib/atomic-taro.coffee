@@ -54,7 +54,7 @@ module.exports = AtomicTaro =
       folder = @filePath.substring(0, lastIndex)
       fileName = @filePath.substring(lastIndex + 1).split(".")[0]
       statePath = folder+"/"+fileName+".taro"
-      @atomicTaroView = new AtomicTaroView statePath, plainCodeEditor, fpath: pathname, protocol
+      @atomicTaroView = new AtomicTaroView statePath, @filePath, plainCodeEditor
       @atomicTaroView
 
 

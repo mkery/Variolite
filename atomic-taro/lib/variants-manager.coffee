@@ -20,7 +20,11 @@ class VariantsManager
       variants: v.serialize() for v in @variants
 
     deserialize: (varStates) ->
-      #for v in varStates ->
+      #TODO when could perhaps the number of saved variants
+      # not match up with code? If someone manually messes with
+      # the variants? Needs more thought.
+      for i in [0...varStates.length]
+        @variants[i].deserialize(varStates[i].variants)
 
 
     deactivate: ->
@@ -29,6 +33,9 @@ class VariantsManager
 
     addVariant: (v) ->
       @variants.push v
+
+    getVariants: ->
+      @variants
 
     getFocusedVariant: ->
       @focusedVariant
@@ -76,8 +83,8 @@ class VariantsManager
       $(document).on 'click', '.icon-primitive-square', (ev) ->
          v = $(this).data("version")
          variant = $(this).data("variant")
-         console.log "icon-primitive-square"
-         console.log $(this)
+         console.log "data "
+         console.log v
          console.log variant
          variant.switchToVersion(v)
 

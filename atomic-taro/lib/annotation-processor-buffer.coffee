@@ -3,6 +3,11 @@
 module.exports =
 class AnnotationProcessorBuffer extends TextBuffer
 
+  constructor: (params) ->
+    @variantView = params.variantView
+    @subBuffer = null
+    super(params)
+
   # Public: Save the buffer at a specific path.
   #
   # * `filePath` The path to save at.
@@ -16,7 +21,7 @@ class AnnotationProcessorBuffer extends TextBuffer
       backupFile = @backUpFileContentsBeforeWriting()
 
     try
-      @file.writeSync(@getText())
+      @file.writeSync(@annotateTextWithVariants(@getText()))
       if backupFile?
         backupFile.safeRemoveSync()
     catch error
@@ -30,21 +35,22 @@ class AnnotationProcessorBuffer extends TextBuffer
     @emitter.emit 'did-save', {path: filePath}
 
 
-  '''
-    addSaveListener: ->
-      @sourceBuffer.onDidSave =>
-        for block in @variants
-          marker = block.getModel().getMarker()
-          range = marker.getBufferRange()
+  annotateTextWithVariants: (text) ->
+    console.log "attempting save!!!"
+    variants = @variantView.getVariants()
+    if @subBuffer?
+      @subBuffer.setText(@getText())
+    else
+      @subBuffer = new TextBuffer(text: @getText())
 
-          @sourceBuffer.insert(range.start, @partition.getStartAnnotation()+"\n", {undo: false})
-          footerEnd = new Point(range.end.row + 1, range.end.col)
-          @sourceBuffer.insert(footerEnd, @partition.getEndAnnotation()+"\n", {undo: false})
-        for block in @variants
-          marker = block.getModel().getMarker()
-          range = marker.getBufferRange()
+    for v in variants
+      marker = v.getModel().getMarker()
+      range = marker.getBufferRange()
+      title = v.getModel().getTitle()
+      console.log "found title! "+title
 
-          @sourceBuffer.delete(range.start, {undo: false})
-          footerEnd = new Point(range.end.row + 1, range.end.col)
-          @sourceBuffer.delete(footerEnd, {undo: false})
-  '''
+      @subBuffer.insert(range.start, "#ʕ•ᴥ•ʔ#"+title+"\n", {undo: false})
+      footerEnd = new Point(range.end.row + 1, range.end.col)
+      @subBuffer.insert(footerEnd, "##ʕ•ᴥ•ʔ"+"\n", {undo: false})
+
+    @subBuffer.getText()

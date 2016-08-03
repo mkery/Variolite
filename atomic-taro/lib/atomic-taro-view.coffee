@@ -18,7 +18,7 @@ module.exports =
 class AtomicTaroView
 
 
-  constructor: (statePath, sourceEditor) ->
+  constructor: (statePath, @filePath, sourceEditor) ->
     @sourceEditor = sourceEditor
     @exploratoryEditor = null
     @cursors = null
@@ -28,8 +28,8 @@ class AtomicTaroView
     #divs
     @element = null
     # try to get saved meta data for this file, if there is any
-    #@deserialize(statePath)
     @initializeView()
+    @deserialize(statePath)
 
   deactivate: ->
     @variantManager.deactivate()
@@ -46,12 +46,16 @@ class AtomicTaroView
         console.log "JSON found"
         console.log state
 
-        #variants = atomicTaroViewState.variants
-        #@variantManager.deserialize(variants)
-        @initializeView()
-      .fail ->
+        stateVariants = state.atomicTaroViewState.variants
+        #console.log "state variants????"
+        #console.log stateVariants
+        @variantManager.deserialize(stateVariants)
+        #@initializeView()
+        @element.appendChild(@exploratoryEditor.getElement())
+      .fail =>
         console.log "No saved taro file found."
-        @initializeView()
+        @element.appendChild(@exploratoryEditor.getElement())
+        #@initializeView()
 
 
   initializeView: ->
@@ -70,7 +74,7 @@ class AtomicTaroView
     @element = document.createElement('div')
     @element.classList.add('atomic-taro_pane')#, 'scroll-view')
 
-    @element.appendChild(@exploratoryEditor.getElement())
+    #@element.appendChild(@exploratoryEditor.getElement())
 
     atom.contextMenu.add {'atom-pane': [{label: 'Copy Segment', command: 'atomic-taro:tarocopy'}]}
     atom.contextMenu.add {'atom-pane': [{label: 'Paste Segment', command: 'atomic-taro:taropaste'}]}
@@ -81,7 +85,7 @@ class AtomicTaroView
   # init Exploratory Editor
   initExploratoryEditor: (sourceEditor) ->
     sourceCode = sourceEditor.getBuffer().getText()
-    exploratoryEditor = atom.workspace.buildTextEditor(buffer: new AnnotationProcessorBuffer(text: sourceCode), grammar: atom.grammars.selectGrammar("file.py"),  scrollPastEnd: false)
+    exploratoryEditor = atom.workspace.buildTextEditor(buffer: new AnnotationProcessorBuffer(text: sourceCode, filePath: @filePath, variantView: @), grammar: atom.grammars.selectGrammar("file.py"),  scrollPastEnd: false)
     exploratoryEditor
 
 
@@ -111,9 +115,10 @@ class AtomicTaroView
 
   #since atom doesn't know how ot save our editor, we manually set this up
   saveVariants: (e) ->
-    #@variantManager.saveVariants(e)
+    @exploratoryEditor.save()
 
-
+  getVariants: ->
+    @variantManager.getVariants()
 
   copyVariant: (e) ->
     @variantManager.copyVariant(e)

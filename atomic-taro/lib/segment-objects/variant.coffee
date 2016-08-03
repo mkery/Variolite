@@ -37,7 +37,17 @@ class Variant
     currentVersion: @currentVersion
     versions: @versions
 
-
+  deserialize: (state) ->
+    #state_currentVersion = state.currentVersion
+    #@currentVersion.date = state_currentVersion.date
+    #TODO resolve if doesn't match text
+    @versions = []
+    state_versions = state.versions
+    for v in state_versions
+      stored_ver = {title: v.title, text: v.text, date: v.date}
+      @versions.push stored_ver
+      if v.title == @currentVersion.title
+        @currentVersion = stored_ver
 
   getMarker: ->
     @marker
@@ -82,7 +92,6 @@ class Variant
 
   getDate: ->
     @currentVersion.date
-
 
 
   getText: ->
