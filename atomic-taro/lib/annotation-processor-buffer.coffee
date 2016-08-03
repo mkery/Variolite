@@ -43,14 +43,18 @@ class AnnotationProcessorBuffer extends TextBuffer
     else
       @subBuffer = new TextBuffer(text: @getText())
 
+    insertOffset = 0
     for v in variants
       marker = v.getModel().getMarker()
       range = marker.getBufferRange()
       title = v.getModel().getTitle()
       console.log "found title! "+title
 
-      @subBuffer.insert(range.start, "#ʕ•ᴥ•ʔ#"+title+"\n", {undo: false})
-      footerEnd = new Point(range.end.row + 1, range.end.col)
+      start = [range.start.row + insertOffset, range.start.col]
+      @subBuffer.insert(start, "#ʕ•ᴥ•ʔ#"+title+"\n", {undo: false})
+      insertOffset += 1
+      footerEnd = new Point(range.end.row + insertOffset, range.end.col)
       @subBuffer.insert(footerEnd, "##ʕ•ᴥ•ʔ"+"\n", {undo: false})
+      insertOffset += 1
 
     @subBuffer.getText()
