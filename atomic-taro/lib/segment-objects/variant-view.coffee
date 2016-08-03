@@ -11,8 +11,15 @@ class VariantView
 
   constructor: (sourceEditor, marker, variantTitle, @divWidth) ->
     # header bar that holds interactive components above text editor
-    @headerBar = null
-    @footerBar = null
+    @headerBar = document.createElement('div')
+    @headerBar.classList.add('atomic-taro_editor-header-box')
+    $(@headerBar).width(@divWidth)
+
+    #footer bar that simply marks the end
+    @footerBar = document.createElement('div')
+    @footerBar.classList.add('atomic-taro_editor-footer-box')
+
+    #must be built later
     @versionBookmarkBar = null
     @currentVersionName = null
     @dateHeader = null
@@ -27,9 +34,10 @@ class VariantView
 
     # the variant
     @model = new Variant(sourceEditor, marker, variantTitle)
-    @buildVariantDiv()
+
     # wrapper div to browse other versions
     @versionExplorer = new VersionExplorerView(@)
+
 
   deactivate: ->
     @model.getMarker().destroy()
@@ -40,9 +48,9 @@ class VariantView
 
   deserialize: (state) ->
     @model.deserialize(state)
-    $(@versionBookmarkBar).empty()
+    '''$(@versionBookmarkBar).empty()
     @addNameBookmarkBar(@versionBookmarkBar)
-    $(@dateHeader).text(@model.getDate())
+    $(@dateHeader).text(@model.getDate())'''
 
   variantSerialize: ->
     @model.variantSerialize()
@@ -109,10 +117,6 @@ class VariantView
 
   buildVariantDiv: () ->
     #----------header-------------
-    #container for header information like title, meta-data
-    @headerBar = document.createElement('div')
-    @headerBar.classList.add('atomic-taro_editor-header-box')
-    $(@headerBar).width(@divWidth)
     @addHeaderDiv(@headerBar)
     #add placeholders for versions and output
     @addVariantButtons(@headerBar)
@@ -123,8 +127,8 @@ class VariantView
     #@addOutputDiv()
     #@headerBar.appendChild(@outputDiv)
 
-    @footerBar = document.createElement('div')
-    @footerBar.classList.add('atomic-taro_editor-footer-box')
+    # wrapper div to browse other versions
+    @versionExplorer.addVariantsDiv()
 
 
   addHeaderDiv: (headerContainer) ->

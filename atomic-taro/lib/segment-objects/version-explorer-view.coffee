@@ -11,13 +11,22 @@ class VersionExplorerView
 
   constructor: (@myVariant) ->
     # divs
-    @variantsDiv = null
+    #container for header + above
+    #---------variants upper region
+    @variantsDiv = document.createElement('div')
+    @variantsDiv.classList.add('atomic-taro_editor-exploratory-variants')
 
     # div that contains variant display
-    @variantBox_forward = null
+    @variantBox_forward = document.createElement("div")
+    @variantBox_forward.classList.add('variants-container-forward')
+    @variantsDiv.appendChild(@variantBox_forward)
+
     @myVariantBox = null
-    @variantBox_back = null
-    @addVariantsDiv()
+
+    @variantBox_back = document.createElement("div")
+    @variantBox_back.classList.add('variants-container-back')
+    @footerDiv = document.createElement('div')
+
 
   getHeader: ->
     @variantsDiv
@@ -39,60 +48,35 @@ class VersionExplorerView
     $(@variantBox_back).slideUp(500)
 
   addVariantsDiv: ->
-    #container for header + above
-    @variantsDiv = document.createElement('div')
-    @variantsDiv.classList.add('atomic-taro_editor-exploratory-variants')
-    #---------variants upper region
-    @addVariantsDiv_Back()
-    @addVariantsDiv_Forward()
-    @variantsDiv.appendChild(@variantBox_forward)
+    $(@variantBox_forward).hide()
+    $(@variantBox_back).hide()
     #--------- add all the segments
     @myVariantBox = document.createElement('div')
     @myVariantBox.appendChild(@myVariant.getHeader())
     @variantsDiv.appendChild(@myVariantBox)
 
-    @footerDiv = document.createElement('div')
+    for version in @myVariant.getModel().getVersions()
+      #console.log "found version "+version.title
+      varHeader = @addVariantHeaderDiv(version)
+      @variantBox_back.appendChild(varHeader)
+
     @footerDiv.appendChild(@myVariant.getFooter())
     @footerDiv.appendChild(@variantBox_back)
 
-  addVariantHeaderDiv: (headerContainer) ->
+  addVariantHeaderDiv: (version) ->
+    headerContainer = document.createElement("div")
+    headerContainer.classList.add('variants-header-box')
+
     nameContainer = document.createElement("div")
     nameContainer.classList.add('atomic-taro_editor-header-name-container')
     boxHeader = document.createElement("div")
     boxHeader.classList.add('atomic-taro_editor-header-name')
-    $(boxHeader).text("variant x")
+    $(boxHeader).text(version.title)
     nameContainer.appendChild(boxHeader)
     #add placeholder for data
     dateHeader = document.createElement("div")
-    $(dateHeader).text("created 7/14/19 5:04pm")
+    $(dateHeader).text(version.date)
     dateHeader.classList.add('atomic-taro_editor-header-date.variant')
     nameContainer.appendChild(dateHeader)
     headerContainer.appendChild(nameContainer)
-
-  addVariantsDiv_Forward: ->
-    @variantBox_forward = document.createElement("div")
-    @variantBox_forward.classList.add('variants-container-forward')
-    $(@variantBox_forward).hide()
-
-  addVariantsDiv_Back: ->
-    @variantBox_back = document.createElement("div")
-    @variantBox_back.classList.add('variants-container-back')
-
-    varHeader = document.createElement("div")
-    varHeader.classList.add('variants-header-box')
-    @addVariantHeaderDiv(varHeader)
-    #@addOutputButton(varHeader)
-    @variantBox_back.appendChild(varHeader)
-
-    varHeader1 = document.createElement("div")
-    varHeader1.classList.add('variants-header-box', 'inactive')
-    @addVariantHeaderDiv(varHeader1)
-    #@addOutputButton(varHeader1)
-    @variantBox_back.appendChild(varHeader1)
-
-    varHeader2 = document.createElement("div")
-    varHeader2.classList.add('variants-header-box')
-    @addVariantHeaderDiv(varHeader2)
-    #@addOutputButton(varHeader2)
-    @variantBox_back.appendChild(varHeader2)
-    $(@variantBox_back).hide()
+    headerContainer

@@ -31,6 +31,7 @@ class AtomicTaroView
     @initializeView()
     @deserialize(statePath)
 
+
   deactivate: ->
     @variantManager.deactivate()
 
@@ -50,12 +51,13 @@ class AtomicTaroView
         #console.log "state variants????"
         #console.log stateVariants
         @variantManager.deserialize(stateVariants)
-        #@initializeView()
+        @variantManager.buildVersionDivs()
         @element.appendChild(@exploratoryEditor.getElement())
       .fail =>
         console.log "No saved taro file found."
         @element.appendChild(@exploratoryEditor.getElement())
-        #@initializeView()
+        @variantManager.buildVersionDivs()
+
 
 
   initializeView: ->

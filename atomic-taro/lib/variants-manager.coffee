@@ -26,6 +26,9 @@ class VariantsManager
       for i in [0...varStates.length]
         @variants[i].deserialize(varStates[i].variants)
 
+    buildVersionDivs: ->
+      for v in @variants
+        v.buildVariantDiv()
 
     deactivate: ->
       for v in @variants
@@ -83,9 +86,9 @@ class VariantsManager
       $(document).on 'click', '.icon-primitive-square', (ev) ->
          v = $(this).data("version")
          variant = $(this).data("variant")
-         console.log "data "
+         '''console.log "data "
          console.log v
-         console.log variant
+         console.log variant'''
          variant.switchToVersion(v)
 
     addHeaderListeners: (element) ->
