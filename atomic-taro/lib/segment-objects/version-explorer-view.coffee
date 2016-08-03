@@ -1,47 +1,23 @@
 {Point, Range, TextBuffer} = require 'atom'
-ExploratorySegment = require './exploratory-segment'
+Variant = require './variant'
+VariantView = require './variant-view'
 
 '''
 Segment view represents the visual appearance of a Segment, and contains a
 Segment object.
 '''
 module.exports =
-class ExploratorySegmentView
+class VersionExplorerView
 
-  constructor: (editor, marker, segmentTitle, segmentWidth) ->
-    @model = new ExploratorySegment(@, editor, marker, segmentTitle, segmentWidth)
-    @currentVariant = @model.getCurrentVariant()
+  constructor: (@myVariant) ->
     # divs
     @variantsDiv = null
-    # pinned
-    @pinned = false # in general is the pin button active
-    @pinnedToTop = false
-    @pinnedToBottom = false
+
     # div that contains variant display
     @variantBox_forward = null
-    @currentVariantBox = null
+    @myVariantBox = null
     @variantBox_back = null
     @addVariantsDiv()
-
-  deactivate: ->
-    @currentVariant.deactivate()
-
-  serialize: ->
-    #todo
-    @model.serialize()
-
-  deserialize: (state) ->
-    '''currentVariant = state.currentVariant
-    title = currentVariant.title
-    @title = title
-    @currentVariant.setTitle(title)
-    console.log "title is "+@title'''
-
-  getModel: ->
-    @model
-
-  getRootTitle: ->
-    @model.getRootTitle()
 
   getHeader: ->
     @variantsDiv
@@ -62,32 +38,6 @@ class ExploratorySegmentView
     $(@variantBox_forward).slideUp(500)
     $(@variantBox_back).slideUp(500)
 
-  newVariant: ->
-    newVariant = @model.newVariant()
-    newVarDiv = newVariant.getHeader()
-    newVariant.setVariantsShowing(true)
-    $(newVarDiv).hide()
-    #add to above box and make sure variantBox_forward is showing
-    @currentVariantBox.appendChild(newVarDiv)
-    #$(@variantBox_forward).show()
-    @openVariantsDiv()
-
-    # give the new variant the styling of 'current variant'
-    $(newVarDiv).addClass('variant')
-    $(newVariant.getHeader()).addClass('activeVariant')
-
-    # now transition the current variant to the style of a non-current variant
-    # and slide in the new variant
-    c_div = @currentVariant.getHeader()
-    $(@variantBox_back).prepend($(c_div))
-    $(c_div).removeClass('variant')
-    $(c_div).addClass 'inactive_variant', complete: =>
-      @currentVariant.makeNonCurrentVariant()
-      $(newVarDiv).slideToggle 'slow'
-      # finally, make new variant the current variant
-      @currentVariant = newVariant
-
-
   addVariantsDiv: ->
     #container for header + above
     @variantsDiv = document.createElement('div')
@@ -97,12 +47,12 @@ class ExploratorySegmentView
     @addVariantsDiv_Forward()
     @variantsDiv.appendChild(@variantBox_forward)
     #--------- add all the segments
-    @currentVariantBox = document.createElement('div')
-    @currentVariantBox.appendChild(@currentVariant.getHeader())
-    @variantsDiv.appendChild(@currentVariantBox)
+    @myVariantBox = document.createElement('div')
+    @myVariantBox.appendChild(@myVariant.getHeader())
+    @variantsDiv.appendChild(@myVariantBox)
 
     @footerDiv = document.createElement('div')
-    @footerDiv.appendChild(@currentVariant.getFooter())
+    @footerDiv.appendChild(@myVariant.getFooter())
     @footerDiv.appendChild(@variantBox_back)
 
   addVariantHeaderDiv: (headerContainer) ->
@@ -110,7 +60,7 @@ class ExploratorySegmentView
     nameContainer.classList.add('atomic-taro_editor-header-name-container')
     boxHeader = document.createElement("div")
     boxHeader.classList.add('atomic-taro_editor-header-name')
-    $(boxHeader).text(@getRootTitle()+": \"variant x\"")
+    $(boxHeader).text("variant x")
     nameContainer.appendChild(boxHeader)
     #add placeholder for data
     dateHeader = document.createElement("div")

@@ -9,10 +9,19 @@ manages all of the segments and all of their interactions.
 module.exports =
 class VariantsManager
 
-    constructor: (variants) ->
+    constructor: (variants, variantWidth) ->
       # segments/header
+      @variantWidth = variantWidth
+      @focusedVariant = null
       @variants = variants # for some reason this prevents duplicate blocks
       @addJqueryListeners()
+
+    serialize: ->
+      variants: v.serialize() for v in @variants
+
+    deserialize: (varStates) ->
+      #for v in varStates ->
+
 
     deactivate: ->
       for v in @variants
@@ -20,6 +29,17 @@ class VariantsManager
 
     addVariant: (v) ->
       @variants.push v
+
+    getFocusedVariant: ->
+      @focusedVariant
+
+    setFocusedVariant: (v) ->
+      @focusedVariant = v
+      v.focus()
+
+    unFocusVariant: (v) ->
+      @focusedVariant.unFocus()
+      @focusedVariant = null
 
     addJqueryListeners: (element) ->
       @addHeaderListeners(element)
@@ -42,39 +62,35 @@ class VariantsManager
 
     addVariantsListeners: (element) ->
       #------------- hover for variants button
-      $(document).on 'mouseenter', '.variants-button', ->
+      $(document).on 'mouseenter', '.variants-button', {'variantWidth': @variantWidth}, (ev) ->
         hoverMenu = $(this).children('.variants-hoverMenu')
         hoverMenu.slideDown('fast')
-        topPos = $(this).position().top + $(this).outerHeight() + hoverMenu.css('padding-top')
-        rightPos = $(this).position().left + $(this).width() + hoverMenu.width()/4
-        console.log "right pos?? "+rightPos
-        hoverMenu.css({top : topPos+"px" , right : rightPos+"px"})
+        topPos = $(this).position().top + $(this).outerHeight() #+ hoverMenu.css('padding-top')
+        rightPos = ev.data.variantWidth - hoverMenu.width()
+        hoverMenu.css({top : topPos+"px" , left : rightPos+"px"})
       #------------- hover for variants button
       $(document).on 'mouseleave', '.variants-button', ->
         hoverMenu = $(this).children('.variants-hoverMenu')
         hoverMenu.slideUp('fast')
 
-      #prevent dragging around or collapsing the header when interacting with these buttons
-      $ -> $(document).on 'click', '.variants-hoverMenu-buttons', (ev) ->
-        ev.stopPropagation()
-
-      #prevent dragging around or collapsing the header when interacting with these buttons
-      $ -> $(document).on 'click', '.atomic-taro_editor-header-buttons', (ev) ->
-        ev.stopPropagation()
-
-
+      $(document).on 'click', '.icon-primitive-square', (ev) ->
+         v = $(this).data("version")
+         variant = $(this).data("variant")
+         console.log "icon-primitive-square"
+         console.log $(this)
+         console.log variant
+         variant.switchToVersion(v)
 
     addHeaderListeners: (element) ->
       #------sets header buttons to the full height of the header
       $ -> $('.atomic-taro_editor-header-buttons').each ->
-        $(this).css('min-height', $('.atomic-taro_editor-header-box').outerHeight() - 2)
+        $(this).css('min-height', $('.atomic-taro_editor-header-box').height())
       @addHeaderTitleListeners(element)
 
     addHeaderTitleListeners: (element) ->
       #--------------make header title editable
-      $(document).on 'dblclick', '.atomic-taro_editor-header-name', (ev) ->
-        console.log("title clicked!")
-        ev.stopPropagation()
+      $(document).on 'dblclick', '.version-title', (ev) ->
+        console.log("title clicked! "+$(this).children())
         if $(this).children().length == 0
           name = $(this).text()
           $(this).data("section-title", String(name))
@@ -90,7 +106,7 @@ class VariantsManager
           #$('.txt_sectionname').addClass('native-key-bindings')
 
       #--------------make header title editable cont'
-      $(element).on 'blur', '.atomic-taro_editor-header-name', ->
+      $(element).on 'blur', '.version-title', ->
         name = $(this).children(".txt_sectionname").val()
         #if /\S/.test(name)
         $(this).text(name)
@@ -99,7 +115,7 @@ class VariantsManager
         else
           $(this).text($(this).data("section-title"))'''
       #--------------make header title editable cont'
-      $(element).on 'keyup', '.atomic-taro_editor-header-name', (e) ->
+      $(element).on 'keyup', '.version-title', (e) ->
         if(e.keyCode == 13)# enter key
           name = $(this).children(".txt_sectionname").val() #$('#txt_sectionname').val()
           #if /\S/.test(name)

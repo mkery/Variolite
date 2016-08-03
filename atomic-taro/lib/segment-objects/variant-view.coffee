@@ -1,5 +1,6 @@
 {Point, Range, TextBuffer} = require 'atom'
 Variant = require './variant'
+VersionExplorerView = require './version-explorer-view'
 
 '''
 variant view represents the visual appearance of a variant, and contains a
@@ -8,48 +9,53 @@ variant object.
 module.exports =
 class VariantView
 
-  constructor: (@variantParent, sourceEditor, marker, variantTitle, @divWidth) ->
+  constructor: (sourceEditor, marker, variantTitle, @divWidth) ->
     # header bar that holds interactive components above text editor
     @headerBar = null
     @footerBar = null
-    @nameHeader = null
-    @rootNameHeader = null
+    @versionBookmarkBar = null
+    @currentVersionName = null
+    @dateHeader = null
+
+    # extra buttons on the header bar
     @pinButton = null
     @outputButton = null
     @variantsButton = null
     @variants_showing = false
-    # div that contains the text editor
-    @editorDiv = null
-    # pinned
-    @pinned = false # in general is the pin button active
-    @pinnedToTop = false
-    @pinnedToBottom = false
+
+    @focused = true
 
     # the variant
-    @variant = new Variant(sourceEditor, marker, variantTitle)
+    @model = new Variant(sourceEditor, marker, variantTitle)
     @buildVariantDiv()
+    # wrapper div to browse other versions
+    @versionExplorer = new VersionExplorerView(@)
 
   deactivate: ->
     @model.getMarker().destroy()
 
   serialize: ->
     #todo add ui
-    @variant.serialize()
+    @model.serialize()
 
   deserialize: (state) ->
     console.log "variantS"
 
   variantSerialize: ->
-    @variant.variantSerialize()
+    @model.variantSerialize()
 
   getModel: ->
-    @variant
+    @model
+
+  getMarker: ->
+    @model.getMarker()
 
   getFooter: ->
     @footerBar
 
-  getEditorDiv: ->
-    @editorDiv
+
+  getWrappedFooter: ->
+    @versionExplorer.getFooter()
 
   getOutputsDiv: ->
     @outputDiv
@@ -57,64 +63,45 @@ class VariantView
   getHeader: ->
     @headerBar
 
+  getWrappedHeader: ->
+    @versionExplorer.getHeader()
+
   setTitle: (t) ->
-    $(@nameHeader).text(t)
-    @variant.setTitle(t)
+    $(@versionBookmarkBar).text(t)
+    @model.setTitle(t)
+
+  focus: ->
+    @focused = true
+    $(@headerBar).addClass('active')
+    $(@dateHeader).addClass('active')
+    $(@currentVersionName).addClass('focused')
+
+  unFocus: ->
+    @focused = false
+    $(@headerBar).removeClass('active')
+    $(@dateHeader).removeClass('active')
+    $(@currentVersionName).removeClass('focused')
 
   setVariantsShowing: (bool) ->
     @variants_showing = bool
 
+  newVersion: ->
+    @model.newVersion()
+    $(@versionBookmarkBar).empty()
+    @addNameBookmarkBar(@versionBookmarkBar)
+    $(@dateHeader).text(@model.getDate())
+
+  switchToVersion: (v) ->
+    @model.switchToVersion(v)
+    $(@versionBookmarkBar).empty()
+    @addNameBookmarkBar(@versionBookmarkBar)
+    $(@dateHeader).text(@model.getDate())
+
   makeNonCurrentVariant: ->
     $(@headerBar).removeClass('activeVariant')
     $(@headerBar).addClass('inactiveVariant')
-    $(@editorDiv).addClass('inactiveVariant')
     $(@pinButton).remove()
     $(@variantsButton).remove()
-
-  pin: ->
-    @pinned = true
-
-  isPinned: ->
-    @pinned
-
-  unPin: ->
-    console.log "unpinned!!"
-    @pinned = false
-    if @pinnedToTop
-      @unPinFromTop()
-    else
-      @unPinFromBottom()
-
-  pinToTop: (scrollTopDiv, scrollPos) ->
-    header = $(@headerBar)
-    header.data("scrollPos", scrollPos)
-    scrollTopDiv.appendChild(@headerBar)
-    @pinnedToTop = true
-    @pinned = true
-
-  pinToBottom: (scrollBotDiv, scrollPos) ->
-    header = $(@headerBar)
-    header.data("scrollPos", scrollPos)
-    scrollBotDiv.appendChild(@headerBar)
-    @pinnedToBottom = true
-    @pinned = true
-
-  isPinnedToTop: ->
-    @pinnedToTop
-
-  isPinnedToBottom: ->
-    @pinnedToBottom
-
-  unPinFromTop: (scrollTopDiv) ->
-    $(scrollTopDiv).removeChild(@headerBar)
-    @pinnedToTop = false
-
-  unPinFromBottom: (scrollBotDiv) ->
-    $(scrollBotDiv).removeChild(@headerBar)
-    @pinnedToBottom = false
-
-  close: ->
-    $(@editorDiv).slideUp('slow')
 
 
   buildVariantDiv: () ->
@@ -140,33 +127,53 @@ class VariantView
   addHeaderDiv: (headerContainer) ->
     nameContainer = document.createElement("div")
     nameContainer.classList.add('atomic-taro_editor-header-name-container')
-    '''if @variantParent
-      @rootNameHeader = document.createElement("div")
-      @rootNameHeader.classList.add('atomic-taro_editor-header-name')
-      $(@rootNameHeader).data("variant", @variant)
-      $(@rootNameHeader).text(@variantParent.getRootTitle())'''
-    @nameHeader = document.createElement("div")
-    @nameHeader.classList.add('atomic-taro_editor-header-name')
-    $(@nameHeader).data("variant", @variant)
-    $(@nameHeader).text(@variant.getTitle())
-    nameContainer.appendChild(@nameHeader)
+
+    @versionBookmarkBar = document.createElement("div")
+    @versionBookmarkBar.classList.add('atomic-taro_editor-header-name')
+    $(@versionBookmarkBar).data("variant", @model)
+    @addNameBookmarkBar(@versionBookmarkBar)
+    nameContainer.appendChild(@versionBookmarkBar)
     #add placeholder for data
-    dateHeader = document.createElement("div")
+    @dateHeader = document.createElement("div")
     downIcon = document.createElement("span")
     downIcon.classList.add('icon-chevron-down')
     $(downIcon).click =>
-      @variant.collapse()
-    dateHeader.classList.add('atomic-taro_editor-header-date')
-    dateHeader.appendChild(downIcon)
-    date = document.createElement("span")
-    $(date).text($.datepicker.formatDate('yy/mm/dd', new Date()))
-    dateHeader.appendChild(date)
-    nameContainer.appendChild(dateHeader)
+      @model.collapse()
+    @dateHeader.classList.add('atomic-taro_editor-header-date')
+    @dateHeader.appendChild(downIcon)
+    $(@dateHeader).text(@model.getDate())
+    nameContainer.appendChild(@dateHeader)
     headerContainer.appendChild(nameContainer)
-    varIcons = document.createElement("span")
+    '''varIcons = document.createElement("span")
     varIcons.classList.add('atomic-taro_editor-header-varIcon')
     $(varIcons).html("<span class='icon-primitive-square'></span><span class='icon-primitive-square active'></span>")
-    headerContainer.appendChild(varIcons)
+    headerContainer.appendChild(varIcons)'''
+
+  addNameBookmarkBar: (versionBookmarkBar) ->
+    current = @model.getCurrentVersion()
+    for v in @model.getVersions()
+      versionTitle = document.createElement("span")
+      versionTitle.classList.add('atomic-taro_editor-header_version-title')
+      squareIcon = document.createElement("span")
+      $(squareIcon).data("version", v)
+      $(squareIcon).data("variant", @)
+      squareIcon.classList.add('icon-primitive-square')
+      title = document.createElement("span")
+      $(title).text(v.title)
+      title.classList.add('version-title')
+      versionTitle.appendChild(squareIcon)
+      versionTitle.appendChild(title)
+      versionBookmarkBar.appendChild(versionTitle)
+
+      if(v == current)
+        if @focused
+          versionTitle.classList.add('focused')
+        squareIcon.classList.add('active')
+        versionTitle.classList.add('active')
+        @currentVersionName = versionTitle
+
+
+
 
   # add a way to pin headers to maintain visibility
   addPinButton: (headerContainer) ->
@@ -198,10 +205,10 @@ class VariantView
       ev.stopPropagation()
       $(@headerBar).toggleClass('activeVariant')
       if @variants_showing
-        @variantParent.closeVariantsDiv()
+        @versionExplorer.closeVariantsDiv()
         @variants_showing = false
       else
-        @variantParent.openVariantsDiv()
+        @versionExplorer.openVariantsDiv()
         @variants_showing = true
     variantsMenu.appendChild(buttonShow)
     buttonAdd = document.createElement("div")
@@ -209,7 +216,7 @@ class VariantView
     buttonAdd.classList.add('createVariantButton')
     $(buttonAdd).html("<span class='icon icon-repo-create'>create new variant</span>")
     $(buttonAdd).click =>
-      @variantParent.newVariant()
+      @newVersion()
     variantsMenu.appendChild(buttonAdd)
 
   addOutputButton: (headerContainer) ->

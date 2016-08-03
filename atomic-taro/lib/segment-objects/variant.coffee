@@ -6,47 +6,104 @@ Represents a single variant of exploratory code.
 module.exports =
 class Variant
 
-  constructor: (@sourceEditor, @marker, @title, @elder = null, @children = []) ->
+
+  constructor: (@sourceEditor, @marker, title, @elder = null, @children = []) ->
     @copied = false
 
+    text = @sourceEditor.getTextInBufferRange(@marker.getBufferRange())
+    date = @dateNow()
+    @currentVersion = {title: title, text: text, date: date}
+    @versions = []
+    @versions.push @currentVersion
+
+
+
+  dateNow: ->
+    date = new Date()
+    hour = date.getHours()
+    sign = "am"
+    if hour > 12
+      sign = "pm"
+      hour = hour%12
+
+    minute = date.getMinutes();
+    if minute < 10
+      minute = "0"+minute
+    $.datepicker.formatDate('mm/dd/yy', date)+" "+hour+":"+minute+sign
+
+
+
   serialize: ->
-    title: @title
+    currentVersion: @currentVersion
+    versions: @versions
 
-  variantSerialize: ->#todo capture elders
-    title : @title
-    #text : @buffer.getText()
-    #elder: if @elder then @fullySerialize(@elder) else null
-    children: if (@children.length > 0) then (child.variantSerialize() for child in @children) else null
 
-  fullySerialize: (variant) ->
-    title : variant.getTitle()
-    text : variant.getBuffer().getText()
 
   getMarker: ->
     @marker
 
+
+
+  getVersions: ->
+    @versions
+
+
+
+  getCurrentVersion: ->
+    @currentVersion
+
+
+
+  newVersion: ->
+    text = @sourceEditor.getTextInBufferRange(@marker.getBufferRange())
+    newVersion = {title: "V"+@versions.length, text: text, date: @dateNow()}
+    @versions.push newVersion
+    @currentVersion = newVersion
+
+
+
+  switchToVersion: (v) ->
+    text = v.text
+    @currentVersion.text = @sourceEditor.getTextInBufferRange(@marker.getBufferRange())
+    @sourceEditor.setTextInBufferRange(@marker.getBufferRange(), v.text, undo: false)
+    @currentVersion = v
+
+
+
   getTitle: ->
-    @title
+    @currentVersion.title
+
+
 
   setTitle: (title) ->
-    @title = title
+    @currentVersion.title = title
 
-  setElder: (parent) ->
-    @elder = parent
 
-  addChild: (child) ->
-    console.log @title+" am getting a new child"
-    @children.push child
+
+  getDate: ->
+    @currentVersion.date
+
+
+
+  getText: ->
+    @currentVersion.text
+
+
+
+  setText: (text) ->
+    @currentVersion.text = text
+
+
 
   getCopied: ->
     @copied
 
-  getChildren: ->
-    console.log @title+" have N children "+@children.length
-    @children
+
 
   setCopied: (bool) ->
     @copied = bool
+
+
 
   collapse: ->
     console.log "collaping variant"

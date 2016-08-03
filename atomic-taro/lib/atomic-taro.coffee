@@ -2,6 +2,7 @@ AtomicTaroView = require './atomic-taro-view'
 {CompositeDisposable} = require 'atom'
 url = require 'url'
 path = require 'path'
+fs = require 'fs'
 
 
 #@todo @atomicTaroView isn't really keeping track of anything
@@ -112,6 +113,6 @@ module.exports = AtomicTaro =
         lastIndex = @filePath.lastIndexOf('/')
         folder = @filePath.substring(0, lastIndex)
         fileName = @filePath.substring(lastIndex + 1).split(".")[0]
-
+        console.log cereal
         fs.writeFile (folder+"/"+fileName+".taro"), JSON.stringify(cereal), (error) ->
           console.error("Error writing file", error) if error

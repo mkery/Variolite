@@ -10,29 +10,61 @@ fs = require 'fs'
 {ScrollView} = require 'atom-space-pen-views'
 VariantsManager = require './variants-manager'
 Variant = require './segment-objects/variant'
-ExploratorySegmentView = require './segment-objects/exploratory-segment-view'
 VariantView = require './segment-objects/variant-view'
 AnnotationProcessorBuffer = require './annotation-processor-buffer'
 
 
 module.exports =
-class AtomicTaroView# extends ScrollView
-  variantManager : null
-  sourceFile : null
+class AtomicTaroView
+
 
   constructor: (statePath, sourceEditor) ->
-    # try to get saved meta data for this file, if there is any
-    @deserialize(statePath)
-
     @sourceEditor = sourceEditor
+    @exploratoryEditor = null
+    @cursors = null
+    @variantWidth = null
+    @variantManager = null
+
+    #divs
+    @element = null
+    # try to get saved meta data for this file, if there is any
+    #@deserialize(statePath)
+    @initializeView()
+
+  deactivate: ->
+    @variantManager.deactivate()
+
+
+  # Returns an object that can be retrieved when package is activated
+  serialize: ->
+    variants: @variantManager?.serialize()
+
+
+  deserialize: (statePath) ->
+    # try to get saved meta data for this file, if there is any
+    $.getJSON (statePath), (state) =>
+        console.log "JSON found"
+        console.log state
+
+        #variants = atomicTaroViewState.variants
+        #@variantManager.deserialize(variants)
+        @initializeView()
+      .fail ->
+        console.log "No saved taro file found."
+        @initializeView()
+
+
+  initializeView: ->
     # exploratoryEditor is the python file modified to show our visualization things
     @exploratoryEditor = @initExploratoryEditor(@sourceEditor)
+    @cursors = @exploratoryEditor.getCursors()
+    @initCursorListeners()
 
     @variantWidth = @sourceEditor.getElement().getWidth() - 20
     variants = @initVariants(@exploratoryEditor, @variantWidth)
 
     # create a variant manager
-    @variantsManager = new VariantsManager(variants)
+    @variantManager = new VariantsManager(variants, @variantWidth)
 
     #root element
     @element = document.createElement('div')
@@ -44,11 +76,6 @@ class AtomicTaroView# extends ScrollView
     atom.contextMenu.add {'atom-pane': [{label: 'Paste Segment', command: 'atomic-taro:taropaste'}]}
     atom.contextMenu.add {'atom-text-editor': [{label: 'Paste Segment', command: 'atomic-taro:taropaste'}]}
 
-    # root container for variant boxes
-    block_pane = document.createElement('div')
-    block_pane.classList.add('atomic-taro_block-pane')
-    @element.appendChild(block_pane)
-
 
 
   # init Exploratory Editor
@@ -59,35 +86,32 @@ class AtomicTaroView# extends ScrollView
 
 
 
+  initCursorListeners: ->
+    for cursor in @cursors
+      cursor.onDidChangePosition (ev) =>
+        active = @variantManager.getFocusedVariant()
+        if active?
+          activeMarker = active.getMarker()
+          if activeMarker.getBufferRange().containsPoint(ev.newBufferPosition)
+            return
+          else
+            @variantManager.unFocusVariant(active)
+
+        m = @exploratoryEditor.findMarkers(containsBufferPosition: ev.newBufferPosition)
+        if m[0]?
+          if m[0].getProperties().myVariant?
+            @variantManager.setFocusedVariant(m[0].getProperties().myVariant)
+
+
+
   # This is the title that shows up on the tab
   getTitle: -> 'ExploratoryView'
-
-  deactivate: ->
-    @variantsManager.deactivate()
-
-  # Returns an object that can be retrieved when package is activated
-  serialize: ->
-    #sourceFile: @sourceFile?
-    #variants: @variantManager.serialize()
-
-
-
-  deserialize: (statePath) ->
-    # try to get saved meta data for this file, if there is any
-    $.getJSON (statePath), (state) =>
-        console.log "JSON found"
-        console.log state
-        #atomicTaroViewState =  state.atomicTaroViewState
-        #variants = atomicTaroViewState.variants
-        #@variantManager.deserialize(variants)
-      .fail ->
-        console.log "No saved taro file found."
 
 
 
   #since atom doesn't know how ot save our editor, we manually set this up
   saveVariants: (e) ->
-    @variantManager.saveVariants(e)
+    #@variantManager.saveVariants(e)
 
 
 
@@ -201,13 +225,14 @@ class AtomicTaroView# extends ScrollView
       title = title.substring(7)
 
       #finally, make the new variant!
-      variant = new ExploratorySegmentView(editor, marker, title, variantWidth)
+      variant = new VariantView(editor, marker, title, variantWidth)
+      marker.setProperties(myVariant: variant)
       variantList.push(variant)
-      headerElement = variant.getHeader()
+      headerElement = variant.getWrappedHeader()
       hm = editor.markScreenPosition([start.row - 1, start.col], invalidate: 'never')
       editor.decorateMarker(hm, {type: 'block', position: 'after', item: headerElement})
 
-      footerElement = variant.getFooter()
+      footerElement = variant.getWrappedFooter()
       fm = editor.markScreenPosition(end)
       editor.decorateMarker(marker, {type: 'block', position: 'after', item: footerElement})
 
