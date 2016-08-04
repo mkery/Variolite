@@ -28,7 +28,6 @@ class VariantsManager
 
     buildVersionDivs: ->
       @variantWidth = $(@root.getElement()).width()
-      console.log @variantWidth
       for v in @variants
         v.buildVariantDiv()
 
@@ -128,10 +127,14 @@ class VariantsManager
                 'value': name
             }).appendTo(this)
           $('.txt_sectionname').focus()
-          #$('.txt_sectionname').addClass('native-key-bindings')
+          $('.txt_sectionname').addClass('native-key-bindings')
+
+      $(document).on 'click', '.version-title', (ev) ->
+        if $(this).children().length > 0
+          $('.txt_sectionname').focus()
 
       #--------------make header title editable cont'
-      $(element).on 'blur', '.version-title', ->
+      $(document).on 'blur', '.version-title', ->
         name = $(this).children(".txt_sectionname").val()
         #if /\S/.test(name)
         $(this).text(name)
@@ -140,16 +143,38 @@ class VariantsManager
         else
           $(this).text($(this).data("section-title"))'''
       #--------------make header title editable cont'
-      $(element).on 'keydown', '.version-title', (e) ->
-        e.stopPropagation()
+      $(document).on 'keyup', '.txt_sectionname', (e) ->
         if(e.keyCode == 13)# enter key
-          name = $(this).children(".txt_sectionname").val() #$('#txt_sectionname').val()
+          name = $(this).val() #$('#txt_sectionname').val()
           #if /\S/.test(name)
-          $(this).text(name)
-          '''segment = $(this).data("segment")
-            segment.setTitle(name)
-          else
-            $(this).text($(this).data("section-title"))'''
+          $(this).parent().text(name)
+          console.log "enter!!!"
+
+        else
+          text = String.fromCharCode(e.keyCode)
+          txtarea = this
+          strPos = txtarea.selectionStart
+          front = (txtarea.value).substring(0,strPos);
+          back = (txtarea.value).substring(strPos,txtarea.value.length)
+          txtarea.value=front+text+back
+          strPos = strPos + text.length
+          txtarea.selectionStart = strPos;
+          txtarea.selectionEnd = strPos;
+          txtarea.focus();
+
+
+
+
+      $(document).on 'keypress', '.txt_sectionname', (e) ->
+        #e.stopPropagation()
+        $(this).focus()
+        ev = $.Event('keyup')
+        ev.keyCode = e.keyCode
+        $(this).focus().trigger(ev)
+
+        e.preventDefault()
+
+
 
 
     copySegment: (e) ->

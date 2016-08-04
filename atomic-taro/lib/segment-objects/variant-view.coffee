@@ -184,6 +184,7 @@ class VariantView
       title = document.createElement("span")
       $(title).text(v.title)
       title.classList.add('version-title')
+      title.classList.add('native-key-bindings')
       versionTitle.appendChild(squareIcon)
       versionTitle.appendChild(title)
       versionBookmarkBar.appendChild(versionTitle)

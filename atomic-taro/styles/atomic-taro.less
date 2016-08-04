@@ -52,9 +52,11 @@ atom-text-editor, /* 1 */
   //background-color: @tree-view-background-color;
   //border: 1px solid @syntax-selection-color;//@mono-3;
   border-top:  1px solid @mono-3;//@app-background-color;//@mono-3;
+  border-bottom:  2px solid transparent;
 }
 .atomic-taro_editor-footer-box.active{
   border-top:  1px solid @syntax-text-color;//@mono-3;
+  border-bottom:  2px solid black;
 }
 
 .atomic-taro_editor-header-box{
@@ -152,9 +154,11 @@ atom-text-editor, /* 1 */
   cursor: pointer;
   margin-right: 10px;
   color: @mono-3;
+  z-index: 5;
 }
 .atomic-taro_editor-header_version-title.focused.active{
   color: @hue-2;
+  z-index: 5;
 }
 .icon-primitive-square{
   margin-left: 1px;
