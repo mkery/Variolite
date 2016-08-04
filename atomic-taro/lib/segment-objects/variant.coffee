@@ -7,7 +7,7 @@ module.exports =
 class Variant
 
 
-  constructor: (@sourceEditor, @marker, title, @elder = null, @children = []) ->
+  constructor: (@sourceEditor, @marker, title) ->
     #the header div has it's own marker that must follow around the top of the main marker
     @headerMarker = null
 
@@ -15,7 +15,7 @@ class Variant
 
     text = @sourceEditor.getTextInBufferRange(@marker.getBufferRange())
     date = @dateNow()
-    @currentVersion = {title: title, text: text, date: date}
+    @currentVersion = {title: title, text: text, date: date, children: []}
     @versions = []
     @versions.push @currentVersion
 
@@ -47,7 +47,7 @@ class Variant
     @versions = []
     state_versions = state.versions
     for v in state_versions
-      stored_ver = {title: v.title, text: v.text, date: v.date}
+      stored_ver = {title: v.title, text: v.text, date: v.date, children: v.children}
       @versions.push stored_ver
       if v.title == @currentVersion.title
         @currentVersion = stored_ver
@@ -76,8 +76,10 @@ class Variant
 
   newVersion: ->
     text = @sourceEditor.getTextInBufferRange(@marker.getBufferRange())
-    newVersion = {title: "V"+@versions.length, text: text, date: @dateNow()}
+    @currentVersion.text = text
+    newVersion = {title: "V"+@versions.length, text: text, date: @dateNow(), children: []}
     @versions.push newVersion
+    @currentVersion.children.push newVersion
     @currentVersion = newVersion
 
 

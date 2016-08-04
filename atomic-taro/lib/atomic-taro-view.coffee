@@ -241,7 +241,7 @@ class AtomicTaroView
       marker = editor.markBufferRange(range, invalidate: 'never')
 
       '''below, useful for debug!!!'''
-      #dec = editor.decorateMarker(marker, type: 'highlight', class: 'highlight-green')
+      #dec = editor.decorateMarker(marker, type: 'highlight', class: 'highlight-pink')
 
       # now, trim annotations
       editorBuffer = editor.getBuffer()
@@ -261,8 +261,8 @@ class AtomicTaroView
       marker.setProperties(myVariant: variant)
       variantList.push(variant)
       headerElement = variant.getWrappedHeader()
-      hm = editor.markScreenPosition([start.row - 1, start.col], invalidate: 'never')
-      editor.decorateMarker(hm, {type: 'block', position: 'after', item: headerElement})
+      hm = editor.markScreenPosition([start.row, end.row], invalidate: 'never')
+      editor.decorateMarker(hm, {type: 'block', position: 'before', item: headerElement})
       variant.setHeaderMarker(hm)
 
       footerElement = variant.getWrappedFooter()
