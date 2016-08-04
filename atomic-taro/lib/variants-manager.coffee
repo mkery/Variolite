@@ -9,12 +9,12 @@ manages all of the segments and all of their interactions.
 module.exports =
 class VariantsManager
 
-    constructor: (variants, variantWidth) ->
+    constructor: (variants, @root) ->
       # segments/header
-      @variantWidth = variantWidth
+      @variantWidth = null
       @focusedVariant = null
       @variants = variants # for some reason this prevents duplicate blocks
-      @addJqueryListeners()
+
 
     serialize: ->
       variants: v.serialize() for v in @variants
@@ -27,8 +27,12 @@ class VariantsManager
         @variants[i].deserialize(varStates[i].variants)
 
     buildVersionDivs: ->
+      @variantWidth = $(@root.getElement()).width()
       for v in @variants
         v.buildVariantDiv()
+
+      @addJqueryListeners()
+
 
     deactivate: ->
       for v in @variants
@@ -51,6 +55,9 @@ class VariantsManager
       @focusedVariant.unFocus()
       @focusedVariant = null
 
+    updateVariantWidth: (w) ->
+      $('.atomic-taro_editor-header-box').width(w)
+
     addJqueryListeners: (element) ->
       @addHeaderListeners(element)
       #@addScrollListeners(element)
@@ -72,14 +79,13 @@ class VariantsManager
 
     addVariantsListeners: (element) ->
       #------------- hover for variants button
-      $(document).on 'mouseenter', '.variants-button', {'variantWidth': @variantWidth}, (ev) ->
+      $('.variants-button').hoverIntent (ev) ->
         hoverMenu = $(this).children('.variants-hoverMenu')
         hoverMenu.slideDown('fast')
         topPos = $(this).position().top + $(this).outerHeight() #+ hoverMenu.css('padding-top')
-        rightPos = ev.data.variantWidth - hoverMenu.width()
+        rightPos = $(this).position().left - hoverMenu.width()/2
         hoverMenu.css({top : topPos+"px" , left : rightPos+"px"})
-      #------------- hover for variants button
-      $(document).on 'mouseleave', '.variants-button', ->
+      , ->
         hoverMenu = $(this).children('.variants-hoverMenu')
         hoverMenu.slideUp('fast')
 
@@ -102,6 +108,14 @@ class VariantsManager
         #console.log textSelection
 
     addHeaderListeners: (element) ->
+      $('.atomic-taro_editor-header-box').hover (ev) ->
+        view = $(this).data('view')
+        view.hover()
+      , ->
+        view = $(this).data('view')
+        view.unHover()
+
+
       #------sets header buttons to the full height of the header
       $ -> $('.atomic-taro_editor-header-buttons').each ->
         $(this).css('min-height', $('.atomic-taro_editor-header-box').height())
@@ -123,10 +137,14 @@ class VariantsManager
                 'value': name
             }).appendTo(this)
           $('.txt_sectionname').focus()
-          #$('.txt_sectionname').addClass('native-key-bindings')
+          $('.txt_sectionname').addClass('native-key-bindings')
+
+      $(document).on 'click', '.version-title', (ev) ->
+        if $(this).children().length > 0
+          $('.txt_sectionname').focus()
 
       #--------------make header title editable cont'
-      $(element).on 'blur', '.version-title', ->
+      $(document).on 'blur', '.version-title', ->
         name = $(this).children(".txt_sectionname").val()
         #if /\S/.test(name)
         $(this).text(name)
@@ -135,15 +153,38 @@ class VariantsManager
         else
           $(this).text($(this).data("section-title"))'''
       #--------------make header title editable cont'
-      $(element).on 'keyup', '.version-title', (e) ->
+      $(document).on 'keyup', '.txt_sectionname', (e) ->
         if(e.keyCode == 13)# enter key
-          name = $(this).children(".txt_sectionname").val() #$('#txt_sectionname').val()
+          name = $(this).val() #$('#txt_sectionname').val()
           #if /\S/.test(name)
-          $(this).text(name)
-          '''segment = $(this).data("segment")
-            segment.setTitle(name)
-          else
-            $(this).text($(this).data("section-title"))'''
+          $(this).parent().text(name)
+          console.log "enter!!!"
+
+        else
+          text = String.fromCharCode(e.keyCode)
+          txtarea = this
+          strPos = txtarea.selectionStart
+          front = (txtarea.value).substring(0,strPos);
+          back = (txtarea.value).substring(strPos,txtarea.value.length)
+          txtarea.value=front+text+back
+          strPos = strPos + text.length
+          txtarea.selectionStart = strPos;
+          txtarea.selectionEnd = strPos;
+          txtarea.focus();
+
+
+
+
+      $(document).on 'keypress', '.txt_sectionname', (e) ->
+        #e.stopPropagation()
+        $(this).focus()
+        ev = $.Event('keyup')
+        ev.keyCode = e.keyCode
+        $(this).focus().trigger(ev)
+
+        e.preventDefault()
+
+
 
 
     copySegment: (e) ->

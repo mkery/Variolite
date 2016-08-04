@@ -9,11 +9,10 @@ variant object.
 module.exports =
 class VariantView
 
-  constructor: (sourceEditor, marker, variantTitle, @divWidth) ->
+  constructor: (sourceEditor, marker, variantTitle, @root) ->
     # header bar that holds interactive components above text editor
     @headerBar = document.createElement('div')
     @headerBar.classList.add('atomic-taro_editor-header-box')
-    $(@headerBar).width(@divWidth)
 
     #footer bar that simply marks the end
     @footerBar = document.createElement('div')
@@ -29,9 +28,8 @@ class VariantView
     @activeButton = null
     @outputButton = null
     @variantsButton = null
-    @variants_showing = false
 
-    @focused = true
+    @focused = false
 
     # the variant
     @model = new Variant(sourceEditor, marker, variantTitle)
@@ -62,6 +60,9 @@ class VariantView
   getMarker: ->
     @model.getMarker()
 
+  setHeaderMarker: (hm) ->
+    @model.setHeaderMarker(hm)
+
   getFooter: ->
     @footerBar
 
@@ -84,18 +85,30 @@ class VariantView
 
   focus: ->
     @focused = true
+    @hover()
+
+  hover: ->
     $(@headerBar).addClass('active')
     $(@dateHeader).addClass('active')
     $(@currentVersionName).addClass('focused')
+    $(@footerBar).addClass('active')
+    $(@variantsButton).addClass('active')
 
-  unFocus: ->
-    @focused = false
+  unHover: ->
+    if @focused
+      return
     $(@headerBar).removeClass('active')
     $(@dateHeader).removeClass('active')
     $(@currentVersionName).removeClass('focused')
+    $(@footerBar).removeClass('active')
+    $(@variantsButton).removeClass('active')
 
-  setVariantsShowing: (bool) ->
-    @variants_showing = bool
+  unFocus: ->
+    @focused = false
+    @unHover()
+
+  updateVariantWidth: (width) ->
+    $(@headerBar).width(width)
 
   newVersion: ->
     @model.newVersion()
@@ -122,6 +135,9 @@ class VariantView
 
   buildVariantDiv: () ->
     #----------header-------------
+    width = @root.getWidth()
+    $(@headerBar).width(width)
+    $(@headerBar).data('view', @)
     @addHeaderDiv(@headerBar)
     #add placeholders for versions and output
     @addVariantButtons(@headerBar)
@@ -154,7 +170,7 @@ class VariantView
     @dateHeader.classList.add('atomic-taro_editor-header-date')
     @dateHeader.appendChild(downIcon)
     $(@dateHeader).text(@model.getDate())
-    nameContainer.appendChild(@dateHeader)
+    headerContainer.appendChild(@dateHeader)
     headerContainer.appendChild(nameContainer)
     #@addActiveButton(headerContainer)
     '''varIcons = document.createElement("span")
@@ -174,6 +190,7 @@ class VariantView
       title = document.createElement("span")
       $(title).text(v.title)
       title.classList.add('version-title')
+      title.classList.add('native-key-bindings')
       versionTitle.appendChild(squareIcon)
       versionTitle.appendChild(title)
       versionBookmarkBar.appendChild(versionTitle)
@@ -229,12 +246,9 @@ class VariantView
     $(buttonShow).click (ev) =>
       ev.stopPropagation()
       $(@headerBar).toggleClass('activeVariant')
-      if @variants_showing
-        @versionExplorer.closeVariantsDiv()
-        @variants_showing = false
-      else
-        @versionExplorer.openVariantsDiv()
-        @variants_showing = true
+      @root.toggleExplorerView()
+      $(variantsMenu).hide()
+
     variantsMenu.appendChild(buttonShow)
     buttonAdd = document.createElement("div")
     buttonAdd.classList.add('variants-hoverMenu-buttons')

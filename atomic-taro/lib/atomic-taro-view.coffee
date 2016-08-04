@@ -3,16 +3,16 @@
 # If these do not work, install them locally using npm
 global.jQuery = global.$ = require 'jquery'
 require 'jquery-ui-browserify'
+require './ui-helpers/jquery.hoverIntent.minified.js'
 fs = require 'fs'
 
 {TextBuffer} = require 'atom'
 {Point, Range} = require 'atom'
-{ScrollView} = require 'atom-space-pen-views'
 VariantsManager = require './variants-manager'
 Variant = require './segment-objects/variant'
 VariantView = require './segment-objects/variant-view'
 AnnotationProcessorBuffer = require './annotation-processor-buffer'
-
+VariantExplorerPane = require './variant-explorer-pane'
 
 module.exports =
 class AtomicTaroView
@@ -27,6 +27,8 @@ class AtomicTaroView
 
     #divs
     @element = null
+    @explorer = null
+    @explorer_panel = null
     # try to get saved meta data for this file, if there is any
     @initializeView()
     @deserialize(statePath)
@@ -51,13 +53,35 @@ class AtomicTaroView
         #console.log "state variants????"
         #console.log stateVariants
         @variantManager.deserialize(stateVariants)
-        @variantManager.buildVersionDivs()
-        @element.appendChild(@exploratoryEditor.getElement())
+        @postInit_buildView()
       .fail =>
         console.log "No saved taro file found."
-        @element.appendChild(@exploratoryEditor.getElement())
-        @variantManager.buildVersionDivs()
+        @postInit_buildView()
 
+  getWidth: ->
+    @exploratoryEditor.getElement().getWidth() - 20
+
+  postInit_buildView: ->
+      @element.appendChild(@exploratoryEditor.getElement())
+      @variantManager.buildVersionDivs()
+
+      atom.views.addViewProvider VariantExplorerPane, (variantExplorer) ->
+        variantExplorer.getElement()
+
+      @explorer = new VariantExplorerPane(@variantManager, @)
+
+
+  toggleExplorerView: ->
+    if @explorer_panel?
+      if @explorer_panel.isVisible()
+        @explorer_panel.hide()
+      else
+        @explorer_panel.show()
+
+    else
+      @explorer_panel = atom.workspace.addRightPanel({item: @explorer})
+    #TODO figure out width of the editor element without the line gutter (55 is a guess)
+    @variantManager.updateVariantWidth(@getWidth())#$(@element).width() - 70)
 
 
   initializeView: ->
@@ -66,15 +90,15 @@ class AtomicTaroView
     @cursors = @exploratoryEditor.getCursors()
     @initCursorListeners()
 
-    @variantWidth = @sourceEditor.getElement().getWidth() - 20
-    variants = @initVariants(@exploratoryEditor, @variantWidth)
-
-    # create a variant manager
-    @variantManager = new VariantsManager(variants, @variantWidth)
-
     #root element
     @element = document.createElement('div')
     @element.classList.add('atomic-taro_pane')#, 'scroll-view')
+
+    #@variantWidth = $(@element).width() - 20 #@sourceEditor.getElement().getWidth() - 20
+    variants = @initVariants(@exploratoryEditor, @element)
+
+    # create a variant manager
+    @variantManager = new VariantsManager(variants, @)
 
     #@element.appendChild(@exploratoryEditor.getElement())
 
@@ -87,7 +111,7 @@ class AtomicTaroView
   # init Exploratory Editor
   initExploratoryEditor: (sourceEditor) ->
     sourceCode = sourceEditor.getBuffer().getText()
-    exploratoryEditor = atom.workspace.buildTextEditor(buffer: new AnnotationProcessorBuffer(text: sourceCode, filePath: @filePath, variantView: @), grammar: atom.grammars.selectGrammar("file.py"),  scrollPastEnd: false)
+    exploratoryEditor = atom.workspace.buildTextEditor(buffer: new AnnotationProcessorBuffer(text: sourceCode, filePath: @filePath, variantView: @), grammar: atom.grammars.selectGrammar("file.py"),  scrollPastEnd: true)
     exploratoryEditor
 
 
@@ -184,7 +208,7 @@ class AtomicTaroView
 
 
 
-  initVariants: (editor, width) ->
+  initVariants: (editor) ->
     startBeacon = []
     editor.scan new RegExp('#ʕ•ᴥ•ʔ#', 'g'), (match) =>
       startBeacon.push(match)
@@ -194,11 +218,11 @@ class AtomicTaroView
       endBeacon.push(match)
       #console.log "found ##ʕ•ᴥ•ʔ!"
 
-    @addVariants(editor, startBeacon, endBeacon, width)
+    @addVariants(editor, startBeacon, endBeacon)
 
 
 
-  addVariants: (editor, startBeacon, endBeacon, variantWidth) ->
+  addVariants: (editor, startBeacon, endBeacon) ->
     length = Math.min(startBeacon.length, endBeacon.length)
     rowDeletedOffset = 0
     variantList = []
@@ -232,15 +256,15 @@ class AtomicTaroView
       title = title.substring(7)
 
       #finally, make the new variant!
-      variant = new VariantView(editor, marker, title, variantWidth)
+      variant = new VariantView(editor, marker, title, @)
       marker.setProperties(myVariant: variant)
       variantList.push(variant)
       headerElement = variant.getWrappedHeader()
       hm = editor.markScreenPosition([start.row - 1, start.col], invalidate: 'never')
       editor.decorateMarker(hm, {type: 'block', position: 'after', item: headerElement})
+      variant.setHeaderMarker(hm)
 
       footerElement = variant.getWrappedFooter()
-      fm = editor.markScreenPosition(end)
       editor.decorateMarker(marker, {type: 'block', position: 'after', item: footerElement})
 
     #return

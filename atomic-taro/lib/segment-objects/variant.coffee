@@ -8,6 +8,9 @@ class Variant
 
 
   constructor: (@sourceEditor, @marker, title, @elder = null, @children = []) ->
+    #the header div has it's own marker that must follow around the top of the main marker
+    @headerMarker = null
+
     @copied = false
 
     text = @sourceEditor.getTextInBufferRange(@marker.getBufferRange())
@@ -52,6 +55,13 @@ class Variant
   getMarker: ->
     @marker
 
+
+  setHeaderMarker: (hm) ->
+    @headerMarker = hm
+    @marker.onDidChange (ev) =>
+      if ev.newTailBufferPosition != ev.oldTailBufferPosition
+        console.log "backspace!!"
+        @headerMarker.setHeadBufferPosition(ev.newTailBufferPosition)
 
 
   getVersions: ->
