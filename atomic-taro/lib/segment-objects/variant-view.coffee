@@ -94,6 +94,8 @@ class VariantView
     $(@variantsButton).addClass('active')
 
   unHover: ->
+    if @focused
+      return
     $(@headerBar).removeClass('active')
     $(@dateHeader).removeClass('active')
     $(@currentVersionName).removeClass('focused')
