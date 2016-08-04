@@ -3,6 +3,7 @@
 # If these do not work, install them locally using npm
 global.jQuery = global.$ = require 'jquery'
 require 'jquery-ui-browserify'
+require './ui-helpers/jquery.hoverIntent.minified.js'
 fs = require 'fs'
 
 {TextBuffer} = require 'atom'

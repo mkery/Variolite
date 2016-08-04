@@ -37,6 +37,7 @@ class VariantExplorerPane
     xIcon = document.createElement('span')
     xIcon.classList.add('icon-x')
     xIcon.classList.add('atomic-taro_explore')
+    xIcon.classList.add('text-smaller')
     $ => $(document).on 'click', '.icon-x.atomic-taro_explore', (ev) =>
       @root.toggleExplorerView()
     titleText = document.createElement('span')

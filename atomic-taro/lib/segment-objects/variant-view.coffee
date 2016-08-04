@@ -28,7 +28,7 @@ class VariantView
     @outputButton = null
     @variantsButton = null
 
-    @focused = true
+    @focused = false
 
     # the variant
     @model = new Variant(sourceEditor, marker, variantTitle)
@@ -84,19 +84,25 @@ class VariantView
 
   focus: ->
     @focused = true
+    @hover()
+
+  hover: ->
     $(@headerBar).addClass('active')
     $(@dateHeader).addClass('active')
     $(@currentVersionName).addClass('focused')
     $(@footerBar).addClass('active')
     $(@variantsButton).addClass('active')
 
-  unFocus: ->
-    @focused = false
+  unHover: ->
     $(@headerBar).removeClass('active')
     $(@dateHeader).removeClass('active')
     $(@currentVersionName).removeClass('focused')
     $(@footerBar).removeClass('active')
     $(@variantsButton).removeClass('active')
+
+  unFocus: ->
+    @focused = false
+    @unHover()
 
   updateVariantWidth: (width) ->
     $(@headerBar).width(width)
@@ -124,6 +130,7 @@ class VariantView
     #----------header-------------
     width = @root.getWidth()
     $(@headerBar).width(width)
+    $(@headerBar).data('view', @)
     @addHeaderDiv(@headerBar)
     #add placeholders for versions and output
     @addVariantButtons(@headerBar)
@@ -219,6 +226,7 @@ class VariantView
       ev.stopPropagation()
       $(@headerBar).toggleClass('activeVariant')
       @root.toggleExplorerView()
+      $(variantsMenu).hide()
 
     variantsMenu.appendChild(buttonShow)
     buttonAdd = document.createElement("div")

@@ -80,14 +80,13 @@ class VariantsManager
 
     addVariantsListeners: (element) ->
       #------------- hover for variants button
-      $(document).on 'mouseenter', '.variants-button', (ev) ->
+      $('.variants-button').hoverIntent (ev) ->
         hoverMenu = $(this).children('.variants-hoverMenu')
         hoverMenu.slideDown('fast')
         topPos = $(this).position().top + $(this).outerHeight() #+ hoverMenu.css('padding-top')
         rightPos = $(this).position().left - hoverMenu.width()/2
         hoverMenu.css({top : topPos+"px" , left : rightPos+"px"})
-      #------------- hover for variants button
-      $(document).on 'mouseleave', '.variants-button', ->
+      , ->
         hoverMenu = $(this).children('.variants-hoverMenu')
         hoverMenu.slideUp('fast')
 
@@ -100,6 +99,14 @@ class VariantsManager
          variant.switchToVersion(v)
 
     addHeaderListeners: (element) ->
+      $('.atomic-taro_editor-header-box').hover (ev) ->
+        view = $(this).data('view')
+        view.hover()
+      , ->
+        view = $(this).data('view')
+        view.unHover()
+
+
       #------sets header buttons to the full height of the header
       $ -> $('.atomic-taro_editor-header-buttons').each ->
         $(this).css('min-height', $('.atomic-taro_editor-header-box').height())
@@ -133,7 +140,8 @@ class VariantsManager
         else
           $(this).text($(this).data("section-title"))'''
       #--------------make header title editable cont'
-      $(element).on 'keyup', '.version-title', (e) ->
+      $(element).on 'keydown', '.version-title', (e) ->
+        e.stopPropagation()
         if(e.keyCode == 13)# enter key
           name = $(this).children(".txt_sectionname").val() #$('#txt_sectionname').val()
           #if /\S/.test(name)
