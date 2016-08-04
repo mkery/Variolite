@@ -25,6 +25,7 @@ class VariantView
 
     # extra buttons on the header bar
     @pinButton = null
+    @activeButton = null
     @outputButton = null
     @variantsButton = null
 
@@ -115,9 +116,13 @@ class VariantView
     @addNameBookmarkBar(@versionBookmarkBar)
     $(@dateHeader).text(@model.getDate())
 
+  toggleActive: (v) ->
+    @model.toggleActive(v)
+
   switchToVersion: (v) ->
     @model.switchToVersion(v)
     $(@versionBookmarkBar).empty()
+    $(@activeButton).data("version", v)
     @addNameBookmarkBar(@versionBookmarkBar)
     $(@dateHeader).text(@model.getDate())
 
@@ -138,7 +143,7 @@ class VariantView
     @addVariantButtons(@headerBar)
     #@addOutputButton(@headerBar)
     # add pinButton
-    #@addPinButton(@headerBar)
+    @addActiveButton(@headerBar)
     #---------output region
     #@addOutputDiv()
     #@headerBar.appendChild(@outputDiv)
@@ -167,6 +172,7 @@ class VariantView
     $(@dateHeader).text(@model.getDate())
     headerContainer.appendChild(@dateHeader)
     headerContainer.appendChild(nameContainer)
+    #@addActiveButton(headerContainer)
     '''varIcons = document.createElement("span")
     varIcons.classList.add('atomic-taro_editor-header-varIcon')
     $(varIcons).html("<span class='icon-primitive-square'></span><span class='icon-primitive-square active'></span>")
@@ -205,6 +211,18 @@ class VariantView
     @pinButton.classList.add('icon-pin', 'pinButton')
     $(@pinButton).data("variant", @)
     headerContainer.appendChild(@pinButton)
+
+  addActiveButton: (headerContainer) ->
+    @activeButton = document.createElement("span")
+    @activeButton.classList.add('atomic-taro_editor-active-button')
+    $(@activeButton).html("<span class='icon-primitive-dot'></span>")
+    $(@activeButton).data("variant", @)
+    for v in @model.getVersions()
+      $(@activeButton).data("version", v)
+
+    #@activeButton = document.createElement("div")
+    #@activeButton.classList.add('atomic-taro_editor-active-button')
+    headerContainer.appendChild(@activeButton)
 
   addVariantButtons: (headerContainer) ->
     @variantsButton = document.createElement("div")
