@@ -25,7 +25,7 @@ class Variant
     date = new Date()
     hour = date.getHours()
     sign = "am"
-    if hour > 12
+    if hour > 11
       sign = "pm"
       hour = hour%12
 

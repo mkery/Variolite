@@ -70,6 +70,8 @@ class AtomicTaroView
 
       @explorer = new VariantExplorerPane(@variantManager, @)
 
+  isShowingExplorer: ->
+    @explorer_panel.isVisible()
 
   toggleExplorerView: ->
     if @explorer_panel?
@@ -80,9 +82,8 @@ class AtomicTaroView
 
     else
       @explorer_panel = atom.workspace.addRightPanel({item: @explorer})
-    #TODO figure out width of the editor element without the line gutter (55 is a guess)
-    @variantManager.updateVariantWidth(@getWidth())#$(@element).width() - 70)
-
+    @variantManager.updateExplorerPanelShowing(@explorer_panel.isVisible(), @getWidth())
+    @explorer_panel.isVisible()
 
   initializeView: ->
     # exploratoryEditor is the python file modified to show our visualization things
