@@ -86,10 +86,20 @@ class VariantsManager
       $(document).on 'click', '.icon-primitive-square', (ev) ->
          v = $(this).data("version")
          variant = $(this).data("variant")
-         '''console.log "data "
-         console.log v
-         console.log variant'''
+         #console.log "data "
+         #console.log v
+         console.log variant
          variant.switchToVersion(v)
+
+      $(document).on 'click', '.atomic-taro_editor-active-button', (ev) ->
+        v = $(this).data("variant")
+        console.log v
+        version = $(this).data("version")
+        console.log version
+        v.toggleActive(version)
+
+        #textSelection = new Selection(version.getText(), version.getMarker().getBufferRange())
+        #console.log textSelection
 
     addHeaderListeners: (element) ->
       #------sets header buttons to the full height of the header
