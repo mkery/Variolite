@@ -9,12 +9,12 @@ manages all of the segments and all of their interactions.
 module.exports =
 class VariantsManager
 
-    constructor: (variants, variantWidth) ->
+    constructor: (variants, @root) ->
       # segments/header
-      @variantWidth = variantWidth
+      @variantWidth = null
       @focusedVariant = null
       @variants = variants # for some reason this prevents duplicate blocks
-      @addJqueryListeners()
+
 
     serialize: ->
       variants: v.serialize() for v in @variants
@@ -27,8 +27,13 @@ class VariantsManager
         @variants[i].deserialize(varStates[i].variants)
 
     buildVersionDivs: ->
+      @variantWidth = $(@root.getElement()).width()
+      console.log @variantWidth
       for v in @variants
         v.buildVariantDiv()
+
+      @addJqueryListeners()
+
 
     deactivate: ->
       for v in @variants
@@ -51,6 +56,9 @@ class VariantsManager
       @focusedVariant.unFocus()
       @focusedVariant = null
 
+    updateVariantWidth: (w) ->
+      $('.atomic-taro_editor-header-box').width(w)
+
     addJqueryListeners: (element) ->
       @addHeaderListeners(element)
       #@addScrollListeners(element)
@@ -72,11 +80,11 @@ class VariantsManager
 
     addVariantsListeners: (element) ->
       #------------- hover for variants button
-      $(document).on 'mouseenter', '.variants-button', {'variantWidth': @variantWidth}, (ev) ->
+      $(document).on 'mouseenter', '.variants-button', (ev) ->
         hoverMenu = $(this).children('.variants-hoverMenu')
         hoverMenu.slideDown('fast')
         topPos = $(this).position().top + $(this).outerHeight() #+ hoverMenu.css('padding-top')
-        rightPos = ev.data.variantWidth - hoverMenu.width()
+        rightPos = $(this).position().left - hoverMenu.width()/2
         hoverMenu.css({top : topPos+"px" , left : rightPos+"px"})
       #------------- hover for variants button
       $(document).on 'mouseleave', '.variants-button', ->

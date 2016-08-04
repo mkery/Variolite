@@ -11,7 +11,7 @@
 
 
 .atomic-taro_pane {
-  overflow: scroll;
+  //overflow: scroll;
   overflow-y: scroll;
 }
 
@@ -20,6 +20,7 @@ atom-text-editor, /* 1 */
   color: @syntax-text-color;
   background-color: @syntax-background-color;
 }
+
 
 .atomic-taro_editor-segment{
     margin: 0px;
@@ -45,11 +46,16 @@ atom-text-editor, /* 1 */
 }
 
 .atomic-taro_editor-footer-box{
-  min-width: 100px;
-  min-height: 10px;
+  min-width: 200px;
+  min-height: 2px;
+  margin-bottom: 10px;
   //background-color: @tree-view-background-color;
   //border: 1px solid @syntax-selection-color;//@mono-3;
-  border-top:  10px solid @app-background-color;//@mono-3;
+  border-top:  2px solid @mono-3;//@app-background-color;//@mono-3;
+}
+.atomic-taro_editor-footer-box.active{
+  border-top:  1px solid @syntax-text-color;//@mono-3;
+  border-bottom:  2px solid @mono-3;//@app-background-color;//@mono-3;
 }
 
 .atomic-taro_editor-header-box{
@@ -61,13 +67,13 @@ atom-text-editor, /* 1 */
   transition: margin-left 0.5s ease-in-out;
   //border: 1px solid @hue-1;
   background-color: @app-background-color;//@inset-panel-background-color;
-  border: 2px solid transparent;
-  border-bottom:  2px solid @inset-panel-background-color;
+  border: 1px solid transparent;
+  border-bottom:  1px solid @inset-panel-background-color;
   margin-bottom: 5px;
 
 }
 .atomic-taro_editor-header-box:hover, .atomic-taro_editor-header-box.active{
-  border: 2px solid @syntax-text-color;//@hue-1;
+  border: 1px solid @syntax-text-color;//@hue-1;
   color: @syntax-color-function;
   //background-color: @inset-panel-background-color;
 }
@@ -122,8 +128,10 @@ atom-text-editor, /* 1 */
 
 .atomic-taro_editor-header-date{
   display: block;
-  //float: left;
+  float: right;
   color: @mono-3;
+  margin-left: 10px;
+  margin-right: 3px;
 }
 .atomic-taro_editor-header-date.active{
    color: @syntax-gutter-text-color-selected;//@hue-1;
@@ -172,11 +180,11 @@ atom-text-editor, /* 1 */
   padding-right: 10px;
   margin: 0px;
   vertical-align: middle;
-  border-left: 1px solid @syntax-selection-color;
-  border-right: 1px solid @syntax-selection-color;
-  color: @syntax-selection-color;
+  border-left: 1px solid transparent;//@syntax-selection-color;
+  border-right: 1px solid transparent;//@syntax-selection-color;
+  color: @app-background-color;//@syntax-selection-color;
 }
-.atomic-taro_editor-header-buttons:hover{
+.atomic-taro_editor-header-buttons:hover, .atomic-taro_editor-header-buttons.active{
   color: @hue-1;
   border-left: 1px solid @hue-1;
   border-right: 1px solid @hue-1;
