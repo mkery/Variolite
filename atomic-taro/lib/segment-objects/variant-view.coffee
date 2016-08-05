@@ -215,10 +215,8 @@ class VariantView
   addActiveButton: (headerContainer) ->
     @activeButton = document.createElement("span")
     @activeButton.classList.add('atomic-taro_editor-active-button')
-    $(@activeButton).html("<span class='icon-primitive-dot'></span>")
+    $(@activeButton).html("<span>#</span>")
     $(@activeButton).data("variant", @)
-    for v in @model.getVersions()
-      $(@activeButton).data("version", v)
 
     #@activeButton = document.createElement("div")
     #@activeButton.classList.add('atomic-taro_editor-active-button')

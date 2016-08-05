@@ -82,7 +82,7 @@ class Variant
     @currentVersion.children.push newVersion
     @currentVersion = newVersion
 
-  toggleActive: (v) ->
+  toggleActive: ->
     textSelection =  @marker.getBufferRange()
     selections = @sourceEditor.getSelections()
     selections[0].setBufferRange(textSelection)
@@ -95,6 +95,7 @@ class Variant
     #idea 2 - use reg expression to append comments to the beginning of lines
     #problem is how would we know to un-toggle those comments and not already existing
     #comments?
+
   switchToVersion: (v) ->
     text = v.text
     @currentVersion.text = @sourceEditor.getTextInBufferRange(@marker.getBufferRange())

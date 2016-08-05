@@ -105,11 +105,10 @@ class VariantsManager
          variant.switchToVersion(v)
 
       $(document).on 'click', '.atomic-taro_editor-active-button', (ev) ->
+        $(this).addClass('clicked')
         v = $(this).data("variant")
         console.log v
-        version = $(this).data("version")
-        console.log version
-        v.toggleActive(version)
+        v.toggleActive()
 
         #textSelection = new Selection(version.getText(), version.getMarker().getBufferRange())
         #console.log textSelection

@@ -260,9 +260,16 @@ class AtomicTaroView
       variant = new VariantView(editor, marker, title, @)
       marker.setProperties(myVariant: variant)
       variantList.push(variant)
+
       headerElement = variant.getWrappedHeader()
-      hm = editor.markScreenPosition([start.row, end.row], invalidate: 'never')
+      hm = editor.markBufferRange(range, invalidate: 'never', reversed: true)
+      console.log hm.getBufferRange()
       editor.decorateMarker(hm, {type: 'block', position: 'before', item: headerElement})
+
+      '''headerElement = variant.getWrappedHeader()
+      hm = editor.markScreenPosition([start.row - 1, start.col], invalidate: 'never')
+      console.log hm.getBufferRange()
+      editor.decorateMarker(hm, {type: 'block', position: 'after', item: headerElement})'''
       variant.setHeaderMarker(hm)
 
       footerElement = variant.getWrappedFooter()

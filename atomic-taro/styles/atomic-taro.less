@@ -105,12 +105,18 @@ atom-text-editor, /* 1 */
 }
 
 .atomic-taro_editor-active-button{
+  margin-right: 5px;
   color: @mono-3;
   float: right;
   min-height: 10px;
   min-width: 15px;
+  cursor: pointer;
+  text-align: center;
 }
-
+.atomic-taro_editor-active-button:hover{
+  color: @hue-1;
+  border: 1px solid @mono-3;
+}
 .atomic-taro_editor-active-button.clicked{
   color: @hue-1;
 }

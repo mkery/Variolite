@@ -8,7 +8,7 @@ import Pmf
 #ʕ•ᴥ•ʔ#V2
 def distance(x0, y0, x1, y1):
 	return math.sqrt((x1-x0)**2 + (y1-y0)**2)
-#Ollie is the best dog really.
+#Ollie
 def computeNorm(x, y):
 	return math.sqrt (x**2 + y**2)
 ##ʕ•ᴥ•ʔ
