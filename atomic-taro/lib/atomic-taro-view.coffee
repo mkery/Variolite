@@ -154,17 +154,20 @@ class AtomicTaroView
     range = @exploratoryEditor.getSelectedBufferRange()
     start = range.start
     end = range.end
+
     marker = @exploratoryEditor.markBufferRange(range, invalidate: 'never')
     #finally, make the new variant!
-    variant = new ExploratorySegmentView(@exploratoryEditor, marker, "", @variantWidth)
-    @variantManager.addVariant(variant)
-    headerElement = variant.getHeader()
+    variant = new VariantView(@exploratoryEditor, marker, "", @)
+    marker.setProperties(myVariant: variant)
+    @variantManager.getVariants().push(variant)
+    headerElement = variant.getWrappedHeader()
     hm = @exploratoryEditor.markScreenPosition([start.row - 1, start.col], invalidate: 'never')
     @exploratoryEditor.decorateMarker(hm, {type: 'block', position: 'after', item: headerElement})
+    variant.setHeaderMarker(hm)
 
-    footerElement = variant.getFooter()
-    fm = @exploratoryEditor.markScreenPosition(end)
+    footerElement = variant.getWrappedFooter()
     @exploratoryEditor.decorateMarker(marker, {type: 'block', position: 'after', item: footerElement})
+
 
   pasteSegment: (e) ->
     segs = @segmentManager.getSegments()

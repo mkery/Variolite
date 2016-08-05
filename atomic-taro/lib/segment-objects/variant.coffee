@@ -82,17 +82,13 @@ class Variant
 
   toggleActive: (v) ->
     textSelection =  @marker.getBufferRange()
-    selections = @sourceEditor.getSelections()
-    selections[0].setBufferRange(textSelection)
-    console.log selections
-    selections[0].toggleLineComments()
     #console.log textSelection
-    #ideas - somehow create a selection and use the API to toggle comments. Problem with
-    #this is I don't know how to create a selection and looking at the docs, it doesn't appear
-    # you can just call a constructor on it
-    #idea 2 - use reg expression to append comments to the beginning of lines
-    #problem is how would we know to un-toggle those comments and not already existing
-    #comments?
+    selections = @sourceEditor.getSelections()
+    #console.log selections
+    selections[0].setBufferRange(textSelection)
+    selections[0].toggleLineComments()
+    #console.log "done with toggleActive"
+
   switchToVersion: (v) ->
     text = v.text
     @currentVersion.text = @sourceEditor.getTextInBufferRange(@marker.getBufferRange())

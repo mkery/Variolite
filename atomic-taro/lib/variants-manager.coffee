@@ -94,18 +94,15 @@ class VariantsManager
          variant = $(this).data("variant")
          #console.log "data "
          #console.log v
-         console.log variant
+         #console.log variant
          variant.switchToVersion(v)
 
       $(document).on 'click', '.atomic-taro_editor-active-button', (ev) ->
         v = $(this).data("variant")
-        console.log v
+        #console.log v
         version = $(this).data("version")
-        console.log version
+        #console.log version
         v.toggleActive(version)
-
-        #textSelection = new Selection(version.getText(), version.getMarker().getBufferRange())
-        #console.log textSelection
 
     addHeaderListeners: (element) ->
       $('.atomic-taro_editor-header-box').hover (ev) ->
