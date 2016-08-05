@@ -168,7 +168,9 @@ class AtomicTaroView
 
     footerElement = variant.getWrappedFooter()
     @exploratoryEditor.decorateMarker(marker, {type: 'block', position: 'after', item: footerElement})
-
+    variant.buildVariantDiv()
+    #@addJqueryListeners()
+    #@postInit_buildView()
 
   pasteSegment: (e) ->
     segs = @segmentManager.getSegments()

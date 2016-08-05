@@ -86,19 +86,23 @@ class VariantsManager
 
     addVariantsListeners: (element) ->
       #------------- hover for variants button
-      $('.variants-button').hoverIntent (ev) ->
+      console.log "in add variantslisteners"
+      #$('.variants-button').hoverIntent (ev) ->
+      $(document).on 'mouseenter', '.variants-button', (ev) ->
+        console.log "don't be scared to speak"
         hoverMenu = $(this).children('.variants-hoverMenu')
         hoverMenu.slideDown('fast')
         topPos = $(this).position().top + $(this).outerHeight() #+ hoverMenu.css('padding-top')
         rightPos = $(this).position().left - hoverMenu.width()/2
         hoverMenu.css({top : topPos+"px" , left : rightPos+"px"})
-      , ->
+      $(document).on 'mouseleave', '.variants-button', ->
         hoverMenu = $(this).children('.variants-hoverMenu')
         hoverMenu.slideUp('fast')
 
       $(document).on 'click', '.icon-primitive-square', (ev) ->
          v = $(this).data("version")
          variant = $(this).data("variant")
+         console.log "document on click for primitive squareIcon"
          #console.log "data "
          #console.log v
          #console.log variant
@@ -109,6 +113,7 @@ class VariantsManager
         #console.log v
         version = $(this).data("version")
         #console.log version
+        console.log "in the document on click for active buttons"
         v.toggleActive(version)
 
     addHeaderListeners: (element) ->
