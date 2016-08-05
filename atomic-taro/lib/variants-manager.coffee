@@ -86,22 +86,26 @@ class VariantsManager
 
     addVariantsListeners: (element) ->
       #------------- hover for variants button
-      $('.variants-button').hoverIntent (ev) ->
+      console.log "in add variantslisteners"
+      #$('.variants-button').hoverIntent (ev) ->
+      $(document).on 'mouseenter', '.variants-button', (ev) ->
+        console.log "don't be scared to speak"
         hoverMenu = $(this).children('.variants-hoverMenu')
         hoverMenu.slideDown('fast')
         topPos = $(this).position().top + $(this).outerHeight() #+ hoverMenu.css('padding-top')
         rightPos = $(this).position().left - hoverMenu.width()/2
         hoverMenu.css({top : topPos+"px" , left : rightPos+"px"})
-      , ->
+      $(document).on 'mouseleave', '.variants-button', ->
         hoverMenu = $(this).children('.variants-hoverMenu')
         hoverMenu.slideUp('fast')
 
       $(document).on 'click', '.icon-primitive-square', (ev) ->
          v = $(this).data("version")
          variant = $(this).data("variant")
+         console.log "document on click for primitive squareIcon"
          #console.log "data "
          #console.log v
-         console.log variant
+         #console.log variant
          variant.switchToVersion(v)
 
       $(document).on 'click', '.atomic-taro_editor-active-button', (ev) ->
@@ -109,9 +113,6 @@ class VariantsManager
         v = $(this).data("variant")
         console.log v
         v.toggleActive()
-
-        #textSelection = new Selection(version.getText(), version.getMarker().getBufferRange())
-        #console.log textSelection
 
     addHeaderListeners: (element) ->
       $('.atomic-taro_editor-header-box').hover (ev) ->
