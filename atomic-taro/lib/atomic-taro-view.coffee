@@ -70,6 +70,8 @@ class AtomicTaroView
 
       @explorer = new VariantExplorerPane(@variantManager, @)
 
+  isShowingExplorer: ->
+    @explorer_panel.isVisible()
 
   toggleExplorerView: ->
     if @explorer_panel?
@@ -80,9 +82,8 @@ class AtomicTaroView
 
     else
       @explorer_panel = atom.workspace.addRightPanel({item: @explorer})
-    #TODO figure out width of the editor element without the line gutter (55 is a guess)
-    @variantManager.updateVariantWidth(@getWidth())#$(@element).width() - 70)
-
+    @variantManager.updateExplorerPanelShowing(@explorer_panel.isVisible(), @getWidth())
+    @explorer_panel.isVisible()
 
   initializeView: ->
     # exploratoryEditor is the python file modified to show our visualization things
@@ -243,7 +244,7 @@ class AtomicTaroView
       marker = editor.markBufferRange(range, invalidate: 'never')
 
       '''below, useful for debug!!!'''
-      #dec = editor.decorateMarker(marker, type: 'highlight', class: 'highlight-green')
+      #dec = editor.decorateMarker(marker, type: 'highlight', class: 'highlight-pink')
 
       # now, trim annotations
       editorBuffer = editor.getBuffer()
@@ -263,8 +264,8 @@ class AtomicTaroView
       marker.setProperties(myVariant: variant)
       variantList.push(variant)
       headerElement = variant.getWrappedHeader()
-      hm = editor.markScreenPosition([start.row - 1, start.col], invalidate: 'never')
-      editor.decorateMarker(hm, {type: 'block', position: 'after', item: headerElement})
+      hm = editor.markScreenPosition([start.row, end.row], invalidate: 'never')
+      editor.decorateMarker(hm, {type: 'block', position: 'before', item: headerElement})
       variant.setHeaderMarker(hm)
 
       footerElement = variant.getWrappedFooter()

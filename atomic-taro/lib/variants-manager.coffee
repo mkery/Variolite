@@ -55,6 +55,13 @@ class VariantsManager
       @focusedVariant.unFocus()
       @focusedVariant = null
 
+    updateExplorerPanelShowing: (showing, w) ->
+      if showing
+        $('.showVariantsButton').text("hide")
+      else
+        $('.showVariantsButton').text("show")
+      @updateVariantWidth(w)
+
     updateVariantWidth: (w) ->
       $('.atomic-taro_editor-header-box').width(w)
 

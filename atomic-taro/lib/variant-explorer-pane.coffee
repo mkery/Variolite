@@ -61,16 +61,41 @@ class VariantExplorerPane
     listDiv = document.createElement('ul')
     listDiv.classList.add('list-tree', 'has-collapsable-children')
 
-    currentVarDiv = document.createElement('li')
-    currentVarDiv.classList.add('list-nested-item')
-    current = document.createElement('span')
-    current.classList.add('list-item')
-    $(currentVarDiv).html("<span class='icon-primitive-square'></span>"+vModel.getTitle())
-    currentVarDiv.appendChild(current)
-    listDiv.appendChild(currentVarDiv)
+    versions = vModel.getVersions()
+    v = versions[0]
+    if v.children.length > 0
+      listDiv.appendChild @makeVersionWithChildren(v)
+    else
+      listDiv.appendChild @makeVersionNoKids(v)
 
     varDiv.appendChild(listDiv)
     varDiv
+
+  makeVersionWithChildren: (version) ->
+    nestedListDiv = document.createElement('li')
+    nestedListDiv.classList.add('list-nested-item')
+
+    ver = document.createElement('div')
+    ver.classList.add('list-item')
+    $(ver).html("<span class='icon-git-commit'></span>"+version.title)
+    nestedListDiv.appendChild(ver)
+
+    nestedTree = document.createElement('ul')
+    nestedTree.classList.add('list-tree')
+    nestedListDiv.appendChild(nestedTree)
+
+    for v in version.children
+      if v.children.length > 0
+        nestedTree.appendChild @makeVersionWithChildren(v)
+      else
+        nestedTree.appendChild @makeVersionNoKids(v)
+    nestedListDiv
+
+  makeVersionNoKids: (version) ->
+    ver = document.createElement('li')
+    ver.classList.add('list-item')
+    $(ver).html("<span class='icon-git-commit'></span>"+version.title)
+    ver
 
 
   getLineNumbers: (variantModel) ->
