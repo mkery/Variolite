@@ -155,7 +155,6 @@ class AtomicTaroView
     range = @exploratoryEditor.getSelectedBufferRange()
     start = range.start
     end = range.end
-
     marker = @exploratoryEditor.markBufferRange(range, invalidate: 'never')
     #finally, make the new variant!
     variant = new VariantView(@exploratoryEditor, marker, "", @)
@@ -169,6 +168,8 @@ class AtomicTaroView
     footerElement = variant.getWrappedFooter()
     @exploratoryEditor.decorateMarker(marker, {type: 'block', position: 'after', item: footerElement})
     variant.buildVariantDiv()
+    @sourceEditor.getBuffer().insert(start, "#ʕ•ᴥ•ʔ#\n")
+    @sourceEditor.getBuffer().insert(end, "##ʕ•ᴥ•ʔ\n")
     #@addJqueryListeners()
     #@postInit_buildView()
 

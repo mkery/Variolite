@@ -86,10 +86,8 @@ class VariantsManager
 
     addVariantsListeners: (element) ->
       #------------- hover for variants button
-      console.log "in add variantslisteners"
       #$('.variants-button').hoverIntent (ev) ->
       $(document).on 'mouseenter', '.variants-button', (ev) ->
-        console.log "don't be scared to speak"
         hoverMenu = $(this).children('.variants-hoverMenu')
         hoverMenu.slideDown('fast')
         topPos = $(this).position().top + $(this).outerHeight() #+ hoverMenu.css('padding-top')
@@ -102,16 +100,11 @@ class VariantsManager
       $(document).on 'click', '.icon-primitive-square', (ev) ->
          v = $(this).data("version")
          variant = $(this).data("variant")
-         console.log "document on click for primitive squareIcon"
-         #console.log "data "
-         #console.log v
-         #console.log variant
          variant.switchToVersion(v)
 
       $(document).on 'click', '.atomic-taro_editor-active-button', (ev) ->
         $(this).addClass('clicked')
         v = $(this).data("variant")
-        console.log v
         v.toggleActive()
 
     addHeaderListeners: (element) ->
