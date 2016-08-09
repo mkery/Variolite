@@ -95,7 +95,7 @@ class AtomicTaroView
     @element.classList.add('atomic-taro_pane')#, 'scroll-view')
 
     #@variantWidth = $(@element).width() - 20 #@sourceEditor.getElement().getWidth() - 20
-    variants = @initVariants(@exploratoryEditor, @element)
+    variants = @initVariantsTest(@exploratoryEditor, @element)
 
     # create a variant manager
     @variantManager = new VariantsManager(variants, @)
@@ -153,10 +153,21 @@ class AtomicTaroView
     range = @exploratoryEditor.getSelectedBufferRange()
     start = range.start
     end = range.end
+    topOfFile = new Range(new Point(0, 0), start)
+    checkBuffer = @sourceEditor.getTextInBufferRange(topOfFile)
+    count = (checkBuffer.match(/(#ʕ•ᴥ•ʔ#)/g) || []).length
+    @sourceEditor.setCursorScreenPosition([range.end.row + 2 * count + 1, range.end.col])
+    @sourceEditor.moveToEndOfLine()
+    @sourceEditor.insertNewlineBelow()
+    startOrig = new Point(range.start.row + 2 * count, range.start.col)
+    endOrig = new Point(range.end.row + 2 * count + 2, range.end.col)
+
+    @sourceEditor.getBuffer().insert(startOrig, "#ʕ•ᴥ•ʔ#")
+    @sourceEditor.getBuffer().insert(endOrig, "##ʕ•ᴥ•ʔ")
 
     marker = @exploratoryEditor.markBufferRange(range, invalidate: 'never')
     #finally, make the new variant!
-    variant = new VariantView(@exploratoryEditor, marker, "", @)
+    variant = new VariantView(@exploratoryEditor, marker, "v0", @)
     marker.setProperties(myVariant: variant)
     @variantManager.getVariants().push(variant)
     headerElement = variant.getHeader()
@@ -167,6 +178,7 @@ class AtomicTaroView
     footerElement = variant.getFooter()
     @exploratoryEditor.decorateMarker(marker, {type: 'block', position: 'after', item: footerElement})
     variant.buildVariantDiv()
+
     #@addJqueryListeners()
     #@postInit_buildView()
 
@@ -211,7 +223,7 @@ class AtomicTaroView
     @variantManager.addJqueryListeners(@element)
 
 
-
+##here is where we need to change the way of adding and reading variants##
   initVariants: (editor) ->
     startBeacon = []
     editor.scan new RegExp('#ʕ•ᴥ•ʔ#', 'g'), (match) =>
@@ -220,10 +232,25 @@ class AtomicTaroView
     endBeacon = []
     editor.scan new RegExp('##ʕ•ᴥ•ʔ', 'g'), (match) =>
       endBeacon.push(match)
-      #console.log "found ##ʕ•ᴥ•ʔ!"
 
     @addVariants(editor, startBeacon, endBeacon)
 
+  initVariantsTest: (editor) ->
+      startBeacon = []
+      startBeaconSorted = []
+      endBeaconSorted = []
+      sourceBuffer = editor.buffer
+      lineArray = sourceBuffer.getLines()
+      x = 0
+      for i in lineArray
+        if i.includes("#ʕ•ᴥ•ʔ#")
+          startBeacon.push(new Point(x, 0))
+        if i.includes("##ʕ•ᴥ•ʔ")
+            popped = startBeacon.pop()
+            startBeaconSorted.push(popped)
+            endBeaconSorted.push(new Point(x, 0))
+        x+=1
+      @addVariants(editor, startBeaconSorted, endBeaconSorted)
 
 
   addVariants: (editor, startBeacon, endBeacon) ->
@@ -237,7 +264,8 @@ class AtomicTaroView
 
       # create a marker for this range so that we can keep track
       #range = new Range(new Point(sb.range.start.row - rowDeletedOffset, sb.range.start.col), new Point(eb.range.end.row - rowDeletedOffset, eb.range.end.col))
-      range = [sb.range.start, eb.range.end]
+      #range = [sb.range.start, eb.range.end]
+      range = [sb, eb]
       start = new Point(range[0].row - rowDeletedOffset, range[0].col)
       end = new Point(range[1].row - rowDeletedOffset, range[1].col)
       range = [start, end]
@@ -248,9 +276,11 @@ class AtomicTaroView
 
       # now, trim annotations
       editorBuffer = editor.getBuffer()
-      rowStart = sb.range.start.row
+      #rowStart = sb.range.start.row
+      rowStart = sb.row
       title = editorBuffer.lineForRow(rowStart - rowDeletedOffset)
-      rowEnd = eb.range.end.row
+      #rowEnd = eb.range.end.row
+      rowEnd = eb.row
       editorBuffer.deleteRow(rowStart - rowDeletedOffset)
       rowDeletedOffset += 1
       editorBuffer.deleteRow(rowEnd - rowDeletedOffset)

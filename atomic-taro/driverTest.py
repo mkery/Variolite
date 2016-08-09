@@ -12,6 +12,7 @@ def distance(x0, y0, x1, y1):
 def computeNorm(x, y):
 	return math.sqrt (x**2 + y**2)
 ##ʕ•ᴥ•ʔ
+#ʕ•ᴥ•ʔ#
 
 
 def computeAngle (p1, p2):
@@ -20,6 +21,7 @@ def computeAngle (p1, p2):
 		dot = 0
 	else:
 		dot = (p2[0]*p1[0]+p2[1]*p1[1])/float(computeNorm(p1[0], p1[1])*computeNorm(p2[0], p2[1]))
+##ʕ•ᴥ•ʔ
 
 	if dot > 1:
 		dot = 1
