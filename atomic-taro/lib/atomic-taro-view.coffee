@@ -12,7 +12,8 @@ VariantsManager = require './variants-manager'
 Variant = require './segment-objects/variant'
 VariantView = require './segment-objects/variant-view'
 AnnotationProcessorBuffer = require './annotation-processor-buffer'
-VariantExplorerPane = require './variant-explorer-pane'
+VariantExplorerPane = require './right-panel/variant-explorer-pane'
+AtomicTaroToolPane = require './right-panel/atomic-taro-tool-pane'
 
 module.exports =
 class AtomicTaroView
@@ -21,7 +22,6 @@ class AtomicTaroView
   constructor: (statePath, @filePath, sourceEditor) ->
     @sourceEditor = sourceEditor
     @exploratoryEditor = null
-    @cursors = null
     @variantWidth = null
     @variantManager = null
 
@@ -65,10 +65,10 @@ class AtomicTaroView
       @element.appendChild(@exploratoryEditor.getElement())
       @variantManager.buildVersionDivs()
 
-      atom.views.addViewProvider VariantExplorerPane, (variantExplorer) ->
-        variantExplorer.getElement()
+      atom.views.addViewProvider AtomicTaroToolPane, (toolPane) ->
+        toolPane.getElement()
 
-      @explorer = new VariantExplorerPane(@variantManager, @)
+      @explorer = new AtomicTaroToolPane(@variantManager, @)
 
   isShowingExplorer: ->
     @explorer_panel.isVisible()
@@ -88,7 +88,6 @@ class AtomicTaroView
   initializeView: ->
     # exploratoryEditor is the python file modified to show our visualization things
     @exploratoryEditor = @initExploratoryEditor(@sourceEditor)
-    @cursors = @exploratoryEditor.getCursors()
     @initCursorListeners()
 
     #root element
@@ -118,20 +117,19 @@ class AtomicTaroView
 
 
   initCursorListeners: ->
-    for cursor in @cursors
-      cursor.onDidChangePosition (ev) =>
-        active = @variantManager.getFocusedVariant()
-        if active?
-          activeMarker = active.getMarker()
-          if activeMarker.getBufferRange().containsPoint(ev.newBufferPosition)
-            return
-          else
-            @variantManager.unFocusVariant(active)
+    @exploratoryEditor.onDidChangeCursorPosition (ev) =>
+      active = @variantManager.getFocusedVariant()
+      if active?
+        activeMarker = active.getMarker()
+        if activeMarker.getBufferRange().containsPoint(ev.newBufferPosition)
+          return
+        else
+          @variantManager.unFocusVariant(active)
 
-        m = @exploratoryEditor.findMarkers(containsBufferPosition: ev.newBufferPosition)
-        if m[0]?
-          if m[0].getProperties().myVariant?
-            @variantManager.setFocusedVariant(m[0].getProperties().myVariant)
+      m = @exploratoryEditor.findMarkers(containsBufferPosition: ev.newBufferPosition)
+      if m[0]?
+        if m[0].getProperties().myVariant?
+          @variantManager.setFocusedVariant(m[0].getProperties().myVariant)
 
 
 
@@ -161,12 +159,12 @@ class AtomicTaroView
     variant = new VariantView(@exploratoryEditor, marker, "", @)
     marker.setProperties(myVariant: variant)
     @variantManager.getVariants().push(variant)
-    headerElement = variant.getWrappedHeader()
+    headerElement = variant.getHeader()
     hm = @exploratoryEditor.markScreenPosition([start.row - 1, start.col], invalidate: 'never')
     @exploratoryEditor.decorateMarker(hm, {type: 'block', position: 'after', item: headerElement})
     variant.setHeaderMarker(hm)
 
-    footerElement = variant.getWrappedFooter()
+    footerElement = variant.getFooter()
     @exploratoryEditor.decorateMarker(marker, {type: 'block', position: 'after', item: footerElement})
     variant.buildVariantDiv()
     #@addJqueryListeners()
@@ -266,9 +264,10 @@ class AtomicTaroView
       marker.setProperties(myVariant: variant)
       variantList.push(variant)
 
-      headerElement = variant.getWrappedHeader()
+      headerElement = variant.getHeader()
       hm = editor.markBufferRange(range, invalidate: 'never', reversed: true)
-      console.log hm.getBufferRange()
+      hm.setProperties(myVariant: variant)
+      #console.log hm.getBufferRange()
       editor.decorateMarker(hm, {type: 'block', position: 'before', item: headerElement})
 
       '''headerElement = variant.getWrappedHeader()
@@ -277,7 +276,7 @@ class AtomicTaroView
       editor.decorateMarker(hm, {type: 'block', position: 'after', item: headerElement})'''
       variant.setHeaderMarker(hm)
 
-      footerElement = variant.getWrappedFooter()
+      footerElement = variant.getFooter()
       editor.decorateMarker(marker, {type: 'block', position: 'after', item: footerElement})
 
     #return

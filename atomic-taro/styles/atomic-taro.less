@@ -125,6 +125,7 @@ atom-text-editor, /* 1 */
   margin-left: 1px;
   margin-right: 1px;
   color: @hue-1;
+  z-index: 10;
 }
 
 .icon-primitive-dot.clicked{
@@ -185,6 +186,11 @@ atom-text-editor, /* 1 */
   color: @hue-2;
   z-index: 5;
 }
+.atomic-taro_editor-header_version-title.highlighted{
+  color: @syntax-color-constant;
+  z-index: 5;
+}
+
 
 .icon-primitive-square{
   margin-left: 1px;
@@ -193,6 +199,9 @@ atom-text-editor, /* 1 */
 }
 .icon-primitive-square.active{
   color: @hue-1;
+}
+.icon-primitive-square.highlighted{
+  color: @syntax-color-constant;
 }
 
 .pinButton{

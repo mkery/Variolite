@@ -6,13 +6,31 @@
 @import "syntax-variables";
 
 
-.atomic-taro_explore-pane{
-  min-width: 200px;
+.atomic-taro_tools-pane {
   border: 1px solid @tool-panel-border-color;
   margin-top: 5px;
   margin-right: 5px;
   padding-left: 5px;
-  font-size: @font-size
+  display: flex;
+  flex-direction: column;
+}
+
+.atomic-taro_tools-resize-handle {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 10px;
+    cursor: col-resize;
+    z-index: 3;
+    //background-color: pink;
+  }
+
+.atomic-taro_explore-pane{
+  min-width: 200px;
+  font-size: @font-size;
+  padding-bottom: 10px;
+  margin-bottom: 15px;
+  border-bottom: 1px solid @text-color-subtle;
 }
 
 .atomic-taro_explore-title-container{
@@ -30,4 +48,8 @@
 .atomic-taro_explore-lineno{
   font-style: italic;
   color: @text-color-subtle;
+}
+
+.atomic-taro_explore_version-label.focused{
+  color: @hue-1;
 }

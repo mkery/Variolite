@@ -103,6 +103,9 @@ module.exports = AtomicTaro =
     @atomicTaroView
 
 
+  toggleToolPane: ->
+    console.log "open explorer view!"
+    @atomicTaroView.toggleExplorerView()
 
   handleSaveEvent: (e) ->
     editor = atom.workspace.getActivePaneItem()

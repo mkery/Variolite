@@ -9,3 +9,10 @@
 # https://atom.io/docs/latest/behind-atom-keymaps-in-depth
 'atom-workspace':
   'ctrl-alt-o': 'atomic-taro:toggle'
+
+
+'.platform-darwin .atomic-taro':
+  'cmd-/': 'atomic-taro:toggleToolPane'
+
+'.platform-win32 .atomic-taro, .platform-linux .atomic-taro':
+  'ctrl-/': 'atomic-taro:toggleToolPane'

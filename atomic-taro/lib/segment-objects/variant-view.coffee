@@ -1,6 +1,5 @@
 {Point, Range, TextBuffer} = require 'atom'
 Variant = require './variant'
-VersionExplorerView = require './version-explorer-view'
 
 '''
 variant view represents the visual appearance of a variant, and contains a
@@ -35,7 +34,8 @@ class VariantView
     @model = new Variant(sourceEditor, marker, variantTitle)
 
     # wrapper div to browse other versions
-    @versionExplorer = new VersionExplorerView(@)
+    #@versionExplorer = new VersionExplorerView(@)
+    @explorerDiv = null
 
 
   deactivate: ->
@@ -67,8 +67,8 @@ class VariantView
     @footerBar
 
 
-  getWrappedFooter: ->
-    @versionExplorer.getFooter()
+  #getWrappedFooter: ->
+  #  @versionExplorer.getFooter()
 
   getOutputsDiv: ->
     @outputDiv
@@ -76,8 +76,8 @@ class VariantView
   getHeader: ->
     @headerBar
 
-  getWrappedHeader: ->
-    @versionExplorer.getHeader()
+  #getWrappedHeader: ->
+  #  @versionExplorer.getHeader()
 
   setTitle: (t) ->
     $(@versionBookmarkBar).text(t)
@@ -106,6 +106,9 @@ class VariantView
   unFocus: ->
     @focused = false
     @unHover()
+    @model.clearHighlights()
+    $('.icon-primitive-square').removeClass('highlighted')
+    $('.atomic-taro_editor-header_version-title').removeClass('highlighted')
 
   updateVariantWidth: (width) ->
     $(@headerBar).width(width)
@@ -125,12 +128,33 @@ class VariantView
     $(@activeButton).data("version", v)
     @addNameBookmarkBar(@versionBookmarkBar)
     $(@dateHeader).text(@model.getDate())
+    @switchExplorerToVersion(v)
+
 
   makeNonCurrentVariant: ->
     $(@headerBar).removeClass('activeVariant')
     $(@headerBar).addClass('inactiveVariant')
     $(@pinButton).remove()
     $(@variantsButton).remove()
+
+
+  setExplorerGroup: (div) ->
+    @explorerDiv = div
+
+
+  switchExplorerToVersion: (v) ->
+    $(@explorerDiv).find('.atomic-taro_explore_version-label').removeClass('focused')
+    $('.'+v.title).addClass('focused')
+
+
+  highlightMultipleVersions: (v) ->
+    console.log "highlight!"
+    @model.compareToVersion(v)
+    $(@versionBookmarkBar).empty()
+    $(@activeButton).data("version", v)
+    @addNameBookmarkBar(@versionBookmarkBar)
+    $(@dateHeader).text(@model.getDate())
+    @switchExplorerToVersion(v)
 
 
   buildVariantDiv: () ->
@@ -149,7 +173,7 @@ class VariantView
     #@headerBar.appendChild(@outputDiv)
 
     # wrapper div to browse other versions
-    @versionExplorer.addVariantsDiv()
+    #@versionExplorer.addVariantsDiv()
 
 
   addHeaderDiv: (headerContainer) ->
@@ -180,27 +204,40 @@ class VariantView
 
   addNameBookmarkBar: (versionBookmarkBar) ->
     current = @model.getCurrentVersion()
-    for v in @model.getVersions()
-      versionTitle = document.createElement("span")
-      versionTitle.classList.add('atomic-taro_editor-header_version-title')
-      squareIcon = document.createElement("span")
-      $(squareIcon).data("version", v)
-      $(squareIcon).data("variant", @)
-      squareIcon.classList.add('icon-primitive-square')
-      title = document.createElement("span")
-      $(title).text(v.title)
-      title.classList.add('version-title')
-      title.classList.add('native-key-bindings')
-      versionTitle.appendChild(squareIcon)
-      versionTitle.appendChild(title)
-      versionBookmarkBar.appendChild(versionTitle)
+    root = @model.getRootVersion()
+    @addVersionBookmark(root, current, versionBookmarkBar)
 
-      if(v == current)
-        if @focused
-          versionTitle.classList.add('focused')
-        squareIcon.classList.add('active')
-        versionTitle.classList.add('active')
-        @currentVersionName = versionTitle
+
+  addVersionBookmark: (v, current, versionBookmarkBar) ->
+    versionTitle = document.createElement("span")
+    versionTitle.classList.add('atomic-taro_editor-header_version-title')
+    squareIcon = document.createElement("span")
+    $(squareIcon).data("version", v)
+    $(squareIcon).data("variant", @)
+    squareIcon.classList.add('icon-primitive-square')
+    title = document.createElement("span")
+    $(title).text(v.title)
+    title.classList.add('version-title')
+    title.classList.add('native-key-bindings')
+    versionTitle.appendChild(squareIcon)
+    versionTitle.appendChild(title)
+    versionBookmarkBar.appendChild(versionTitle)
+
+    if(v.title == current.title)
+      if @focused
+        versionTitle.classList.add('focused')
+      squareIcon.classList.add('active')
+      versionTitle.classList.add('active')
+      @currentVersionName = versionTitle
+
+    if(@model.isHighlighted(v))
+      if @focused
+        versionTitle.classList.add('focused')
+      squareIcon.classList.add('highlighted')
+      versionTitle.classList.add('highlighted')
+
+    for child in v.children
+      @addVersionBookmark(child, current, versionBookmarkBar)
 
 
 
