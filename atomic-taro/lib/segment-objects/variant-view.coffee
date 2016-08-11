@@ -79,9 +79,10 @@ class VariantView
   #getWrappedHeader: ->
   #  @versionExplorer.getHeader()
 
-  setTitle: (t) ->
-    $(@versionBookmarkBar).text(t)
-    @model.setTitle(t)
+  setTitle: (title, version) ->
+    @model.setTitle(title, version)
+    $(@versionBookmarkBar).empty()
+    @addNameBookmarkBar(@versionBookmarkBar)
 
   focus: ->
     @focused = true
@@ -219,6 +220,8 @@ class VariantView
     $(title).text(v.title)
     title.classList.add('version-title')
     title.classList.add('native-key-bindings')
+    $(title).data("variant", @)
+    $(title).data("version", v)
     versionTitle.appendChild(squareIcon)
     versionTitle.appendChild(title)
     versionBookmarkBar.appendChild(versionTitle)

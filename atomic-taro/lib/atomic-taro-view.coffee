@@ -145,6 +145,9 @@ class AtomicTaroView
   getVariants: ->
     @variantManager.getVariants()
 
+  sortVariants: ->
+    @variantManager.sortVariants()
+
   copyVariant: (e) ->
     @variantManager.copyVariant(e)
 
@@ -162,8 +165,8 @@ class AtomicTaroView
     startOrig = new Point(range.start.row + 2 * count, range.start.col)
     endOrig = new Point(range.end.row + 2 * count + 2, range.end.col)
 
-    @sourceEditor.getBuffer().insert(startOrig, "#ʕ•ᴥ•ʔ#")
-    @sourceEditor.getBuffer().insert(endOrig, "##ʕ•ᴥ•ʔ")
+    #@sourceEditor.getBuffer().insert(startOrig, "#ʕ•ᴥ•ʔ#")
+    #@sourceEditor.getBuffer().insert(endOrig, "##ʕ•ᴥ•ʔ")
 
     marker = @exploratoryEditor.markBufferRange(range, invalidate: 'never')
     #finally, make the new variant!
@@ -267,7 +270,7 @@ class AtomicTaroView
       #range = [sb.range.start, eb.range.end]
       range = [sb, eb]
       start = new Point(range[0].row - rowDeletedOffset, range[0].col)
-      end = new Point(range[1].row - rowDeletedOffset, range[1].col)
+      end = new Point(range[1].row - rowDeletedOffset - 1, range[1].col)
       range = [start, end]
       marker = editor.markBufferRange(range, invalidate: 'never')
 

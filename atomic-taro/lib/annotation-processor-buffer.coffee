@@ -37,6 +37,7 @@ class AnnotationProcessorBuffer extends TextBuffer
 
   annotateTextWithVariants: (text) ->
     console.log "attempting save!!!"
+    @variantView.sortVariants() #important!
     variants = @variantView.getVariants()
     if @subBuffer?
       @subBuffer.setText(@getText())
@@ -48,13 +49,14 @@ class AnnotationProcessorBuffer extends TextBuffer
       marker = v.getModel().getMarker()
       range = marker.getBufferRange()
       title = v.getModel().getTitle()
-      console.log "found title! "+title
+      #console.log "found title! "+title+", with range "+range.start
+      #console.log "offset "+insertOffset
 
       start = [range.start.row + insertOffset, range.start.col]
       @subBuffer.insert(start, "#ʕ•ᴥ•ʔ#"+title+"\n", {undo: false})
-      insertOffset += 1
+      insertOffset += 2
       footerEnd = new Point(range.end.row + insertOffset, range.end.col)
       @subBuffer.insert(footerEnd, "##ʕ•ᴥ•ʔ"+"\n", {undo: false})
-      insertOffset += 1
+      #insertOffset += 1
 
     @subBuffer.getText()

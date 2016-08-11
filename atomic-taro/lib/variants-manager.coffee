@@ -44,6 +44,23 @@ class VariantsManager
     getVariants: ->
       @variants
 
+    '''
+    Sort variants by their marker location. This is helpful for dealing with things
+    like offset at save time.
+    '''
+    sortVariants: ->
+      @variants = @variants.sort (a, b) ->
+        rangeA = a.getModel().getMarker().getBufferRange()
+        startA = rangeA.start.row
+        rangeB = b.getModel().getMarker().getBufferRange()
+        startB = rangeB.start.row
+        #console.log "sorting "+startA+", "+startB
+        if startA < startB
+          return -1
+        if startA > startB
+          return 1
+        return 0
+
     getFocusedVariant: ->
       @focusedVariant
 
@@ -139,14 +156,15 @@ class VariantsManager
           $(this).data("section-title", String(name))
           $(this).html('')
           $('<input></input').attr({
-                'type': 'text',
-                'name': 'fname',
-                'class': 'txt_sectionname',
-                'size': '30',
-                'value': name
-            }).appendTo(this)
+              'type': 'text',
+              'name': 'fname',
+              'class': 'txt_sectionname',
+              'size': '30',
+              'value': name
+          }).appendTo(this)
           $('.txt_sectionname').focus()
           $('.txt_sectionname').addClass('native-key-bindings')
+
 
       $(document).on 'click', '.version-title', (ev) ->
         if $(this).children().length > 0
@@ -155,19 +173,23 @@ class VariantsManager
       #--------------make header title editable cont'
       $(document).on 'blur', '.version-title', ->
         name = $(this).children(".txt_sectionname").val()
-        #if /\S/.test(name)
-        $(this).text(name)
-        '''segment = $(this).data("segment")
-          segment.setTitle(name)
-        else
-          $(this).text($(this).data("section-title"))'''
+        if(name)
+          #if /\S/.test(name)
+          $(this).text(name)
+          variant = $(this).data("variant")
+          version = $(this).data("version")
+          variant.setTitle(name, version)
+
       #--------------make header title editable cont'
       $(document).on 'keyup', '.txt_sectionname', (e) ->
         if(e.keyCode == 13)# enter key
           name = $(this).val() #$('#txt_sectionname').val()
           #if /\S/.test(name)
           $(this).parent().text(name)
-          console.log "enter!!!"
+          '''variant = $(this).parent().data("variant")
+          version = $(this).parent().data("version")
+          console.log $(this).parent()
+          variant.setTitle(name, version)''' #TODO
 
         else
           text = String.fromCharCode(e.keyCode)

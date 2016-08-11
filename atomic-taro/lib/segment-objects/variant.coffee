@@ -200,8 +200,8 @@ class Variant
 
 
 
-  setTitle: (title) ->
-    @currentVersion.title = title
+  setTitle: (title, version) ->
+    version.title = title
 
 
 
