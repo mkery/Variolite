@@ -95,7 +95,7 @@ class AtomicTaroView
     @element.classList.add('atomic-taro_pane')#, 'scroll-view')
 
     #@variantWidth = $(@element).width() - 20 #@sourceEditor.getElement().getWidth() - 20
-    variants = @initVariantsTest(@exploratoryEditor, @element)
+    variants = @initVariants(@exploratoryEditor, @element)
 
     # create a variant manager
     @variantManager = new VariantsManager(variants, @)
@@ -122,6 +122,7 @@ class AtomicTaroView
       if active?
         activeMarker = active.getMarker()
         if activeMarker.getBufferRange().containsPoint(ev.newBufferPosition)
+          active.updateFocusPosition(ev.newBufferPosition)
           return
         else
           @variantManager.unFocusVariant(active)
@@ -129,7 +130,7 @@ class AtomicTaroView
       m = @exploratoryEditor.findMarkers(containsBufferPosition: ev.newBufferPosition)
       if m[0]?
         if m[0].getProperties().myVariant?
-          @variantManager.setFocusedVariant(m[0].getProperties().myVariant)
+          @variantManager.setFocusedVariant(m[0].getProperties().myVariant, ev.newBufferPosition)
 
 
 
@@ -159,11 +160,11 @@ class AtomicTaroView
     topOfFile = new Range(new Point(0, 0), start)
     checkBuffer = @sourceEditor.getTextInBufferRange(topOfFile)
     count = (checkBuffer.match(/(#ʕ•ᴥ•ʔ#)/g) || []).length
-    @sourceEditor.setCursorScreenPosition([range.end.row + 2 * count + 1, range.end.col])
+    '''@sourceEditor.setCursorScreenPosition([range.end.row + 2 * count + 1, range.end.col])
     @sourceEditor.moveToEndOfLine()
     @sourceEditor.insertNewlineBelow()
     startOrig = new Point(range.start.row + 2 * count, range.start.col)
-    endOrig = new Point(range.end.row + 2 * count + 2, range.end.col)
+    endOrig = new Point(range.end.row + 2 * count + 2, range.end.col)'''
 
     #@sourceEditor.getBuffer().insert(startOrig, "#ʕ•ᴥ•ʔ#")
     #@sourceEditor.getBuffer().insert(endOrig, "##ʕ•ᴥ•ʔ")
@@ -226,91 +227,106 @@ class AtomicTaroView
     @variantManager.addJqueryListeners(@element)
 
 
-##here is where we need to change the way of adding and reading variants##
+
   initVariants: (editor) ->
-    startBeacon = []
-    editor.scan new RegExp('#ʕ•ᴥ•ʔ#', 'g'), (match) =>
-      startBeacon.push(match)
-
-    endBeacon = []
-    editor.scan new RegExp('##ʕ•ᴥ•ʔ', 'g'), (match) =>
-      endBeacon.push(match)
-
-    @addVariants(editor, startBeacon, endBeacon)
-
-  initVariantsTest: (editor) ->
-      startBeacon = []
-      startBeaconSorted = []
-      endBeaconSorted = []
-      sourceBuffer = editor.buffer
-      lineArray = sourceBuffer.getLines()
-      x = 0
-      for i in lineArray
-        if i.includes("#ʕ•ᴥ•ʔ#")
-          startBeacon.push(new Point(x, 0))
-        if i.includes("##ʕ•ᴥ•ʔ")
-            popped = startBeacon.pop()
-            startBeaconSorted.push(popped)
-            endBeaconSorted.push(new Point(x, 0))
-        x+=1
-      @addVariants(editor, startBeaconSorted, endBeaconSorted)
+    beacons = @findMarkers(editor)
+    list_offset = @addAllVariants(editor, beacons, 0)
+    list_offset.list
 
 
-  addVariants: (editor, startBeacon, endBeacon) ->
-    length = Math.min(startBeacon.length, endBeacon.length)
-    rowDeletedOffset = 0
+  findMarkers: (editor) ->
+    beacons = []
+    sourceBuffer = editor.buffer
+    lineArray = sourceBuffer.getLines()
+    prevStart = null
+    endStack = []
+    for line, index in lineArray
+      if line.includes("#ʕ•ᴥ•ʔ#")
+
+        if ((prevStart != null) and (prevStart.end == null))
+          b = {start: new Point(index, 0), end: null, nested: []}
+          prevStart.nested.push(b)
+          endStack.push(b)
+          prevStart = b
+        else
+          beacons.push({start: new Point(index, 0), end: null, nested: []})
+          prevStart = beacons[beacons.length - 1]
+          endStack.push(prevStart)
+
+      else if line.includes("##ʕ•ᴥ•ʔ")
+        endStack.pop().end = new Point(index , 0)
+    #return beacons
+    beacons
+
+
+  addAllVariants: (editor, beacons, rowDeletedOffset) ->
     variantList = []
+    for b in beacons
+      v_offset = @addVariant(editor, b, rowDeletedOffset)
+      variant = v_offset.variant
+      variantList.push variant
+      rowDeletedOffset = v_offset.offset
 
-    for i in [0...length]
-      sb = startBeacon[i]
-      eb = endBeacon[i]
+      nested = b.nested
+      if nested.length > 0
+        #cancel out end marker offset, since we are inside the range of that marker
+        nestedOffset = rowDeletedOffset - 1
+        list_offset = @addAllVariants(editor, nested, nestedOffset)
+        grandchildren = list_offset.list
+        for g in grandchildren
+          variantList.push g
+          variant.addedNestedVariant(g)
+        rowDeletedOffset = list_offset.offset + 1
 
-      # create a marker for this range so that we can keep track
-      #range = new Range(new Point(sb.range.start.row - rowDeletedOffset, sb.range.start.col), new Point(eb.range.end.row - rowDeletedOffset, eb.range.end.col))
-      #range = [sb.range.start, eb.range.end]
-      range = [sb, eb]
-      start = new Point(range[0].row - rowDeletedOffset, range[0].col)
-      end = new Point(range[1].row - rowDeletedOffset - 1, range[1].col)
-      range = [start, end]
-      marker = editor.markBufferRange(range, invalidate: 'never')
 
-      '''below, useful for debug!!!'''
-      #dec = editor.decorateMarker(marker, type: 'highlight', class: 'highlight-pink')
-
-      # now, trim annotations
-      editorBuffer = editor.getBuffer()
-      #rowStart = sb.range.start.row
-      rowStart = sb.row
-      title = editorBuffer.lineForRow(rowStart - rowDeletedOffset)
-      #rowEnd = eb.range.end.row
-      rowEnd = eb.row
-      editorBuffer.deleteRow(rowStart - rowDeletedOffset)
-      rowDeletedOffset += 1
-      editorBuffer.deleteRow(rowEnd - rowDeletedOffset)
-      rowDeletedOffset += 1
-
-      #get title from removed annotation
-      title = title.substring(7)
-
-      #finally, make the new variant!
-      variant = new VariantView(editor, marker, title, @)
-      marker.setProperties(myVariant: variant)
-      variantList.push(variant)
-
-      headerElement = variant.getHeader()
-      hm = editor.markBufferRange(range, invalidate: 'never', reversed: true)
-      hm.setProperties(myVariant: variant)
-      #console.log hm.getBufferRange()
-      editor.decorateMarker(hm, {type: 'block', position: 'before', item: headerElement})
-
-      '''headerElement = variant.getWrappedHeader()
-      hm = editor.markScreenPosition([start.row - 1, start.col], invalidate: 'never')
-      console.log hm.getBufferRange()
-      editor.decorateMarker(hm, {type: 'block', position: 'after', item: headerElement})'''
-      variant.setHeaderMarker(hm)
-
-      footerElement = variant.getFooter()
-      editor.decorateMarker(marker, {type: 'block', position: 'after', item: footerElement})
 
     #return
-    variantList
+    {list: variantList, offset: rowDeletedOffset}
+
+
+  addVariant: (editor, b, rowDeletedOffset) ->
+    sb = b.start #startBeacon[i]
+    eb = b.end #endBeacon[i]
+
+    # create a marker for this range so that we can keep track
+    range = [sb, eb]
+    start = new Point(range[0].row - rowDeletedOffset, range[0].col)
+    end = new Point(range[1].row - rowDeletedOffset - 1, range[1].col)
+    range = [start, end]
+    marker = editor.markBufferRange(range, invalidate: 'never')
+
+    '''below, useful for debug!!!'''
+    #dec = editor.decorateMarker(marker, type: 'highlight', class: 'highlight-pink')
+
+    # now, trim annotations
+    editorBuffer = editor.getBuffer()
+    #rowStart = sb.range.start.row
+    rowStart = sb.row
+    title = editorBuffer.lineForRow(rowStart - rowDeletedOffset)
+    #rowEnd = eb.range.end.row
+    rowEnd = eb.row
+    editorBuffer.deleteRow(rowStart - rowDeletedOffset)
+    rowDeletedOffset += 1
+    editorBuffer.deleteRow(rowEnd - rowDeletedOffset)
+    rowDeletedOffset += 1
+
+    #get title from removed annotation
+    title = title.substring(7)
+    console.log "found title! "+title
+
+    #finally, make the new variant!
+    variant = new VariantView(editor, marker, title, @)
+    marker.setProperties(myVariant: variant)
+
+    headerElement = variant.getHeader()
+    hm = editor.markBufferRange(range, invalidate: 'never', reversed: true)
+    hm.setProperties(myVariant: variant)
+    #console.log hm.getBufferRange()
+    editor.decorateMarker(hm, {type: 'block', position: 'before', item: headerElement})
+    variant.setHeaderMarker(hm)
+
+    footerElement = variant.getFooter()
+    editor.decorateMarker(marker, {type: 'block', position: 'after', item: footerElement})
+
+    #finally, return variant
+    {variant: variant, offset: rowDeletedOffset}

@@ -23,8 +23,9 @@ class VariantsManager
       #TODO when could perhaps the number of saved variants
       # not match up with code? If someone manually messes with
       # the variants? Needs more thought.
-      for i in [0...varStates.length]
-        @variants[i].deserialize(varStates[i].variants)
+      if varStates?
+        for i in [0...varStates.length]
+          @variants[i].deserialize(varStates[i].variants)
 
     buildVersionDivs: ->
       @variantWidth = $(@root.getElement()).width()
@@ -64,9 +65,9 @@ class VariantsManager
     getFocusedVariant: ->
       @focusedVariant
 
-    setFocusedVariant: (v) ->
+    setFocusedVariant: (v, cursorPosition) ->
       @focusedVariant = v
-      v.focus()
+      v.focus(cursorPosition)
 
     unFocusVariant: (v) ->
       @focusedVariant.unFocus()

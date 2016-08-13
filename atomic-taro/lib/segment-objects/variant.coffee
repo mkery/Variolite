@@ -91,6 +91,9 @@ class Variant
   getCurrentVersion: ->
     @currentVersion
 
+  hasVersions: ->
+    @rootVersion.children.length > 0
+
 
   highlighted: ->
     @highlighted

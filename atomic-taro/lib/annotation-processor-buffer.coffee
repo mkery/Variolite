@@ -39,6 +39,8 @@ class AnnotationProcessorBuffer extends TextBuffer
     console.log "attempting save!!!"
     @variantView.sortVariants() #important!
     variants = @variantView.getVariants()
+    console.log "sorted???"
+    console.log variants
     if @subBuffer?
       @subBuffer.setText(@getText())
     else

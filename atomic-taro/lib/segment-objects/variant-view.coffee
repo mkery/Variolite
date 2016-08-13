@@ -33,6 +33,8 @@ class VariantView
     # the variant
     @model = new Variant(sourceEditor, marker, variantTitle)
 
+    @nestedVariants = []
+
     # wrapper div to browse other versions
     #@versionExplorer = new VersionExplorerView(@)
     @explorerDiv = null
@@ -84,9 +86,34 @@ class VariantView
     $(@versionBookmarkBar).empty()
     @addNameBookmarkBar(@versionBookmarkBar)
 
-  focus: ->
+  focus: (cursorPosition) ->
     @focused = true
-    @hover()
+    for n in @nestedVariants
+      nmark = n.getMarker()
+      if nmark.getBufferRange().containsPoint(cursorPosition)
+        n.focus(cursorPosition)
+        @focused = false
+        break
+
+    if @focused then @hover()
+
+  isFocused: ->
+    @focused
+
+  updateFocusPosition: (cursorPosition) ->
+    nestedFocus = false
+    for n in @nestedVariants
+      nmark = n.getMarker()
+      if nmark.getBufferRange().containsPoint(cursorPosition)
+        @unFocus()
+        n.focus(cursorPosition)
+        @focused = false
+        nestedFocus = true
+
+    if !nestedFocus and !@focused
+      @unFocus()
+      @focused = true
+      @hover()
 
   hover: ->
     $(@headerBar).addClass('active')
@@ -106,6 +133,8 @@ class VariantView
 
   unFocus: ->
     @focused = false
+    for n in @nestedVariants
+      n.unFocus()
     @unHover()
     @model.clearHighlights()
     $('.icon-primitive-square').removeClass('highlighted')
@@ -113,6 +142,9 @@ class VariantView
 
   updateVariantWidth: (width) ->
     $(@headerBar).width(width)
+
+  addedNestedVariant: (v) ->
+    @nestedVariants.push v
 
   newVersion: ->
     @model.newVersion()
@@ -206,23 +238,26 @@ class VariantView
   addNameBookmarkBar: (versionBookmarkBar) ->
     current = @model.getCurrentVersion()
     root = @model.getRootVersion()
-    @addVersionBookmark(root, current, versionBookmarkBar)
+    singleton = !@model.hasVersions()
+    @addVersionBookmark(root, current, versionBookmarkBar, singleton)
 
 
-  addVersionBookmark: (v, current, versionBookmarkBar) ->
+  addVersionBookmark: (v, current, versionBookmarkBar, singleton) ->
     versionTitle = document.createElement("span")
     versionTitle.classList.add('atomic-taro_editor-header_version-title')
     squareIcon = document.createElement("span")
-    $(squareIcon).data("version", v)
-    $(squareIcon).data("variant", @)
-    squareIcon.classList.add('icon-primitive-square')
+    console.log "singleton? "+singleton
+    if !singleton
+      $(squareIcon).data("version", v)
+      $(squareIcon).data("variant", @)
+      squareIcon.classList.add('icon-primitive-square')
+      versionTitle.appendChild(squareIcon)
     title = document.createElement("span")
     $(title).text(v.title)
     title.classList.add('version-title')
     title.classList.add('native-key-bindings')
     $(title).data("variant", @)
     $(title).data("version", v)
-    versionTitle.appendChild(squareIcon)
     versionTitle.appendChild(title)
     versionBookmarkBar.appendChild(versionTitle)
 
@@ -240,7 +275,7 @@ class VariantView
       versionTitle.classList.add('highlighted')
 
     for child in v.children
-      @addVersionBookmark(child, current, versionBookmarkBar)
+      @addVersionBookmark(child, current, versionBookmarkBar, false)
 
 
 
