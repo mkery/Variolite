@@ -50,7 +50,7 @@ class AtomicTaroView
         console.log state
 
         stateVariants = state.atomicTaroViewState.variants
-        #console.log "state variants????"
+        console.log "state variants????"
         #console.log stateVariants
         @variantManager.deserialize(stateVariants)
         @postInit_buildView()
@@ -163,6 +163,9 @@ class AtomicTaroView
     '''@sourceEditor.setCursorScreenPosition([range.end.row + 2 * count + 1, range.end.col])
     @sourceEditor.moveToEndOfLine()
     @sourceEditor.insertNewlineBelow()
+    #@sourceEditor.setCursorScreenPosition([range.end.row + 2 * count + 1, range.end.col])
+    #@sourceEditor.moveToEndOfLine()
+    #@sourceEditor.insertNewlineBelow()
     startOrig = new Point(range.start.row + 2 * count, range.start.col)
     endOrig = new Point(range.end.row + 2 * count + 2, range.end.col)'''
 
