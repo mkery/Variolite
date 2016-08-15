@@ -11,22 +11,22 @@ def distance(x0, y0, x1, y1):
 #Ollie is a dog.
 
 def computeAngle (p1, p2):
-#ʕ•ᴥ•ʔ#Taro
 	dot = 0
 	if computeNorm(p2[0], p2[1]) == 0 or computeNorm(p1[0], p1[1])==0: #may be incorrect
-#ʕ•ᴥ•ʔ#Goldfish
+#ʕ•ᴥ•ʔ#Taro
 		dot = 0
 	else:
 		dot = (p2[0]*p1[0]+p2[1]*p1[1])/float(computeNorm(p1[0], p1[1])*computeNorm(p2[0], p2[1]))
-##ʕ•ᴥ•ʔ
 	if dot > 1:
-##ʕ•ᴥ•ʔ
+#ʕ•ᴥ•ʔ#Goldfish
 		dot = 1
 	elif dot < -1:
 		dot = -1
-	return math.acos(dot)*180/math.pi
 ##ʕ•ᴥ•ʔ
+##ʕ•ᴥ•ʔ
+	return math.acos(dot)*180/math.pi
 
+##ʕ•ᴥ•ʔ
 
 #ʕ•ᴥ•ʔ#cat
 def compute_AllAngles (trip):
@@ -36,8 +36,8 @@ def compute_AllAngles (trip):
 		ang = computeAngle(dV[i-1], dV[i])
 		np.append(angles, [ang, dV[i][2]]) #append angle with timepoint
 	return angles
-##ʕ•ᴥ•ʔ
 
+##ʕ•ᴥ•ʔ
 #ʕ•ᴥ•ʔ#Speed-1-1
 """def findSpeed_Dist(trip):
 	v = []
@@ -48,8 +48,8 @@ def compute_AllAngles (trip):
 		v.append(3.6*d)
 	return v,dist"""
 
-##ʕ•ᴥ•ʔ
 
+##ʕ•ᴥ•ʔ
 
 def findStops(speeds):
 	stops = [] #stops are a start and end time pair
@@ -77,9 +77,8 @@ def printHist_Feature(hist):
 	h += str(hist[len(hist)-1])
 	return h
 
-class Trip(object):
-
 #ʕ•ᴥ•ʔ#initTrip-1-1
+class Trip(object):
 	def __init__(self, filename):
 
 		#read in trip from file
@@ -102,8 +101,8 @@ class Trip(object):
 
 	 	self.stops = findStops(self.v)#len(findStops(self.v))
 
-##ʕ•ᴥ•ʔ
 
+##ʕ•ᴥ•ʔ
 
 
 	#changed the implementation of this method, which brought the metrics up a bit

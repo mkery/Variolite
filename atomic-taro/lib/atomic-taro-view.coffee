@@ -118,19 +118,18 @@ class AtomicTaroView
 
   initCursorListeners: ->
     @exploratoryEditor.onDidChangeCursorPosition (ev) =>
+      cursorPosition = ev.newBufferPosition
       active = @variantManager.getFocusedVariant()
       if active?
         activeMarker = active.getMarker()
-        if activeMarker.getBufferRange().containsPoint(ev.newBufferPosition)
-          active.updateFocusPosition(ev.newBufferPosition)
-          return
-        else
+        if !activeMarker.getBufferRange().containsPoint(cursorPosition)
           @variantManager.unFocusVariant(active)
 
-      m = @exploratoryEditor.findMarkers(containsBufferPosition: ev.newBufferPosition)
-      if m[0]?
-        if m[0].getProperties().myVariant?
-          @variantManager.setFocusedVariant(m[0].getProperties().myVariant, ev.newBufferPosition)
+      m = @exploratoryEditor.findMarkers(containsBufferPosition: cursorPosition)
+      console.log "MARKERS FOUND"
+      console.log m
+      if m.length > 0
+        @variantManager.setFocusedVariant(m)
 
 
 
@@ -233,7 +232,9 @@ class AtomicTaroView
 
   initVariants: (editor) ->
     beacons = @findMarkers(editor)
-    list_offset = @addAllVariants(editor, beacons, 0)
+    '''console.log "beacons!! "
+    console.log beacons'''
+    list_offset = @addAllVariants(editor, beacons, 0, [])
     list_offset.list
 
 
@@ -257,12 +258,16 @@ class AtomicTaroView
           endStack.push(prevStart)
 
       else if line.includes("##ʕ•ᴥ•ʔ")
+        '''console.log "END STACK!"
+        for e in endStack
+          console.log e.start
+          console.log "end is "+index'''
         endStack.pop().end = new Point(index , 0)
     #return beacons
     beacons
 
 
-  addAllVariants: (editor, beacons, rowDeletedOffset) ->
+  addAllVariants: (editor, beacons, rowDeletedOffset, variantList) ->
     variantList = []
     for b in beacons
       v_offset = @addVariant(editor, b, rowDeletedOffset)
@@ -274,14 +279,12 @@ class AtomicTaroView
       if nested.length > 0
         #cancel out end marker offset, since we are inside the range of that marker
         nestedOffset = rowDeletedOffset - 1
-        list_offset = @addAllVariants(editor, nested, nestedOffset)
+        list_offset = @addAllVariants(editor, nested, nestedOffset, variantList)
         grandchildren = list_offset.list
         for g in grandchildren
           variantList.push g
           variant.addedNestedVariant(g)
         rowDeletedOffset = list_offset.offset + 1
-
-
 
     #return
     {list: variantList, offset: rowDeletedOffset}
@@ -294,7 +297,7 @@ class AtomicTaroView
     # create a marker for this range so that we can keep track
     range = [sb, eb]
     start = new Point(range[0].row - rowDeletedOffset, range[0].col)
-    end = new Point(range[1].row - rowDeletedOffset - 1, range[1].col)
+    end = new Point(range[1].row - rowDeletedOffset, range[1].col)
     range = [start, end]
     marker = editor.markBufferRange(range, invalidate: 'never')
 
@@ -315,16 +318,18 @@ class AtomicTaroView
 
     #get title from removed annotation
     title = title.substring(7)
-    console.log "found title! "+title
+    console.log "found title "+title
 
     #finally, make the new variant!
     variant = new VariantView(editor, marker, title, @)
     marker.setProperties(myVariant: variant)
+    #editor.decorateMarker(marker, type: 'highlight', class: 'highlight-green')
 
     headerElement = variant.getHeader()
-    hm = editor.markBufferRange(range, invalidate: 'never', reversed: true)
+    hRange = [start, new Point(end.row - 1, end.col)]
+    hm = editor.markBufferRange(hRange, invalidate: 'never', reversed: true)
+    #editor.decorateMarker(hm, type: 'highlight', class: 'highlight-pink')
     hm.setProperties(myVariant: variant)
-    #console.log hm.getBufferRange()
     editor.decorateMarker(hm, {type: 'block', position: 'before', item: headerElement})
     variant.setHeaderMarker(hm)
 

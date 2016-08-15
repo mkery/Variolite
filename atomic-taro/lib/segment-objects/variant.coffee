@@ -16,7 +16,7 @@ class Variant
 
     text = @sourceEditor.getTextInBufferRange(@marker.getBufferRange())
     date = @dateNow()
-    @currentVersion = {title: title, subtitle: 0, text: text, date: date, children: []}
+    @currentVersion = {title: title, subtitle: 0, text: text, date: date, children: [], nested: []}
     @rootVersion = @currentVersion
     #@versions = []
     #@versions.push @currentVersion
@@ -75,14 +75,6 @@ class Variant
       @walkVersions(child, fun)
 
 
-  setHeaderMarker: (hm) ->
-    '''@headerMarker = hm
-    @marker.onDidChange (ev) =>
-      if ev.newTailBufferPosition != ev.oldTailBufferPosition
-        console.log "backspace!!"
-        @headerMarker.setHeadBufferPosition(ev.newTailBufferPosition)'''
-
-
   getRootVersion: ->
     #@versions
     @rootVersion
@@ -90,6 +82,7 @@ class Variant
 
   getCurrentVersion: ->
     @currentVersion
+
 
   hasVersions: ->
     @rootVersion.children.length > 0
@@ -99,13 +92,12 @@ class Variant
     @highlighted
 
 
-
   newVersion: ->
     text = @sourceEditor.getTextInBufferRange(@marker.getBufferRange())
     @currentVersion.text = text
     subtitle = if @currentVersion.subtitle? then @currentVersion.subtitle else 0
     index = @currentVersion.title + "-" + (subtitle + 1)
-    newVersion = {title: index, text: text, date: @dateNow(), children: []}
+    newVersion = {title: index, text: text, date: @dateNow(), children: [], nested: []}
     #@versions.push newVersion
     @currentVersion.children.push newVersion
     @currentVersion = newVersion
@@ -194,6 +186,16 @@ class Variant
 
 
 
+  getNested: ->
+    @currentVersion.nested
+
+
+  setHeaderMarker: (hm) ->
+    '''@headerMarker = hm
+    @marker.onDidChange (ev) =>
+      if ev.newTailBufferPosition != ev.oldTailBufferPosition
+        console.log "backspace!!"
+        @headerMarker.setHeadBufferPosition(ev.newTailBufferPosition)'''
 
 
 

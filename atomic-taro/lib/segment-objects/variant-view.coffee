@@ -8,7 +8,7 @@ variant object.
 module.exports =
 class VariantView
 
-  constructor: (sourceEditor, marker, variantTitle, @root) ->
+  constructor: (@sourceEditor, marker, variantTitle, @root) ->
     # header bar that holds interactive components above text editor
     @headerBar = document.createElement('div')
     @headerBar.classList.add('atomic-taro_editor-header-box')
@@ -29,6 +29,8 @@ class VariantView
     @variantsButton = null
 
     @focused = false
+    @focused_nested = null
+    @dec = null
 
     # the variant
     @model = new Variant(sourceEditor, marker, variantTitle)
@@ -62,6 +64,9 @@ class VariantView
   getMarker: ->
     @model.getMarker()
 
+  getTitle: ->
+    @model.getTitle()
+
   setHeaderMarker: (hm) ->
     @model.setHeaderMarker(hm)
 
@@ -86,34 +91,26 @@ class VariantView
     $(@versionBookmarkBar).empty()
     @addNameBookmarkBar(@versionBookmarkBar)
 
+
   focus: (cursorPosition) ->
     @focused = true
-    for n in @nestedVariants
-      nmark = n.getMarker()
-      if nmark.getBufferRange().containsPoint(cursorPosition)
-        n.focus(cursorPosition)
-        @focused = false
-        break
+    @hover()
+    #@dec = @sourceEditor.decorateMarker(@model.getMarker(), type: 'highlight', class: 'highlight-pink')
 
-    if @focused then @hover()
+
+  unFocus: ->
+    @focused = false
+    for n in @nestedVariants
+      n.unFocus()
+    @unHover()
+    @model.clearHighlights()
+    $('.icon-primitive-square').removeClass('highlighted')
+    $('.atomic-taro_editor-header_version-title').removeClass('highlighted')
+
 
   isFocused: ->
     @focused
 
-  updateFocusPosition: (cursorPosition) ->
-    nestedFocus = false
-    for n in @nestedVariants
-      nmark = n.getMarker()
-      if nmark.getBufferRange().containsPoint(cursorPosition)
-        @unFocus()
-        n.focus(cursorPosition)
-        @focused = false
-        nestedFocus = true
-
-    if !nestedFocus and !@focused
-      @unFocus()
-      @focused = true
-      @hover()
 
   hover: ->
     $(@headerBar).addClass('active')
@@ -121,6 +118,7 @@ class VariantView
     $(@currentVersionName).addClass('focused')
     $(@footerBar).addClass('active')
     $(@variantsButton).addClass('active')
+
 
   unHover: ->
     if @focused
@@ -131,14 +129,6 @@ class VariantView
     $(@footerBar).removeClass('active')
     $(@variantsButton).removeClass('active')
 
-  unFocus: ->
-    @focused = false
-    for n in @nestedVariants
-      n.unFocus()
-    @unHover()
-    @model.clearHighlights()
-    $('.icon-primitive-square').removeClass('highlighted')
-    $('.atomic-taro_editor-header_version-title').removeClass('highlighted')
 
   updateVariantWidth: (width) ->
     $(@headerBar).width(width)
@@ -246,7 +236,7 @@ class VariantView
     versionTitle = document.createElement("span")
     versionTitle.classList.add('atomic-taro_editor-header_version-title')
     squareIcon = document.createElement("span")
-    console.log "singleton? "+singleton
+    #console.log "singleton? "+singleton
     if !singleton
       $(squareIcon).data("version", v)
       $(squareIcon).data("variant", @)

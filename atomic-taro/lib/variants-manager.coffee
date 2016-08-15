@@ -65,9 +65,14 @@ class VariantsManager
     getFocusedVariant: ->
       @focusedVariant
 
-    setFocusedVariant: (v, cursorPosition) ->
-      @focusedVariant = v
-      v.focus(cursorPosition)
+    setFocusedVariant: (selected, cursorPosition) ->
+      v = null
+      for marker in selected
+        v = marker.getProperties().myVariant
+        if v?
+          v.unFocus()
+          @focusedVariant = v
+      v?.focus(cursorPosition)
 
     unFocusVariant: (v) ->
       @focusedVariant.unFocus()
