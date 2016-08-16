@@ -181,8 +181,8 @@ class Variant
       @sourceBuffer.insert(range.start, startSymbol, undo: 'skip')
 
       endSymbol = "#^^%^^"
-      if (range.end.row != trueEnd.row)
-        endSymbol = endSymbol+"\n"
+      #if (range.end.row != trueEnd.row)
+      #  endSymbol = endSymbol+"\n"
       if @sourceBuffer.getTextInRange([new Point(range.end.row, 0), range.end]).trim() != ""
         endSymbol = "\n"+endSymbol
       @sourceBuffer.insert(new Point(range.end.row + 1, range.end.column), endSymbol, undo: 'skip')
@@ -207,7 +207,7 @@ class Variant
       # look for marker start token
       if line.startsWith("#%%^%%")
         # get rid of this annotation, since it was temporary
-        @sourceBuffer.deleteRow(offsetRow + lineno)
+        @sourceBuffer.deleteRow(offsetRow + lineno, undo: 'skip')
         # now store this start beacon so that we can add the marker later
         n = v.nested[n_index]
         console.log "found start point "+n.getModel().getCurrentVersion().title
@@ -230,16 +230,20 @@ class Variant
           return [offsetRow, lineno - 1]
 
         # get rid of this annotation, since it was temporary
-        #@sourceBuffer.deleteRow(offsetRow + lineno)
+
         pair = queue.pop()
         n = pair.n
         start = pair.row
         end = lineno + offsetRow
 
+        # set range to correct end column in the final row!
+        range = [new Point(start, 0), new Point(end - 1, 1000000)]
+        range = @sourceBuffer.clipRange(range)
+
         # re-setup marker ranges
         marker = n.getMarker()
         headerMarker = n.getHeaderMarker()
-        marker.setBufferRange([new Point(start, 0), new Point(end, 0)])
+        marker.setBufferRange(range)
         headerMarker.setBufferRange([new Point(start, 0), new Point(end - 1, 0)], reversed: true)
 
         # re-set up decorations
@@ -249,7 +253,8 @@ class Variant
         n.setFooterMarkerDecoration(fdec)
 
         # now, decrement the offsetRow since we've deleted a row from the buffer
-        #offsetRow -= 1
+        @sourceBuffer.deleteRow(offsetRow + lineno,  undo: 'skip')
+        offsetRow -= 1
 
       # don't forget to increment the line number
       lineno += 1
