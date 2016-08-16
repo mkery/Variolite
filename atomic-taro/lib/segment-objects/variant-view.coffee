@@ -35,8 +35,6 @@ class VariantView
     # the variant
     @model = new Variant(sourceEditor, marker, variantTitle)
 
-    @nestedVariants = []
-
     # wrapper div to browse other versions
     #@versionExplorer = new VersionExplorerView(@)
     @explorerDiv = null
@@ -67,8 +65,6 @@ class VariantView
   getTitle: ->
     @model.getTitle()
 
-  setHeaderMarker: (hm) ->
-    @model.setHeaderMarker(hm)
 
   getFooter: ->
     @footerBar
@@ -92,6 +88,30 @@ class VariantView
     @addNameBookmarkBar(@versionBookmarkBar)
 
 
+  setHeaderMarker: (hm) ->
+    @model.setHeaderMarker(hm)
+
+
+  getHeaderMarker: ->
+    @model.getHeaderMarker()
+
+
+  setHeaderMarkerDecoration: (decoration) ->
+    @headerMarkDecoration = decoration
+
+
+  destroyHeaderMarkerDecoration: ->
+    @headerMarkDecoration.destroy()
+
+
+  setFooterMarkerDecoration: (decoration) ->
+    @footerMarkDecoration = decoration
+
+
+  destroyFooterMarkerDecoration: ->
+    @footerMarkDecoration.destroy()
+
+
   focus: (cursorPosition) ->
     @focused = true
     @hover()
@@ -100,7 +120,7 @@ class VariantView
 
   unFocus: ->
     @focused = false
-    for n in @nestedVariants
+    for n in @model.getNested()
       n.unFocus()
     @unHover()
     @model.clearHighlights()
@@ -134,7 +154,7 @@ class VariantView
     $(@headerBar).width(width)
 
   addedNestedVariant: (v) ->
-    @nestedVariants.push v
+    @model.addNested(v)
 
   newVersion: ->
     @model.newVersion()
@@ -197,6 +217,9 @@ class VariantView
 
     # wrapper div to browse other versions
     #@versionExplorer.addVariantsDiv()
+
+    for n in @model.getNested()
+      n.buildVariantDiv()
 
 
   addHeaderDiv: (headerContainer) ->

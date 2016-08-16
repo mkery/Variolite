@@ -9,6 +9,7 @@ class Variant
 
 
   constructor: (@sourceEditor, @marker, title) ->
+    @sourceBuffer = @sourceEditor.getBuffer()
     #the header div has it's own marker that must follow around the top of the main marker
     @headerMarker = null
 
@@ -45,9 +46,23 @@ class Variant
     text = @sourceEditor.getTextInBufferRange(@marker.getBufferRange())
     @currentVersion.text = text
 
-    currentVersion: @currentVersion
-    rootVersion: @rootVersion
-    #versions: @versions
+    #currentVersion: @currentVersion
+    #rootVersion: @rootVersion
+    rootVersion: if @rootVersion? then @serializeWalk(@rootVersion) else null
+    currentVersion:  {title: @currentVersion.title}
+
+
+  serializeWalk: (version) ->
+    children = []
+    if version.children.length > 0
+      children = [@serializeWalk(c) for c in version.children]
+    nested = [n.serialize() for n in version.nested]
+    copy = {title: version.title, subtitle: version.subtitle, text: version.text, date: version.date, children: children, nested: nested}
+    copy
+
+  serializeNested: (version) ->
+
+
 
   deserialize: (state) ->
     @currentVersion = state.currentVersion
@@ -55,24 +70,25 @@ class Variant
     @walkVersions @rootVersion, (v) =>
       if v.title == @currentVersion.title
         @currentVersion = v
-    #@currentVersion.date = state_currentVersion.date
-    #TODO resolve if doesn't match text
-    #@versions = []
-    #state_versions = state.versions
-    #for v in state_versions
-    #  stored_ver = {title: v.title, text: v.text, date: v.date, children: v.children}
-    #  @versions.push stored_ver
-    #  if v.title == @currentVersion.title
-    #    @currentVersion = stored_ver
+
 
   getMarker: ->
     @marker
 
 
+  setHeaderMarker: (hm) ->
+    @headerMarker = hm
+
+
+  getHeaderMarker: ->
+    @headerMarker
+
+
   walkVersions: (version, fun) ->
     fun(version)
-    for child in version.children
-      @walkVersions(child, fun)
+    if version.children?
+      for child in version.children
+        @walkVersions(child, fun)
 
 
   getRootVersion: ->
@@ -91,17 +107,6 @@ class Variant
   highlighted: ->
     @highlighted
 
-
-  newVersion: ->
-    text = @sourceEditor.getTextInBufferRange(@marker.getBufferRange())
-    @currentVersion.text = text
-    subtitle = if @currentVersion.subtitle? then @currentVersion.subtitle else 0
-    index = @currentVersion.title + "-" + (subtitle + 1)
-    newVersion = {title: index, text: text, date: @dateNow(), children: [], nested: []}
-    #@versions.push newVersion
-    @currentVersion.children.push newVersion
-    @currentVersion = newVersion
-    @clearHighlights()
 
   toggleActive: ->
     textSelection =  @marker.getBufferRange()
@@ -133,12 +138,114 @@ class Variant
       h.destroy()
 
 
+  newVersion: ->
+    # new text has clean text before we add marker placeholders
+    newText = @sourceEditor.getTextInBufferRange(@marker.getBufferRange())
+    @setCurrentVersionText_Close()
+    # currentVersion has text after we add marker placeholders
+    @currentVersion.text = @sourceEditor.getTextInBufferRange(@marker.getBufferRange())
+
+    # now, set the text for the new version we're switching to
+    @sourceBuffer.setTextInRange(@marker.getBufferRange(), newText, undo: 'skip')
+
+    subtitle = if @currentVersion.subtitle? then @currentVersion.subtitle else 0
+    index = @currentVersion.title + "-" + (subtitle + 1)
+    newVersion = {title: index, text: newText, date: @dateNow(), children: [], nested: []}
+    #@versions.push newVersion
+    @currentVersion.children.push newVersion
+    @currentVersion = newVersion
+    @clearHighlights()
+
+
   switchToVersion: (v) ->
     text = v.text
-    @currentVersion.text = @sourceEditor.getTextInBufferRange(@marker.getBufferRange())
-    @sourceEditor.setTextInBufferRange(@marker.getBufferRange(), v.text, undo: false)
+    @setCurrentVersionText_Close()
+    @currentVersion.text = @sourceBuffer.getTextInRange(@marker.getBufferRange())
+    @sourceBuffer.setTextInRange(@marker.getBufferRange(), v.text, undo: 'skip')
+    @setVersionText_Open(v, @marker.getBufferRange().start.row)
     @currentVersion = v
     @clearHighlights()
+
+
+  setCurrentVersionText_Close: ->
+    for n in @currentVersion.nested
+      mark = n.getMarker()
+      range = mark.getBufferRange()
+      @sourceBuffer.insert(range.start, "#%%^%%\n", undo: 'skip')
+      @sourceBuffer.insert(new Point(range.end.row + 1, range.end.column), "#^^%^^\n", undo: 'skip')
+      n.destroyHeaderMarkerDecoration()
+      n.destroyFooterMarkerDecoration()
+      n.getModel().setCurrentVersionText_Close()
+
+
+  setVersionText_Open: (v, offsetRow, lines, lineno) ->
+    n_index = 0
+    queue = []
+
+    # not super efficient, but first split text into lines
+    if lines? == false
+      text = v.text
+      lines = text.split("\n")
+      lineno = 0
+
+    while lineno < lines.length
+      line = lines[lineno]
+
+      # look for marker start token
+      if line.startsWith("#%%^%%")
+        # get rid of this annotation, since it was temporary
+        @sourceBuffer.deleteRow(offsetRow + lineno)
+        # now store this start beacon so that we can add the marker later
+        n = v.nested[n_index]
+        console.log "found start point "+n.getModel().getCurrentVersion().title
+        queue.push {n: n, row: lineno + offsetRow}
+        n_index += 1
+        # now, decrement the offsetRow since we've deleted a row from the buffer
+        offsetRow -= 1
+        # now, recurse on any nested markers within with nested marker!
+        nested_model = n.getModel()
+        nested_current = nested_model.getCurrentVersion()
+        if nested_current.nested.length > 0
+          [offsetRow, lineno] = nested_model.setVersionText_Open(nested_current, offsetRow, lines, lineno + 1)
+
+      # okay, next search for an end marker
+      else if line.startsWith("#^^%^^")
+
+        # If this end symbol doesn't have a start pair, it belongs to a parent
+        # variant. We've gone too far, so back up a line and return up the recursion.
+        if queue.length == 0
+          return [offsetRow, lineno - 1]
+
+        # get rid of this annotation, since it was temporary
+        @sourceBuffer.deleteRow(offsetRow + lineno)
+        pair = queue.pop()
+        n = pair.n
+        start = pair.row
+        end = lineno + offsetRow
+
+        # re-setup marker ranges
+        marker = n.getMarker()
+        headerMarker = n.getHeaderMarker()
+        marker.setBufferRange([new Point(start, 0), new Point(end, 0)])
+        headerMarker.setBufferRange([new Point(start, 0), new Point(end - 1, 0)], reversed: true)
+
+        # re-set up decorations
+        hdec = @sourceEditor.decorateMarker(headerMarker, {type: 'block', position: 'before', item: n.getHeader()})
+        n.setHeaderMarkerDecoration(hdec)
+        fdec = @sourceEditor.decorateMarker(marker, {type: 'block', position: 'after', item: n.getFooter()})
+        n.setFooterMarkerDecoration(fdec)
+
+        # now, decrement the offsetRow since we've deleted a row from the buffer
+        offsetRow -= 1
+
+      # don't forget to increment the line number
+      lineno += 1
+
+    #return the offset row for recursion purposes
+    [offsetRow, lineno]
+
+
+
 
 
   compareToVersion: (v) ->
@@ -190,14 +297,8 @@ class Variant
     @currentVersion.nested
 
 
-  setHeaderMarker: (hm) ->
-    '''@headerMarker = hm
-    @marker.onDidChange (ev) =>
-      if ev.newTailBufferPosition != ev.oldTailBufferPosition
-        console.log "backspace!!"
-        @headerMarker.setHeadBufferPosition(ev.newTailBufferPosition)'''
-
-
+  addNested: (n) ->
+    @currentVersion.nested.push n
 
 
   getTitle: ->

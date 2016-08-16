@@ -48,17 +48,29 @@ class AnnotationProcessorBuffer extends TextBuffer
 
     insertOffset = 0
     for v in variants
-      marker = v.getModel().getMarker()
-      range = marker.getBufferRange()
-      title = v.getModel().getTitle()
-      #console.log "found title! "+title+", with range "+range.start
-      #console.log "offset "+insertOffset
-
-      start = [range.start.row + insertOffset, range.start.col]
-      @subBuffer.insert(start, "#ʕ•ᴥ•ʔ#"+title+"\n", {undo: false})
-      insertOffset += 2
-      footerEnd = new Point(range.end.row + insertOffset, range.end.col)
-      @subBuffer.insert(footerEnd, "##ʕ•ᴥ•ʔ"+"\n", {undo: false})
-      #insertOffset += 1
+      insertOffset = @annotateVersion(v, insertOffset)
 
     @subBuffer.getText()
+
+  '''
+  We need a recursive process to account for nested variants
+  '''
+  annotateVersion: (v, insertOffset) ->
+    marker = v.getModel().getMarker()
+    range = marker.getBufferRange()
+    title = v.getModel().getTitle()
+    #console.log "found title! "+title+", with range "+range.start
+    #console.log "offset "+insertOffset
+
+    start = [range.start.row + insertOffset, range.start.col]
+    @subBuffer.insert(start, "#ʕ•ᴥ•ʔ#"+title+"\n", {undo: false})
+    insertOffset += 1
+
+    for n in v.getModel().getNested()
+      insertOffset = @annotateVersion(n, insertOffset)
+
+    insertOffset += 1
+    footerEnd = new Point(range.end.row + insertOffset, range.end.col)
+    @subBuffer.insert(footerEnd, "##ʕ•ᴥ•ʔ"+"\n", {undo: false})
+
+    insertOffset

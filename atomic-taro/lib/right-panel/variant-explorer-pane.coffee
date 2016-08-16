@@ -65,6 +65,47 @@ class VariantExplorerPane
     listDiv.classList.add('list-tree', 'has-collapsable-children')
 
     v = vModel.getRootVersion()
+    for child in v.children
+      @makeDivForFlatVariant(variant, child, listDiv)
+
+    varDiv.appendChild(listDiv)
+    varDiv
+
+
+  makeDivForFlatVariant: (variant, version, listDiv) ->
+    ver = document.createElement('li')
+    ver.classList.add('list-item')
+    ver.classList.add('atomic-taro_explore_version')
+    $(ver).data('version', version)
+    $(ver).data('variant', variant)
+
+    label = document.createElement('span')
+    label.classList.add('atomic-taro_explore_version-label')
+    label.classList.add('icon-git-commit')
+    if version.title == variant.getModel().getCurrentVersion().title
+      label.classList.add('focused')
+    $(label).html(version.title)
+    ver.appendChild(label)
+
+    listDiv.appendChild(ver)
+    for child in version.children
+      @makeDivForFlatVariant(variant, child, listDiv)
+
+
+
+  makeDivForVariant_2: (variant) ->
+    vModel = variant.getModel()
+    varDiv = document.createElement('div')
+
+    lineNoDiv = document.createElement('div')
+    lineNoDiv.classList.add('atomic-taro_explore-lineno')
+    $(lineNoDiv).text(@getLineNumbers(vModel))
+    varDiv.appendChild(lineNoDiv)
+
+    listDiv = document.createElement('ul')
+    listDiv.classList.add('list-tree', 'has-collapsable-children')
+
+    v = vModel.getRootVersion()
     if v.children.length > 0
       listDiv.appendChild @makeVersionWithChildren(variant, v)
     else
