@@ -218,8 +218,9 @@ class VariantView
     # wrapper div to browse other versions
     #@versionExplorer.addVariantsDiv()
 
-    for n in @model.getNested()
-      n.buildVariantDiv()
+    if @model.getNested().length > 0
+      for n in @model.getNested()
+        n.buildVariantDiv()
 
 
   addHeaderDiv: (headerContainer) ->

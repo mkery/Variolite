@@ -7,7 +7,6 @@ Represents a single variant of exploratory code.
 module.exports =
 class Variant
 
-
   constructor: (@sourceEditor, @marker, title) ->
     @sourceBuffer = @sourceEditor.getBuffer()
     #the header div has it's own marker that must follow around the top of the main marker
@@ -46,8 +45,8 @@ class Variant
     text = @sourceEditor.getTextInBufferRange(@marker.getBufferRange())
     @currentVersion.text = text
 
-    #currentVersion: @currentVersion
-    #rootVersion: @rootVersion
+    # Now, since we can have nested variants that are not in
+    # JSON form, put everything in JSON form
     rootVersion: if @rootVersion? then @serializeWalk(@rootVersion) else null
     currentVersion:  {title: @currentVersion.title}
 
@@ -56,20 +55,24 @@ class Variant
     children = []
     if version.children.length > 0
       children = [@serializeWalk(c) for c in version.children]
-    nested = [n.serialize() for n in version.nested]
+    nested = []
+    if version.nested.length > 0
+      nested = [n.serialize() for n in version.nested]
     copy = {title: version.title, subtitle: version.subtitle, text: version.text, date: version.date, children: children, nested: nested}
     copy
 
-  serializeNested: (version) ->
-
-
 
   deserialize: (state) ->
-    @currentVersion = state.currentVersion
+    currentTitle = state.currentVersion.title
     @rootVersion = state.rootVersion
     @walkVersions @rootVersion, (v) =>
       if v.title == @currentVersion.title
+        for n, index in @currentVersion.nested
+          v.nested[index] = n
         @currentVersion = v
+        false
+      else
+        true
 
 
   getMarker: ->
@@ -85,8 +88,8 @@ class Variant
 
 
   walkVersions: (version, fun) ->
-    fun(version)
-    if version.children?
+    flag = fun(version)
+    if version.children? and flag
       for child in version.children
         @walkVersions(child, fun)
 
@@ -168,11 +171,21 @@ class Variant
 
 
   setCurrentVersionText_Close: ->
+    trueEnd = @marker.getBufferRange().end
     for n in @currentVersion.nested
       mark = n.getMarker()
       range = mark.getBufferRange()
-      @sourceBuffer.insert(range.start, "#%%^%%\n", undo: 'skip')
-      @sourceBuffer.insert(new Point(range.end.row + 1, range.end.column), "#^^%^^\n", undo: 'skip')
+      startSymbol = "#%%^%%\n"
+      if @sourceBuffer.getTextInRange([new Point(range.start.row, 0), range.start]).trim() != ""
+        startSymbol = "\n"+startSymbol
+      @sourceBuffer.insert(range.start, startSymbol, undo: 'skip')
+
+      endSymbol = "#^^%^^"
+      if (range.end.row != trueEnd.row)
+        endSymbol = endSymbol+"\n"
+      if @sourceBuffer.getTextInRange([new Point(range.end.row, 0), range.end]).trim() != ""
+        endSymbol = "\n"+endSymbol
+      @sourceBuffer.insert(new Point(range.end.row + 1, range.end.column), endSymbol, undo: 'skip')
       n.destroyHeaderMarkerDecoration()
       n.destroyFooterMarkerDecoration()
       n.getModel().setCurrentVersionText_Close()
@@ -217,7 +230,7 @@ class Variant
           return [offsetRow, lineno - 1]
 
         # get rid of this annotation, since it was temporary
-        @sourceBuffer.deleteRow(offsetRow + lineno)
+        #@sourceBuffer.deleteRow(offsetRow + lineno)
         pair = queue.pop()
         n = pair.n
         start = pair.row
@@ -236,7 +249,7 @@ class Variant
         n.setFooterMarkerDecoration(fdec)
 
         # now, decrement the offsetRow since we've deleted a row from the buffer
-        offsetRow -= 1
+        #offsetRow -= 1
 
       # don't forget to increment the line number
       lineno += 1

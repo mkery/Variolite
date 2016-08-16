@@ -126,8 +126,8 @@ class AtomicTaroView
           @variantManager.unFocusVariant(active)
 
       m = @exploratoryEditor.findMarkers(containsBufferPosition: cursorPosition)
-      console.log "MARKERS FOUND"
-      console.log m
+      #console.log "MARKERS FOUND"
+      #console.log m
       if m.length > 0
         @variantManager.setFocusedVariant(m)
 
@@ -309,7 +309,7 @@ class AtomicTaroView
     marker = editor.markBufferRange(range, invalidate: 'never')
 
     '''below, useful for debug!!!'''
-    dec = editor.decorateMarker(marker, type: 'highlight', class: 'highlight-pink')
+    #dec = editor.decorateMarker(marker, type: 'highlight', class: 'highlight-pink')
 
     # now, trim annotations
     #rowStart = sb.range.start.row
@@ -328,7 +328,7 @@ class AtomicTaroView
     #finally, make the new variant!
     variant = new VariantView(editor, marker, title, @)
     marker.setProperties(myVariant: variant)
-    editor.decorateMarker(marker, type: 'highlight', class: 'highlight-green')
+    #editor.decorateMarker(marker, type: 'highlight', class: 'highlight-green')
 
     headerElement = variant.getHeader()
     #console.log headerElement
