@@ -8,7 +8,20 @@ variant object.
 module.exports =
 class VariantView
 
+
   constructor: (@sourceEditor, marker, variantTitle, @root) ->
+    # the variant
+    @model = new Variant(@, sourceEditor, marker, variantTitle)
+    @initialize()
+
+
+  makeNewFromJson: (json) ->
+    variantView = new VariantView(@sourceEditor, null, "", @root)
+    variantView.getModel().deserialize(json)
+    variantView
+
+
+  initialize:  ->
     # header bar that holds interactive components above text editor
     @headerBar = document.createElement('div')
     @headerBar.classList.add('atomic-taro_editor-header-box')
@@ -32,9 +45,6 @@ class VariantView
     @focused_nested = null
     @dec = null
 
-    # the variant
-    @model = new Variant(sourceEditor, marker, variantTitle)
-
     # wrapper div to browse other versions
     #@versionExplorer = new VersionExplorerView(@)
     @explorerDiv = null
@@ -53,14 +63,18 @@ class VariantView
     @addNameBookmarkBar(@versionBookmarkBar)
     $(@dateHeader).text(@model.getDate())'''
 
+
   variantSerialize: ->
     @model.variantSerialize()
+
 
   getModel: ->
     @model
 
+
   getMarker: ->
     @model.getMarker()
+
 
   getTitle: ->
     @model.getTitle()
@@ -220,7 +234,8 @@ class VariantView
 
     if @model.getNested().length > 0
       for n in @model.getNested()
-        n.buildVariantDiv()
+        if n.rootVersion? == false
+          n.buildVariantDiv()
 
 
   addHeaderDiv: (headerContainer) ->

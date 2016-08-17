@@ -1,5 +1,5 @@
 {Point, Range, TextBuffer} = require 'atom'
-JsDiff = require('diff')
+JsDiff = require 'diff'
 
 '''
 Represents a single variant of exploratory code.
@@ -7,16 +7,20 @@ Represents a single variant of exploratory code.
 module.exports =
 class Variant
 
-  constructor: (@sourceEditor, @marker, title) ->
+  constructor: (@view, @sourceEditor, @marker, title) ->
     @sourceBuffer = @sourceEditor.getBuffer()
     #the header div has it's own marker that must follow around the top of the main marker
     @headerMarker = null
 
     @copied = false
 
-    text = @sourceEditor.getTextInBufferRange(@marker.getBufferRange())
-    date = @dateNow()
-    @currentVersion = {title: title, subtitle: 0, text: text, date: date, children: [], nested: []}
+    if @marker?
+      text = @sourceEditor.getTextInBufferRange(@marker.getBufferRange())
+      date = @dateNow()
+      @currentVersion = {title: title, subtitle: 0, text: text, date: date, children: [], nested: []}
+    else
+      @currentVersion = {title: "NoTitle", subtitle: 0, text: "", date: "", children: [], nested: []}
+
     @rootVersion = @currentVersion
     #@versions = []
     #@versions.push @currentVersion
@@ -24,6 +28,9 @@ class Variant
     @highlightMarkers = []
     @overlapText = ""
 
+
+  getView: ->
+    @view
 
 
   dateNow: ->
@@ -42,22 +49,27 @@ class Variant
 
 
   serialize: ->
-    text = @sourceEditor.getTextInBufferRange(@marker.getBufferRange())
-    @currentVersion.text = text
+    if @marker?
+      text = @sourceEditor.getTextInBufferRange(@marker.getBufferRange())
+      @currentVersion.text = text
 
-    # Now, since we can have nested variants that are not in
-    # JSON form, put everything in JSON form
-    rootVersion: if @rootVersion? then @serializeWalk(@rootVersion) else null
-    currentVersion:  {title: @currentVersion.title}
+      # Now, since we can have nested variants that are not in
+      # JSON form, put everything in JSON form
+      rootVersion: if @rootVersion? then @serializeWalk(@rootVersion) else null
+      currentVersion:  {title: @currentVersion.title}
 
 
   serializeWalk: (version) ->
     children = []
     if version.children.length > 0
-      children = [@serializeWalk(c) for c in version.children]
+      (children.push @serializeWalk(c)) for c in version.children
     nested = []
     if version.nested.length > 0
-      nested = [n.serialize() for n in version.nested]
+      for n in version.nested
+        if n.rootVersion?
+          nested.push n #already in JSON form
+        else
+          nested.push n.serialize()
     copy = {title: version.title, subtitle: version.subtitle, text: version.text, date: version.date, children: children, nested: nested}
     copy
 
@@ -66,7 +78,7 @@ class Variant
     currentTitle = state.currentVersion.title
     @rootVersion = state.rootVersion
     @walkVersions @rootVersion, (v) =>
-      if v.title == @currentVersion.title
+      if v.title == currentTitle
         for n, index in @currentVersion.nested
           v.nested[index] = n
         @currentVersion = v
@@ -77,6 +89,10 @@ class Variant
 
   getMarker: ->
     @marker
+
+
+  setMarker: (m) ->
+    @marker = m
 
 
   setHeaderMarker: (hm) ->
@@ -172,6 +188,7 @@ class Variant
 
   setCurrentVersionText_Close: ->
     trueEnd = @marker.getBufferRange().end
+
     for n in @currentVersion.nested
       mark = n.getMarker()
       range = mark.getBufferRange()
@@ -209,8 +226,9 @@ class Variant
         # get rid of this annotation, since it was temporary
         @sourceBuffer.deleteRow(offsetRow + lineno, undo: 'skip')
         # now store this start beacon so that we can add the marker later
+        v.nested[n_index] = @testConvertJSONVariant(v.nested[n_index])
         n = v.nested[n_index]
-        console.log "found start point "+n.getModel().getCurrentVersion().title
+
         queue.push {n: n, row: lineno + offsetRow}
         n_index += 1
         # now, decrement the offsetRow since we've deleted a row from the buffer
@@ -233,6 +251,7 @@ class Variant
 
         pair = queue.pop()
         n = pair.n
+        #console.log "found start point "+n.getModel().getCurrentVersion().title
         start = pair.row
         end = lineno + offsetRow
 
@@ -243,8 +262,14 @@ class Variant
         # re-setup marker ranges
         marker = n.getMarker()
         headerMarker = n.getHeaderMarker()
-        marker.setBufferRange(range)
-        headerMarker.setBufferRange([new Point(start, 0), new Point(end - 1, 0)], reversed: true)
+        if marker? and headerMarker?
+          marker.setBufferRange(range)
+          headerMarker.setBufferRange([new Point(start, 0), new Point(end - 1, 0)], reversed: true)
+        else
+          marker = @sourceEditor.markBufferRange(range, invalidate: 'never')
+          n.getModel().setMarker(marker)
+          headerMarker = @sourceEditor.markBufferRange([new Point(start, 0), new Point(end - 1, 0)], reversed: true)
+          n.getModel().setHeaderMarker(headerMarker)
 
         # re-set up decorations
         hdec = @sourceEditor.decorateMarker(headerMarker, {type: 'block', position: 'before', item: n.getHeader()})
@@ -253,16 +278,26 @@ class Variant
         n.setFooterMarkerDecoration(fdec)
 
         # now, decrement the offsetRow since we've deleted a row from the buffer
-        @sourceBuffer.deleteRow(offsetRow + lineno,  undo: 'skip')
+        # this delete is special to deal with our eternal offset issues.
+        @sourceBuffer.delete([new Point(offsetRow + lineno - 1, 1000000000), new Point(offsetRow + lineno, 100000)],  undo: 'skip')
         offsetRow -= 1
 
       # don't forget to increment the line number
       lineno += 1
 
+
     #return the offset row for recursion purposes
     [offsetRow, lineno]
 
 
+
+  testConvertJSONVariant: (v) ->
+    variantView = v
+    root = v.rootVersion
+    if root?
+      variantView = @view.makeNewFromJson(v)
+      variantView.buildVariantDiv()
+    variantView
 
 
 
