@@ -162,7 +162,7 @@ class AtomicTaroView
     for marker in selected
       p = marker.getProperties().myVariant
       if p?
-        nest_Parent = p
+        nest_Parent = [p.getModel().getCurrentVersion(),p]
 
     marker = @exploratoryEditor.markBufferRange(range, invalidate: 'never')
     #finally, make the new variant!
@@ -283,7 +283,7 @@ class AtomicTaroView
       variantList.push variant
       rowDeletedOffset = v_offset.offset
       for g in grandchildren
-        variant.addedNestedVariant(g)
+        variant.addedNestedVariant(g, variant.getModel().getCurrentVersion())
 
 
     #return

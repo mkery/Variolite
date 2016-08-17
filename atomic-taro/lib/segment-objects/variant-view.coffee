@@ -23,8 +23,11 @@ class VariantView
 
   initialize:  ->
     # header bar that holds interactive components above text editor
+    @headerWrapper = document.createElement('div')
+    @headerWrapper.classList.add('atomic-taro_editor-header-wrapper')
     @headerBar = document.createElement('div')
     @headerBar.classList.add('atomic-taro_editor-header-box')
+    @nestLabelContainer = null
 
     #footer bar that simply marks the end
     @footerBar = document.createElement('div')
@@ -89,7 +92,7 @@ class VariantView
     @outputDiv
 
   getHeader: ->
-    @headerBar
+    @headerWrapper
 
   #getWrappedHeader: ->
   #  @versionExplorer.getHeader()
@@ -162,10 +165,19 @@ class VariantView
 
 
   updateVariantWidth: (width) ->
-    $(@headerBar).width(width)
+    $(@headerWrapper).width(width)
+    if @nestLabelContainer?
+      $(@headerBar).width(width - $(@nestLabelContainer).width() - 20)
+    else
+      $(@headerBar).width(width)
+    for n in @model.getNested()
+      console.log "updating "
+      console.log n
+      n.updateVariantWidth(width)
 
-  addedNestedVariant: (v) ->
+  addedNestedVariant: (v, version) ->
     @model.addNested(v)
+    v.getModel().setNestedParent([version, @])
 
   newVersion: ->
     @model.newVersion()
@@ -214,9 +226,12 @@ class VariantView
   buildVariantDiv: () ->
     #----------header-------------
     width = @root.getWidth()
-    $(@headerBar).width(width)
+    $(@headerWrapper).width(width)
     $(@headerBar).data('view', @)
+    width = @addHeaderWrapperLabel(@headerWrapper)
+    $(@headerBar).width(width)
     @addHeaderDiv(@headerBar)
+    @headerWrapper.appendChild(@headerBar)
     #add placeholders for versions and output
     @addVariantButtons(@headerBar)
     #@addOutputButton(@headerBar)
@@ -233,6 +248,20 @@ class VariantView
       for n in @model.getNested()
         if n.rootVersion? == false
           n.buildVariantDiv()
+
+
+  addHeaderWrapperLabel: (headerContainer) ->
+    width = @root.getWidth()
+    nestLabel = @model.generateNestLabel()
+    if nestLabel?
+      console.log "adding "+nestLabel
+      @nestLabelContainer =  document.createElement("span")
+      $(@nestLabelContainer).text(nestLabel)
+      headerContainer.appendChild(@nestLabelContainer)
+      width = width - $(@nestLabelContainer).width() - 20
+      console.log "width? "+@root.getWidth()
+      console.log $(@nestLabelContainer).width()
+    width
 
 
   addHeaderDiv: (headerContainer) ->

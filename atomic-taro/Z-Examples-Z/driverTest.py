@@ -13,18 +13,18 @@ def distance(x0, y0, x1, y1):
 def computeAngle (p1, p2):
 	dot = 0
 	if computeNorm(p2[0], p2[1]) == 0 or computeNorm(p1[0], p1[1])==0: #may be incorrect
-	#ʕ•ᴥ•ʔ#Taro
+#ʕ•ᴥ•ʔ#Taro
 		dot = 0 #Taro goes here
 	else:
 		dot = (p2[0]*p1[0]+p2[1]*p1[1])/float(computeNorm(p1[0], p1[1])*computeNorm(p2[0], p2[1]))
 	if dot > 1:
-	#ʕ•ᴥ•ʔ#Fish
+#ʕ•ᴥ•ʔ#Fish
 		dot = 1 #Fish goes here
 	elif dot < -1:
 		dot = -1
 	return math.acos(dot)*180/math.pi
-	##ʕ•ᴥ•ʔ
-	##ʕ•ᴥ•ʔ
+##ʕ•ᴥ•ʔ
+##ʕ•ᴥ•ʔ
 ##ʕ•ᴥ•ʔ
 #Ollie ends here
 

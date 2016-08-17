@@ -86,7 +86,9 @@ class VariantsManager
       @updateVariantWidth(w)
 
     updateVariantWidth: (w) ->
-      $('.atomic-taro_editor-header-box').width(w)
+      for v in @variants
+        v.updateVariantWidth(w)
+      #$('.atomic-taro_editor-header-box').width(w)
 
     addJqueryListeners: (element) ->
       @addHeaderListeners(element)

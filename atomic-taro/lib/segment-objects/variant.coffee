@@ -12,6 +12,7 @@ class Variant
     #the header div has it's own marker that must follow around the top of the main marker
     @headerMarker = null
 
+    @nestedParent = null
     @copied = false
 
     if @marker?
@@ -31,6 +32,31 @@ class Variant
 
   getView: ->
     @view
+
+
+  getNestedParent: ->
+    @nestedParent
+
+
+  setNestedParent: (p) ->
+    @nestedParent = p
+
+
+  generateNestLabel: ->
+    if @nestedParent?
+      text = @recurseNestLabel(@nestedParent, "")
+      text
+
+
+
+  recurseNestLabel: (n, text) ->
+    [version, variant] = n
+    text = version.title + ": " + text
+    grandParent = variant.getModel().getNestedParent()
+    if grandParent?
+      text = @recurseNestLabel(grandParent, text)
+    text
+
 
 
   dateNow: ->
@@ -226,7 +252,7 @@ class Variant
         # get rid of this annotation, since it was temporary
         @sourceBuffer.deleteRow(offsetRow + lineno, undo: 'skip')
         # now store this start beacon so that we can add the marker later
-        v.nested[n_index] = @testConvertJSONVariant(v.nested[n_index])
+        v.nested[n_index] = @testConvertJSONVariant(v.nested[n_index], v)
         n = v.nested[n_index]
 
         queue.push {n: n, row: lineno + offsetRow}
@@ -293,12 +319,14 @@ class Variant
 
 
 
-  testConvertJSONVariant: (v) ->
+  testConvertJSONVariant: (v, nestParent) ->
     variantView = v
     root = v.rootVersion
     if root?
       variantView = @view.makeNewFromJson(v)
       variantView.buildVariantDiv()
+      if nestParent?
+        v.getModel().setNestedParent([@, nestParent])
     variantView
 
 
