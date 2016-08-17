@@ -92,7 +92,7 @@ module.exports = AtomicTaro =
     # check if the current file is a python file
     @filePath = atom.workspace.getActiveTextEditor().getPath()
     uri = 'tarotaro://file'+atom.workspace.getActiveTextEditor().getPath()
-    if uri? and path.extname(uri) is '.py'
+    if uri? #and path.extname(uri) is '.py'
       previousActivePane = atom.workspace.getActivePane()
       plainCodeEditor = atom.workspace.getActiveTextEditor()
       atom.workspace.open(uri, plainCodeEditor, split: 'right', searchAllPanes: true)#.done (view) ->

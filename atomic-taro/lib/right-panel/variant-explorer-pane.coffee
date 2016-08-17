@@ -65,14 +65,33 @@ class VariantExplorerPane
     listDiv.classList.add('list-tree', 'has-collapsable-children')
 
     v = vModel.getRootVersion()
-    for child in v.children
-      @makeDivForFlatVariant(variant, child, listDiv)
+    @makeDivForFlatVariant(variant, v, listDiv)
 
     varDiv.appendChild(listDiv)
     varDiv
 
 
   makeDivForFlatVariant: (variant, version, listDiv) ->
+    ver = null
+    if version.nested.length > 0
+      [nestedListDiv, ver] = @liWithNested(variant, version)
+      listDiv.appendChild(nestedListDiv)
+    else
+      ver = @liPlain(variant, version)
+      listDiv.appendChild(ver)
+
+
+    for child in version.children
+      @makeDivForFlatVariant(variant, child, listDiv)
+
+    for nest in version.nested
+      if nest.rootVersion? # uninitialized json-form variant
+        @makeDivForFlatVariant(null, nest.rootVersion, ver)
+      else # initialized VariantView variant
+        @makeDivForFlatVariant(null, nest.getModel().getCurrentVersion(), ver)
+
+
+  liPlain: (variant, version) ->
     ver = document.createElement('li')
     ver.classList.add('list-item')
     ver.classList.add('atomic-taro_explore_version')
@@ -82,14 +101,41 @@ class VariantExplorerPane
     label = document.createElement('span')
     label.classList.add('atomic-taro_explore_version-label')
     label.classList.add('icon-git-commit')
-    if version.title == variant.getModel().getCurrentVersion().title
+    if version.title == variant?.getModel().getCurrentVersion().title
       label.classList.add('focused')
     $(label).html(version.title)
     ver.appendChild(label)
+    ver
 
-    listDiv.appendChild(ver)
-    for child in version.children
-      @makeDivForFlatVariant(variant, child, listDiv)
+
+  liWithNested: (variant, version) ->
+    nestedListDiv = document.createElement('li')
+    nestedListDiv.classList.add('list-nested-item')
+    nestedListDiv.classList.add('atomic-taro_explore_version')
+    $(nestedListDiv).data('version', version)
+    $(nestedListDiv).data('variant', variant)
+
+    ver = document.createElement('div')
+    ver.classList.add('list-item')
+
+    label = document.createElement('span')
+    label.classList.add('atomic-taro_explore_version-label')
+    label.classList.add('icon-git-commit')
+    if version.title == variant?.getModel().getCurrentVersion().title
+      label.classList.add('focused')
+    $(label).html(version.title)
+    ver.appendChild(label)
+    nestedListDiv.appendChild(ver)
+
+    # give the version-view a reference for this div so that
+    # it can update the title or which version is focused
+    #variant.setExplorerDivForVersion(version, label)
+    label.classList.add(version.title)
+
+    nestedTree = document.createElement('ul')
+    nestedTree.classList.add('list-tree')
+    nestedListDiv.appendChild(nestedTree)
+    [nestedListDiv, nestedTree]
 
 
 
