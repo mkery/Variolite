@@ -267,8 +267,10 @@ class Variant
           headerMarker.setBufferRange([new Point(start, 0), new Point(end - 1, 0)], reversed: true)
         else
           marker = @sourceEditor.markBufferRange(range, invalidate: 'never')
+          marker.setProperties(myVariant: n)
           n.getModel().setMarker(marker)
           headerMarker = @sourceEditor.markBufferRange([new Point(start, 0), new Point(end - 1, 0)], reversed: true)
+          headerMarker.setProperties(myVariant: n)
           n.getModel().setHeaderMarker(headerMarker)
 
         # re-set up decorations
@@ -352,6 +354,17 @@ class Variant
 
   addNested: (n) ->
     @currentVersion.nested.push n
+    @currentVersion.nested = @currentVersion.nested.sort (a, b) ->
+      rangeA = a.getModel().getMarker().getBufferRange()
+      startA = rangeA.start.row
+      rangeB = b.getModel().getMarker().getBufferRange()
+      startB = rangeB.start.row
+      #console.log "sorting "+startA+", "+startB
+      if startA < startB
+        return -1
+      if startA > startB
+        return 1
+      return 0
 
 
   getTitle: ->

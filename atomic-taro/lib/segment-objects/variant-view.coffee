@@ -42,8 +42,6 @@ class VariantView
     @variantsButton = null
 
     @focused = false
-    @focused_nested = null
-    @dec = null
 
     # wrapper div to browse other versions
     #@versionExplorer = new VersionExplorerView(@)
@@ -129,7 +127,6 @@ class VariantView
   focus: (cursorPosition) ->
     @focused = true
     @hover()
-    #@dec = @sourceEditor.decorateMarker(@model.getMarker(), type: 'highlight', class: 'highlight-pink')
 
 
   unFocus: ->

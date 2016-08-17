@@ -156,37 +156,35 @@ class AtomicTaroView
     range = @exploratoryEditor.getSelectedBufferRange()
     start = range.start
     end = range.end
-    topOfFile = new Range(new Point(0, 0), start)
-    checkBuffer = @sourceEditor.getTextInBufferRange(topOfFile)
-    count = (checkBuffer.match(/(#ʕ•ᴥ•ʔ#)/g) || []).length
-    '''@sourceEditor.setCursorScreenPosition([range.end.row + 2 * count + 1, range.end.col])
-    @sourceEditor.moveToEndOfLine()
-    @sourceEditor.insertNewlineBelow()
-    #@sourceEditor.setCursorScreenPosition([range.end.row + 2 * count + 1, range.end.col])
-    #@sourceEditor.moveToEndOfLine()
-    #@sourceEditor.insertNewlineBelow()
-    startOrig = new Point(range.start.row + 2 * count, range.start.col)
-    endOrig = new Point(range.end.row + 2 * count + 2, range.end.col)'''
 
-    #@sourceEditor.getBuffer().insert(startOrig, "#ʕ•ᴥ•ʔ#")
-    #@sourceEditor.getBuffer().insert(endOrig, "##ʕ•ᴥ•ʔ")
+    selected = @exploratoryEditor.findMarkers(containsBufferRange: range)
+    nest_Parent = null
+    for marker in selected
+      p = marker.getProperties().myVariant
+      if p?
+        nest_Parent = p
 
     marker = @exploratoryEditor.markBufferRange(range, invalidate: 'never')
     #finally, make the new variant!
     variant = new VariantView(@exploratoryEditor, marker, "v0", @)
     marker.setProperties(myVariant: variant)
-    @variantManager.getVariants().push(variant)
     headerElement = variant.getHeader()
     hm = @exploratoryEditor.markScreenPosition([start.row - 1, start.col], invalidate: 'never')
-    @exploratoryEditor.decorateMarker(hm, {type: 'block', position: 'after', item: headerElement})
+    hd = @exploratoryEditor.decorateMarker(hm, {type: 'block', position: 'after', item: headerElement})
     variant.setHeaderMarker(hm)
+    variant.setHeaderMarkerDecoration(hd)
 
     footerElement = variant.getFooter()
-    @exploratoryEditor.decorateMarker(marker, {type: 'block', position: 'after', item: footerElement})
+    fd = @exploratoryEditor.decorateMarker(marker, {type: 'block', position: 'after', item: footerElement})
+    variant.setFooterMarkerDecoration(fd)
     variant.buildVariantDiv()
 
-    #@addJqueryListeners()
-    #@postInit_buildView()
+    if nest_Parent?
+      nest_Parent.addedNestedVariant(variant)
+    else
+      @variantManager.getVariants().push(variant)
+
+
 
   pasteSegment: (e) ->
     segs = @segmentManager.getSegments()
