@@ -52,9 +52,10 @@ module.exports = AtomicTaro =
         return
       lastIndex = @filePath.lastIndexOf('/')
       folder = @filePath.substring(0, lastIndex)
-      fileName = @filePath.substring(lastIndex + 1).split(".")[0]
-      statePath = folder+"/"+fileName+".taro"
-      @atomicTaroView = new AtomicTaroView statePath, @filePath, plainCodeEditor
+      fileName = @filePath.substring(lastIndex + 1)
+      fileBase = fileName.split(".")[0]
+      statePath = folder+"/"+fileBase+".taro"
+      @atomicTaroView = new AtomicTaroView statePath, @filePath, fileName, plainCodeEditor
       @atomicTaroView
 
 
@@ -92,11 +93,15 @@ module.exports = AtomicTaro =
     # check if the current file is a python file
     @filePath = atom.workspace.getActiveTextEditor().getPath()
     uri = 'tarotaro://file'+atom.workspace.getActiveTextEditor().getPath()
+
     if uri? #and path.extname(uri) is '.py'
-      previousActivePane = atom.workspace.getActivePane()
       plainCodeEditor = atom.workspace.getActiveTextEditor()
       atom.workspace.open(uri, plainCodeEditor, split: 'right', searchAllPanes: true)#.done (view) ->
-          #previousActivePane.activate()
+      #previousActivePane.activate()
+      previousActivePane = atom.workspace.paneForItem(plainCodeEditor)
+      previousActivePane.removeItem(plainCodeEditor, false)
+
+
 
 
   getAtomicTaroView: ->

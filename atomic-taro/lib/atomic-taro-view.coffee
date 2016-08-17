@@ -19,7 +19,7 @@ module.exports =
 class AtomicTaroView
 
 
-  constructor: (statePath, @filePath, sourceEditor) ->
+  constructor: (statePath, @filePath, @fileName, sourceEditor) ->
     @sourceEditor = sourceEditor
     @exploratoryEditor = null
     @variantWidth = null
@@ -134,7 +134,7 @@ class AtomicTaroView
 
 
   # This is the title that shows up on the tab
-  getTitle: -> 'ExploratoryView'
+  getTitle: -> @fileName
 
 
 
