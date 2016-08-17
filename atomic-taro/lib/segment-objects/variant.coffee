@@ -7,7 +7,7 @@ Represents a single variant of exploratory code.
 module.exports =
 class Variant
 
-  constructor: (@view, @sourceEditor, @marker, title) ->
+  constructor: (@view, @sourceEditor, @marker, title, @undoAgent) ->
     @sourceBuffer = @sourceEditor.getBuffer()
     #the header div has it's own marker that must follow around the top of the main marker
     @headerMarker = null
@@ -153,7 +153,7 @@ class Variant
     @highlighted
 
 
-  toggleActive: ->
+  toggleActive: (params) =>
     textSelection =  @marker.getBufferRange()
     #console.log textSelection
     selections = @sourceEditor.getSelections()
@@ -161,6 +161,9 @@ class Variant
     selections[0].setBufferRange(textSelection)
     selections[0].toggleLineComments()
     @clearHighlights()
+
+    if params?.undoSkip? == false
+      @undoAgent.pushChange({data: {undoSkip: true}, callback: @toggleActive})
     #console.log textSelection
     #ideas - somehow create a selection and use the API to toggle comments. Problem with
     #this is I don't know how to create a selection and looking at the docs, it doesn't appear

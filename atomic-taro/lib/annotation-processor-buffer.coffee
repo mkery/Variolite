@@ -6,7 +6,41 @@ class AnnotationProcessorBuffer extends TextBuffer
   constructor: (params) ->
     @variantView = params.variantView
     @subBuffer = null
+    @undoAgent = params.undoAgent
+    @undoAgent.setBuffer(@)
     super(params)
+
+
+  # Public: Undo the last operation. If a transaction is in progress, aborts it.
+  undo: ->
+    if @undoAgent.undoNow()
+      @undoAgent.revertChange()
+      console.log "undo TARO!"
+      #true
+    else
+      console.log "undo buffer"
+      if pop = @history.popUndoStack()
+        @applyChange(change) for change in pop.patch.getChanges()
+        @restoreFromMarkerSnapshot(pop.snapshot)
+        @emitMarkerChangeEvents(pop.snapshot)
+        @emitDidChangeTextEvent(pop.patch)
+        true
+      else
+        false
+    false
+
+  # Public: Redo the last operation
+  redo: ->
+    if pop = @history.popRedoStack()
+      @applyChange(change) for change in pop.patch.getChanges()
+      @restoreFromMarkerSnapshot(pop.snapshot)
+      @emitMarkerChangeEvents(pop.snapshot)
+      @emitDidChangeTextEvent(pop.patch)
+      true
+    else
+      false
+
+
 
   # Public: Save the buffer at a specific path.
   #

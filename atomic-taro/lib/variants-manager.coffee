@@ -9,7 +9,7 @@ manages all of the segments and all of their interactions.
 module.exports =
 class VariantsManager
 
-    constructor: (variants, @root) ->
+    constructor: (variants, @root, @undoAgent) ->
       # segments/header
       @variantWidth = null
       @focusedVariant = null

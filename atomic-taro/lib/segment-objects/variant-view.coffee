@@ -9,19 +9,21 @@ module.exports =
 class VariantView
 
 
-  constructor: (@sourceEditor, marker, variantTitle, @root) ->
+  constructor: (@sourceEditor, marker, variantTitle, @root, @undoAgent) ->
     # the variant
-    @model = new Variant(@, sourceEditor, marker, variantTitle)
+    @model = new Variant(@, sourceEditor, marker, variantTitle, @undoAgent)
     @initialize()
 
 
   makeNewFromJson: (json) ->
-    variantView = new VariantView(@sourceEditor, null, "", @root)
+    variantView = new VariantView(@sourceEditor, null, "", @root, @undoAgent)
     variantView.getModel().deserialize(json)
     variantView
 
 
   initialize:  ->
+    @undoAgent = null
+
     # header bar that holds interactive components above text editor
     @headerWrapper = document.createElement('div')
     @headerWrapper.classList.add('atomic-taro_editor-header-wrapper')
@@ -171,8 +173,6 @@ class VariantView
     else
       $(@headerBar).width(width)
     for n in @model.getNested()
-      console.log "updating "
-      console.log n
       n.updateVariantWidth(width)
 
   addedNestedVariant: (v, version) ->
@@ -254,13 +254,10 @@ class VariantView
     width = @root.getWidth()
     nestLabel = @model.generateNestLabel()
     if nestLabel?
-      console.log "adding "+nestLabel
       @nestLabelContainer =  document.createElement("span")
       $(@nestLabelContainer).text(nestLabel)
       headerContainer.appendChild(@nestLabelContainer)
       width = width - $(@nestLabelContainer).width() - 20
-      console.log "width? "+@root.getWidth()
-      console.log $(@nestLabelContainer).width()
     width
 
 

@@ -14,6 +14,7 @@ VariantView = require './segment-objects/variant-view'
 AnnotationProcessorBuffer = require './annotation-processor-buffer'
 VariantExplorerPane = require './right-panel/variant-explorer-pane'
 AtomicTaroToolPane = require './right-panel/atomic-taro-tool-pane'
+UndoAgent = require './undo-agent'
 
 module.exports =
 class AtomicTaroView
@@ -24,6 +25,8 @@ class AtomicTaroView
     @exploratoryEditor = null
     @variantWidth = null
     @variantManager = null
+
+    @undoAgent = new UndoAgent(50) #max undo entries
 
     #divs
     @element = null
@@ -111,7 +114,7 @@ class AtomicTaroView
   # init Exploratory Editor
   initExploratoryEditor: (sourceEditor) ->
     sourceCode = sourceEditor.getBuffer().getText()
-    exploratoryEditor = atom.workspace.buildTextEditor(buffer: new AnnotationProcessorBuffer(text: sourceCode, filePath: @filePath, variantView: @), grammar: atom.grammars.selectGrammar("file."+@fileType),  scrollPastEnd: true)
+    exploratoryEditor = atom.workspace.buildTextEditor(buffer: new AnnotationProcessorBuffer(text: sourceCode, undoAgent: @undoAgent, filePath: @filePath, variantView: @), grammar: atom.grammars.selectGrammar("file."+@fileType),  scrollPastEnd: true)
     exploratoryEditor
 
 
@@ -166,7 +169,7 @@ class AtomicTaroView
 
     marker = @exploratoryEditor.markBufferRange(range, invalidate: 'never')
     #finally, make the new variant!
-    variant = new VariantView(@exploratoryEditor, marker, "v0", @)
+    variant = new VariantView(@exploratoryEditor, marker, "v0", @, @undoAgent)
     marker.setProperties(myVariant: variant)
     headerElement = variant.getHeader()
     hm = @exploratoryEditor.markScreenPosition([start.row - 1, start.col], invalidate: 'never')
@@ -324,7 +327,7 @@ class AtomicTaroView
     title = title.trim().substring(7)
 
     #finally, make the new variant!
-    variant = new VariantView(editor, marker, title, @)
+    variant = new VariantView(editor, marker, title, @, @undoAgent)
     marker.setProperties(myVariant: variant)
     #editor.decorateMarker(marker, type: 'highlight', class: 'highlight-green')
 
