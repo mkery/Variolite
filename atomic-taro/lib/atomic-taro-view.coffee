@@ -19,7 +19,7 @@ module.exports =
 class AtomicTaroView
 
 
-  constructor: (statePath, @filePath, @fileName, sourceEditor) ->
+  constructor: (statePath, @filePath, @fileName, @fileType, sourceEditor) ->
     @sourceEditor = sourceEditor
     @exploratoryEditor = null
     @variantWidth = null
@@ -111,7 +111,7 @@ class AtomicTaroView
   # init Exploratory Editor
   initExploratoryEditor: (sourceEditor) ->
     sourceCode = sourceEditor.getBuffer().getText()
-    exploratoryEditor = atom.workspace.buildTextEditor(buffer: new AnnotationProcessorBuffer(text: sourceCode, filePath: @filePath, variantView: @), grammar: atom.grammars.selectGrammar("file.py"),  scrollPastEnd: true)
+    exploratoryEditor = atom.workspace.buildTextEditor(buffer: new AnnotationProcessorBuffer(text: sourceCode, filePath: @filePath, variantView: @), grammar: atom.grammars.selectGrammar("file."+@fileType),  scrollPastEnd: true)
     exploratoryEditor
 
 

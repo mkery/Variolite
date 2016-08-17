@@ -52,6 +52,7 @@ class VariantExplorerPane
     titleBox
 
 
+#ʕ•ᴥ•ʔ#divVar
   makeDivForVariant: (variant) ->
     vModel = variant.getModel()
     varDiv = document.createElement('div')
@@ -69,6 +70,7 @@ class VariantExplorerPane
 
     varDiv.appendChild(listDiv)
     varDiv
+##ʕ•ᴥ•ʔ
 
 
   makeDivForFlatVariant: (variant, version, listDiv) ->
@@ -137,28 +139,6 @@ class VariantExplorerPane
     nestedListDiv.appendChild(nestedTree)
     [nestedListDiv, nestedTree]
 
-
-
-  makeDivForVariant_2: (variant) ->
-    vModel = variant.getModel()
-    varDiv = document.createElement('div')
-
-    lineNoDiv = document.createElement('div')
-    lineNoDiv.classList.add('atomic-taro_explore-lineno')
-    $(lineNoDiv).text(@getLineNumbers(vModel))
-    varDiv.appendChild(lineNoDiv)
-
-    listDiv = document.createElement('ul')
-    listDiv.classList.add('list-tree', 'has-collapsable-children')
-
-    v = vModel.getRootVersion()
-    if v.children.length > 0
-      listDiv.appendChild @makeVersionWithChildren(variant, v)
-    else
-      listDiv.appendChild @makeVersionNoKids(variant, v)
-
-    varDiv.appendChild(listDiv)
-    varDiv
 
   makeVersionWithChildren: (variant, version) ->
     nestedListDiv = document.createElement('li')
