@@ -155,7 +155,8 @@ class AtomicTaroView
     @variantManager.copyVariant(e)
 
 
-  wrapNewVariant: (e) ->
+  wrapNewVariant: (e, params) ->
+
     range = @exploratoryEditor.getSelectedBufferRange()
     start = range.start
     end = range.end
@@ -186,6 +187,10 @@ class AtomicTaroView
       nest_Parent.addedNestedVariant(variant)
     else
       @variantManager.getVariants().push(variant)
+
+    if params?.undoSkip? == false
+      variant = @variantManager.getVariants().pop()
+      @undoAgent.pushChange({data: {undoSkip: true}, callback: variant.dissolve})
 
 
 
