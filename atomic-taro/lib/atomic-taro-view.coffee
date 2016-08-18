@@ -189,31 +189,6 @@ class AtomicTaroView
 
 
 
-  pasteSegment: (e) ->
-    segs = @segmentManager.getSegments()
-    for segment in segs
-      console.log segment
-      div = segment.getDiv()
-      if segment instanceof ExploratorySegmentView
-        continue
-      else if segment.getModel().getCopied() == true
-        block_pane = document.createElement('div')
-        block_pane.classList.add('atomic-taro_block-pane')
-        # make segments draggable in this div
-        $(block_pane).sortable({ axis: 'y' }) # < this allows blocks to be re-arranged
-        $(block_pane).disableSelection()
-        @element.appendChild(block_pane)
-        #console.log div
-        block_pane.appendChild(div)
-        bufferLineCount = segment.getModel().getLineCount()
-        endOfFile = @segmentManager.sourceEditor.getLastBufferRow() + 1
-        codeRange = new Range(new Point(endOfFile, 0), new Point(endOfFile + bufferLineCount, 0))
-        marker = @segmentManager.sourceEditor.markBufferRange(codeRange)
-        codeText =  "#ʕ•ᴥ•ʔ" + segment.getModel().getTitle() + "ʔ\n" + segment.getModel().getBuffer().getText() + "\n#ʕ•ᴥ•ʔ"
-        @segmentManager.sourceEditor.setTextInBufferRange(codeRange, codeText)
-        segment.getModel().addChangeListeners(@segmentManager.sourceBuffer)
-    #@segmentManager.pasteSegment(e)
-
   # Tear down any state and detach
   destroy: ->
     @element.remove()
@@ -249,7 +224,7 @@ class AtomicTaroView
     prevStart = null
     endStack = []
     for line, index in lineArray
-      if line.includes("#ʕ•ᴥ•ʔ#")
+      if line.includes("#%%^%%")
 
         if ((prevStart != null) and (prevStart.end == null))
           b = {start: new Point(index, 0), end: null, nested: []}
@@ -261,7 +236,7 @@ class AtomicTaroView
           prevStart = beacons[beacons.length - 1]
           endStack.push(prevStart)
 
-      else if line.includes("##ʕ•ᴥ•ʔ")
+      else if line.includes("#^^%^^")
         endStack.pop().end = new Point(index , 0)
     #return beacons
     beacons
@@ -324,7 +299,7 @@ class AtomicTaroView
     endDeleteOffset += 1
 
     #get title from removed annotation
-    title = title.trim().substring(7)
+    title = title.trim().substring(6)
 
     #finally, make the new variant!
     variant = new VariantView(editor, marker, title, @, @undoAgent)

@@ -5,7 +5,7 @@ import sys
 import math
 
 
-#ʕ•ᴥ•ʔ#Ollie-1
+#^^%^^Ollie-1
 def distance(x0, y0, x1, y1):
 	return math.sqrt((x1-x0)**2 + (y1-y0)**2)
 #Ollie is a dog.
@@ -13,23 +13,23 @@ def distance(x0, y0, x1, y1):
 def computeAngle (p1, p2):
 	dot = 0
 	if computeNorm(p2[0], p2[1]) == 0 or computeNorm(p1[0], p1[1])==0: #may be incorrect
-	#ʕ•ᴥ•ʔ#Taro
+	#^^%^^Taro
 		dot = 0 #Taro goes here
 	else:
 		dot = (p2[0]*p1[0]+p2[1]*p1[1])/float(computeNorm(p1[0], p1[1])*computeNorm(p2[0], p2[1]))
 	if dot > 1:
-	#ʕ•ᴥ•ʔ#Fish
+	#^^%^^Fish
 		dot = 1 #Fish goes here
 	elif dot < -1:
 		dot = -1
 	return math.acos(dot)*180/math.pi
-	##ʕ•ᴥ•ʔ
-	##ʕ•ᴥ•ʔ
-##ʕ•ᴥ•ʔ
+	#^^%^^
+	#^^%^^
+#^^%^^
 #Ollie ends here
 
 
-#ʕ•ᴥ•ʔ#cat
+#^^%^^cat
 def compute_AllAngles (trip):
 	dV =  np.diff(trip, axis = 0) #x1-x0 and y1-y0
 	angles = np.empty(shape = dV.shape[0])
@@ -40,8 +40,8 @@ def compute_AllAngles (trip):
 
 
 
-##ʕ•ᴥ•ʔ
-#ʕ•ᴥ•ʔ# Speed
+#^^%^^
+#^^%^^ Speed
 """def findSpeed_Dist(trip):
 	v = []
 	dist = 0
@@ -53,7 +53,7 @@ def compute_AllAngles (trip):
 
 
 def findStops(speeds):
-##ʕ•ᴥ•ʔ
+#^^%^^
 	stops = [] #stops are a start and end time pair
 	start = -1
 	end = -1
@@ -79,7 +79,7 @@ def printHist_Feature(hist):
 	h += str(hist[len(hist)-1])
 	return h
 
-#ʕ•ᴥ•ʔ#initTrip-1-1
+#^^%^^initTrip-1-1
 class Trip(object):
 	def __init__(self, filename):
 
@@ -108,7 +108,7 @@ class Trip(object):
 
 	#changed the implementation of this method, which brought the metrics up a bit
 	#I used km/h, but we can easily change that
-##ʕ•ᴥ•ʔ
+#^^%^^
 	def findSpeed_Hist(self, trip):
 
 		speedList = []

@@ -97,7 +97,7 @@ class AnnotationProcessorBuffer extends TextBuffer
     #console.log "offset "+insertOffset
 
     start = [range.start.row + insertOffset, range.start.col]
-    @subBuffer.insert(start, "#ʕ•ᴥ•ʔ#"+title+"\n", {undo: false})
+    @subBuffer.insert(start, "#%%^%%"+title+"\n", {undo: false})
     insertOffset += 1
 
     for n in v.getModel().getNested()
@@ -105,6 +105,6 @@ class AnnotationProcessorBuffer extends TextBuffer
 
     insertOffset += 1
     footerEnd = new Point(range.end.row + insertOffset, range.end.col)
-    @subBuffer.insert(footerEnd, "##ʕ•ᴥ•ʔ"+"\n", {undo: false})
+    @subBuffer.insert(footerEnd, "#^^%^^"+"\n", {undo: false})
 
     insertOffset

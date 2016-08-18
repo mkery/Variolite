@@ -10,7 +10,7 @@ inFile = sys.argv[1]
 outFile = sys.argv[2]
 
 
-#ʕ•ᴥ•ʔ#V1
+
 #sort by: if hihwiuewhf I have catch blocks of size n + kind, how many catch blocks that are of length N and do kind
 # are there
 def sortByQuestion(statement_N, kind_N, blk):
@@ -268,8 +268,6 @@ def parseExpression(desc):
         else:
             c_EXPRESSION["unaccounted"] += 1
             lines.append(methd)
-#ʕ•ᴥ•ʔ#Count returns, throwsʔ
-##ʕ•ᴥ•ʔ
 
 lines = []
 c_RETURN = {"TOTAL" : 0, "LITERAL" : 0, "NOTHING" : 0, "OTHER" : 0}
@@ -331,8 +329,7 @@ print unaccounted + c_EXPRESSION["unaccounted"]
 
 #print lines
 with open(outFile, 'w') as outfile:
-#ʕ•ᴥ•ʔ#Count throwsʔ
-##ʕ•ᴥ•ʔ
+
     for l in lines:
         outfile.write("{}\n".format(l))
 
@@ -386,8 +383,6 @@ with open(outFile, "w") as outfile:
     outfile.write("project, file count, Try, Catch, Statement Count, Nested Try, Nested Catch \n")
     for proj in grouping:
         statement_mean = 0
-#ʕ•ᴥ•ʔ#Count returnsʔ
-##ʕ•ᴥ•ʔ
         if grouping[proj]["Catch"] >0:
             statement_mean= (float(grouping[proj]["Statement Count"]))/(float (grouping[proj]["Catch"]))
         outfile.write(proj +"," + str(grouping[proj]["File Count"]) + "," + str(grouping[proj]["Try"]) + "," + str(grouping[proj]["Catch"]) + "," + str(statement_mean)+ ","
@@ -470,7 +465,7 @@ with open(inFile,'r') as f:
             tcDict = tc.named
             if "test" not in tcDict["file"].lower():
                 countReturnsOnly(countReturns, tcDict["desc"])
-##ʕ•ᴥ•ʔ
+
 
 print countReturns
 
