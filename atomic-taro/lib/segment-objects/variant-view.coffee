@@ -30,6 +30,7 @@ class VariantView
     @headerBar = document.createElement('div')
     @headerBar.classList.add('atomic-taro_editor-header-box')
     @nestLabelContainer = null
+    @collapseIcon = null
 
     #footer bar that simply marks the end
     @footerBar = document.createElement('div')
@@ -176,9 +177,9 @@ class VariantView
   updateVariantWidth: (width) ->
     $(@headerWrapper).width(width)
     if @nestLabelContainer?
-      $(@headerBar).width(width - $(@nestLabelContainer).width() - 20)
+      $(@headerBar).width(width - $(@nestLabelContainer).width() - 20 - $(@collapseIcon).width())
     else
-      $(@headerBar).width(width)
+      $(@headerBar).width(width - $(@collapseIcon).width() - 5)
     for n in @model.getNested()
       n.updateVariantWidth(width)
 
@@ -258,14 +259,14 @@ class VariantView
 
 
   addHeaderWrapperLabel: (headerContainer) ->
-    downIcon = document.createElement("span")
-    downIcon.classList.add("icon-chevron-down")
-    downIcon.classList.add("taro-collapse-button")
-    $(downIcon).click =>
+    @collapseIcon = document.createElement("span")
+    @collapseIcon.classList.add("icon-chevron-down")
+    @collapseIcon.classList.add("taro-collapse-button")
+    $(@collapseIcon).click =>
       @model.collapse()
-    headerContainer.appendChild(downIcon)
+    headerContainer.appendChild(@collapseIcon)
 
-    width = @root.getWidth() - $(downIcon).width()
+    width = @root.getWidth() - $(@collapseIcon).width()
     nestLabel = @model.generateNestLabel()
     if nestLabel?
       @nestLabelContainer =  document.createElement("span")
