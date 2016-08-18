@@ -56,6 +56,13 @@ class VariantView
   deactivate: ->
     @model.getMarker().destroy()
 
+  dissolve: ->
+    @headerMarkDecoration.destroy()
+    @footerMarkDecoration.destroy()
+    @getMarker
+    for n in @model.getNested()
+      n.dissolve()
+
   serialize: ->
     #todo add ui
     @model.serialize()
@@ -358,11 +365,12 @@ class VariantView
     variantsMenu = document.createElement("div")
     variantsMenu.classList.add('variants-hoverMenu')
     $(variantsMenu).hide()
-    buttonSnapshot = document.createElement("div")
+    '''buttonSnapshot = document.createElement("div")
     buttonSnapshot.classList.add('variants-hoverMenu-buttons')
     $(buttonSnapshot).html("<span class='icon icon-repo-create'></span><span class='icon icon-device-camera'></span>")
-    variantsMenu.appendChild(buttonSnapshot)
+    variantsMenu.appendChild(buttonSnapshot)'''
     @variantsButton.appendChild(variantsMenu)
+
     buttonShow = document.createElement("div")
     buttonShow.classList.add('variants-hoverMenu-buttons')
     buttonShow.classList.add('showVariantsButton')
@@ -373,8 +381,8 @@ class VariantView
       $(@headerBar).toggleClass('activeVariant')
       @root.toggleExplorerView()
       $(variantsMenu).hide()
-
     variantsMenu.appendChild(buttonShow)
+
     buttonAdd = document.createElement("div")
     buttonAdd.classList.add('variants-hoverMenu-buttons')
     buttonAdd.classList.add('createVariantButton')
@@ -382,6 +390,14 @@ class VariantView
     $(buttonAdd).click =>
       @newVersion()
     variantsMenu.appendChild(buttonAdd)
+
+    buttonDissolve = document.createElement("div")
+    buttonDissolve.classList.add('variants-hoverMenu-buttons')
+    buttonDissolve.classList.add('dissolveVariantButton')
+    $(buttonDissolve).html("dissolve")
+    $(buttonDissolve).click =>
+      @dissolve()
+    variantsMenu.appendChild(buttonDissolve)
 
   addOutputButton: (headerContainer) ->
     @outputButton = document.createElement("div")
