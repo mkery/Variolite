@@ -14,6 +14,7 @@ class Variant
 
     @nestedParent = null
     @copied = false
+    @collapsed = false
 
     if @marker?
       text = @sourceEditor.getTextInBufferRange(@marker.getBufferRange())
@@ -433,6 +434,31 @@ class Variant
 
 
   collapse: ->
-    console.log "collaping variant"
-    @sourceEditor.setSelectedBufferRange(@marker.getBufferRange())
-    @sourceEditor.foldSelectedLines()
+    if @collapsed
+      fdec = @sourceEditor.decorateMarker(@marker, {type: 'block', position: 'after', item: @view.getFooter()})
+      @view.setFooterMarkerDecoration(fdec)
+      @showInsides()
+      @sourceEditor.toggleFoldAtBufferRow(@marker.getBufferRange().start.row)
+      @collapsed = false
+    else
+      @view.destroyFooterMarkerDecoration()
+      @hideInsides()
+      @sourceEditor.setSelectedBufferRange(@marker.getBufferRange())
+      @sourceEditor.foldSelectedLines()
+      @collapsed = true
+
+
+  hideInsides: ->
+    for n in @currentVersion.nested
+      n.destroyHeaderMarkerDecoration()
+      n.destroyFooterMarkerDecoration()
+      n.getModel().hideInsides()
+
+
+  showInsides: ->
+    for n in @currentVersion.nested
+      hdec = @sourceEditor.decorateMarker(n.getModel().getHeaderMarker(), {type: 'block', position: 'before', item: n.getHeader()})
+      n.setHeaderMarkerDecoration(hdec)
+      fdec = @sourceEditor.decorateMarker(n.getMarker(), {type: 'block', position: 'after', item: n.getFooter()})
+      n.setFooterMarkerDecoration(fdec)
+      n.getModel().showInsides()

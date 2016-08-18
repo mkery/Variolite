@@ -258,7 +258,14 @@ class VariantView
 
 
   addHeaderWrapperLabel: (headerContainer) ->
-    width = @root.getWidth()
+    downIcon = document.createElement("span")
+    downIcon.classList.add("icon-chevron-down")
+    downIcon.classList.add("taro-collapse-button")
+    $(downIcon).click =>
+      @model.collapse()
+    headerContainer.appendChild(downIcon)
+
+    width = @root.getWidth() - $(downIcon).width()
     nestLabel = @model.generateNestLabel()
     if nestLabel?
       @nestLabelContainer =  document.createElement("span")
@@ -279,12 +286,7 @@ class VariantView
     nameContainer.appendChild(@versionBookmarkBar)
     #add placeholder for data
     @dateHeader = document.createElement("div")
-    downIcon = document.createElement("span")
-    downIcon.classList.add('icon-chevron-down')
-    $(downIcon).click =>
-      @model.collapse()
     @dateHeader.classList.add('atomic-taro_editor-header-date')
-    @dateHeader.appendChild(downIcon)
     $(@dateHeader).text(@model.getDate())
     headerContainer.appendChild(@dateHeader)
     headerContainer.appendChild(nameContainer)
