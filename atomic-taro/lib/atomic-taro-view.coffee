@@ -184,12 +184,14 @@ class AtomicTaroView
     variant.buildVariantDiv()
 
     if nest_Parent?
-      nest_Parent.addedNestedVariant(variant)
+      nest_Parent[1].addedNestedVariant(variant) #nest_Parent is an array - second item is the VariantView
     else
       @variantManager.getVariants().push(variant)
 
+
     if params?.undoSkip? == false
       variant = @variantManager.getVariants().pop()
+      console.log variant
       @undoAgent.pushChange({data: {undoSkip: true}, callback: variant.dissolve})
 
 
