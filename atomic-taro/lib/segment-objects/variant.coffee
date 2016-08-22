@@ -29,6 +29,7 @@ class Variant
     @highlighted = []
     @highlightMarkers = []
     @overlapText = ""
+    @prevTitles = []
 
 
   getView: ->
@@ -156,7 +157,6 @@ class Variant
 
   toggleActive: (params) =>
     textSelection =  @marker.getBufferRange()
-    #console.log textSelection
     selections = @sourceEditor.getSelections()
     #console.log selections
     selections[0].setBufferRange(textSelection)
@@ -403,11 +403,15 @@ class Variant
     @currentVersion.title
 
 
-
-  setTitle: (title, version) ->
+  setTitle: (title, version, params) ->
+    @prevTitles.push(version.title)
     version.title = title
+    if params?.undoSkip? == false
+      @undoAgent.pushChange({data: {undoSkip: true}, callback: @getPrevTitle})
 
-
+  getPrevTitle: =>
+    prevTitle = @prevTitles.pop()
+    @view.setTitle(prevTitle, @currentVersion)
 
   getDate: ->
     @currentVersion.date
