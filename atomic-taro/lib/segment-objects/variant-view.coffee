@@ -200,7 +200,19 @@ class VariantView
   toggleActive: (v) ->
     @model.toggleActive(v)
 
-  switchToVersion: (v) ->
+  switchToVersion: (v, same) ->
+    if same? then same else same = true
+    same = @model.isCurrent(v) and same
+    console.log "same: "+same
+
+    np = @model.getNestedParent()
+    # switch the highest level first
+    if np?
+      [p_version, p_variant] = np
+      p_variant.switchToVersion(p_version, same)
+    if same == true
+      return # don't switch, this version is current
+    console.log "switching version! "+v.title
     @model.switchToVersion(v)
     $(@versionBookmarkBar).empty()
     $(@activeButton).data("version", v)
@@ -221,8 +233,9 @@ class VariantView
 
 
   switchExplorerToVersion: (v) ->
-    $(@explorerDiv).find('.atomic-taro_explore_version-label').removeClass('focused')
-    $('.'+v.title).addClass('focused')
+    #$(@explorerDiv).find('.atomic-taro_explore_version-label').removeClass('focused')
+    #$('.'+v.title).addClass('focused')
+    #TODO
 
 
   highlightMultipleVersions: (v) ->

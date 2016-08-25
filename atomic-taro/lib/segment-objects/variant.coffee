@@ -146,6 +146,9 @@ class Variant
   getCurrentVersion: ->
     @currentVersion
 
+  isCurrent: (v) ->
+    @currentVersion.title == v.title
+
 
   hasVersions: ->
     @rootVersion.children.length > 0
@@ -328,9 +331,9 @@ class Variant
     root = v.rootVersion
     if root?
       variantView = @view.makeNewFromJson(v)
-      variantView.buildVariantDiv()
       if nestParent?
-        v.getModel().setNestedParent([@, nestParent])
+        variantView.getModel().setNestedParent([nestParent, @view])
+      variantView.buildVariantDiv()
     variantView
 
 

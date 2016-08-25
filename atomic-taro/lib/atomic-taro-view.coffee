@@ -66,9 +66,9 @@ class AtomicTaroView
 
   postInit_buildView: ->
       @element.appendChild(@exploratoryEditor.getElement())
-      console.log "HEIGHT??"
-      console.log @exploratoryEditor.getElement().getHeight()
-      console.log @exploratoryEditor.getElement().getScrollHeight()
+      #console.log "HEIGHT??"
+      #console.log @exploratoryEditor.getElement().getHeight()
+      #console.log @exploratoryEditor.getElement().getScrollHeight()
       #$(@exploratoryEditor.getElement()).css('overflow-y', 'scroll')
 
       @variantManager.buildVersionDivs()
