@@ -33,8 +33,11 @@ class VariantView
     @collapseIcon = null
 
     #footer bar that simply marks the end
+    @footerWrapper = document.createElement('div')
+    @footerWrapper.classList.add('atomic-taro_editor-footer-wrapper')
     @footerBar = document.createElement('div')
     @footerBar.classList.add('atomic-taro_editor-footer-box')
+    @footerWrapper.appendChild(@footerBar)
 
     #must be built later
     @versionBookmarkBar = null
@@ -92,7 +95,7 @@ class VariantView
 
 
   getFooter: ->
-    @footerBar
+    @footerWrapper
 
 
   #getWrappedFooter: ->
@@ -183,6 +186,7 @@ class VariantView
     for n in @model.getNested()
       n.updateVariantWidth(width)
 
+
   addedNestedVariant: (v, version) ->
     @model.addNested(v)
     v.getModel().setNestedParent([version, @])
@@ -235,7 +239,7 @@ class VariantView
     #----------header-------------
     width = @root.getWidth()
     $(@headerWrapper).width(width)
-    $(@headerBar).data('view', @)
+    $(@headerWrapper).data('view', @)
     width = @addHeaderWrapperLabel(@headerWrapper)
     $(@headerBar).width(width)
     @addHeaderDiv(@headerBar)
@@ -251,6 +255,7 @@ class VariantView
 
     # wrapper div to browse other versions
     #@versionExplorer.addVariantsDiv()
+    $(@footerBar).css('margin-left', $(@nestLabelContainer).width() + 20)
 
     if @model.getNested().length > 0
       for n in @model.getNested()
@@ -273,6 +278,8 @@ class VariantView
       $(@nestLabelContainer).text(nestLabel)
       headerContainer.appendChild(@nestLabelContainer)
       width = width - $(@nestLabelContainer).width() - 20
+    else
+      width -= 20
     width
 
 

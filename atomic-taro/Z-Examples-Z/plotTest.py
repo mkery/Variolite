@@ -1,5 +1,6 @@
 # from https://github.com/mkery/CS349-roads/blob/master/VisualizeDriver.py
 
+#%%^%%v0-1
 def plotTrip(filename):
 	tripName = int(os.path.basename(filename).split(".")[0])
 	tripPath = np.genfromtxt(filename, delimiter=',', skip_header=1, dtype=(float,float))
@@ -8,8 +9,8 @@ def plotTrip(filename):
 	v, distancesum = velocities_and_distance_covered(tripPath)
 	stops = findStops(v)
 
-	"""pyplot.figure(1)
-	pyplot.subplot(211)"""
+	pyplot.figure(1)
+	pyplot.subplot(211)
 	startPoint = (tripPath[0][0], tripPath[1][1])
 	pyplot.plot(tripPath[:,0], tripPath[:,1], 'bx', startPoint[0], startPoint[1], 'bs')
 	for (x, y) in reducedTrip:
@@ -21,6 +22,7 @@ def plotTrip(filename):
 	pyplot.ylabel('y')
 	pyplot.xlabel('x')
 	pyplot.show()
-	"""pyplot.subplot(212)
+	pyplot.subplot(212)
 	pyplot.plot(v, label='velocity')
-	pyplot.show()"""
+	pyplot.show()
+#^^%^^

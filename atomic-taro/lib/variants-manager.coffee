@@ -142,10 +142,10 @@ class VariantsManager
         v.toggleActive()
 
     addHeaderListeners: (element) ->
-      $('.atomic-taro_editor-header-box').hover (ev) ->
+      $(document).on 'mouseenter', '.atomic-taro_editor-header-wrapper', (ev) ->
         view = $(this).data('view')
         view.hover()
-      , ->
+      $(document).on 'mouseleave', '.atomic-taro_editor-header-wrapper', (ev) ->
         view = $(this).data('view')
         view.unHover()
 

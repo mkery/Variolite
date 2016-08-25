@@ -66,6 +66,11 @@ class AtomicTaroView
 
   postInit_buildView: ->
       @element.appendChild(@exploratoryEditor.getElement())
+      console.log "HEIGHT??"
+      console.log @exploratoryEditor.getElement().getHeight()
+      console.log @exploratoryEditor.getElement().getScrollHeight()
+      #$(@exploratoryEditor.getElement()).css('overflow-y', 'scroll')
+
       @variantManager.buildVersionDivs()
 
       atom.views.addViewProvider AtomicTaroToolPane, (toolPane) ->
@@ -91,6 +96,7 @@ class AtomicTaroView
   initializeView: ->
     # exploratoryEditor is the python file modified to show our visualization things
     @exploratoryEditor = @initExploratoryEditor(@sourceEditor)
+    @exploratoryEditor.getElement().setHeight(635) # WARNING HARD CODED!!!!
     @initCursorListeners()
 
     #root element
@@ -183,7 +189,9 @@ class AtomicTaroView
     variant.buildVariantDiv()
 
     if nest_Parent?
-      nest_Parent.addedNestedVariant(variant)
+      console.log "NEST PARENT"
+      console.log nest_Parent
+      nest_Parent[1].addedNestedVariant(variant, nest_Parent[0])
     else
       @variantManager.getVariants().push(variant)
 

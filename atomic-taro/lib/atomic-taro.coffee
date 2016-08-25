@@ -8,7 +8,6 @@ fs = require 'fs'
 #@todo @atomicTaroView isn't really keeping track of anything
 module.exports = AtomicTaro =
   atomicTaroView: null
-  modalPanel: null
   subscriptions: null
   plainCodeEditor: null #probably needs refactoring, keep track of prev pane (python file)
   filePath : null
@@ -60,7 +59,6 @@ module.exports = AtomicTaro =
 
 
   deactivate: ->
-    @modalPanel.destroy()
     @subscriptions.dispose()
     @atomicTaroView.deactivate()
     @atomicTaroView.destroy()
