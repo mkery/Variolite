@@ -207,6 +207,7 @@ class Variant
     @currentVersion.children.push newVersion
     @currentVersion = newVersion
     @clearHighlights()
+    @currentVersion
 
 
   switchToVersion: (v) ->
