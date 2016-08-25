@@ -60,7 +60,7 @@ class VariantView
   deactivate: ->
     @model.getMarker().destroy()
 
-  dissolve: ->
+  dissolve: =>
     @headerMarkDecoration.destroy()
     @footerMarkDecoration.destroy()
     @getMarker

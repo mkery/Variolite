@@ -161,7 +161,8 @@ class AtomicTaroView
     @variantManager.copyVariant(e)
 
 
-  wrapNewVariant: (e) ->
+  wrapNewVariant: (e, params) ->
+
     range = @exploratoryEditor.getSelectedBufferRange()
     start = range.start
     end = range.end
@@ -189,11 +190,15 @@ class AtomicTaroView
     variant.buildVariantDiv()
 
     if nest_Parent?
-      console.log "NEST PARENT"
-      console.log nest_Parent
-      nest_Parent[1].addedNestedVariant(variant, nest_Parent[0])
+      nest_Parent[1].addedNestedVariant(variant, nest_Parent[0])  #nest_Parent is an array - second item is the VariantView
     else
       @variantManager.getVariants().push(variant)
+
+
+    if params?.undoSkip? == false
+      variant = @variantManager.getVariants().pop()
+      console.log variant
+      @undoAgent.pushChange({data: {undoSkip: true}, callback: variant.dissolve})
 
 
 
