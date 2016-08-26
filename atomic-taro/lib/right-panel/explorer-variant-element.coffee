@@ -38,7 +38,7 @@ class ExplorerVariantElement
 
     # finally, add child nodes
     for child in @version.children
-      @childDivs.push new ExplorerVariantElement(@variant, child, @parentDiv)
+      @childDivs.push new ExplorerVariantElement(@variant, child, @parentDiv, @parentElement)
 
 
   refresh: ->
@@ -53,7 +53,11 @@ class ExplorerVariantElement
 
 
   collapse: ->
-    $(@nestedTree).slideToggle('slow')
+    $(@nestedTree).slideToggle('fast')
+
+
+  select: ->
+    $(@myContainer).addClass('selected')
 
 
   '''

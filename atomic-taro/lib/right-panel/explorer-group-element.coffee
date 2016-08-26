@@ -12,9 +12,12 @@ class ExplorerGroupElement
     @lineNoDiv = null
     @nestedTree = null
     @varElement = null
+    if @nestedParentElem? == false
+      @nestedParentElem = @
 
     @initialize()
     @parentDiv.appendChild(@myContainer)
+    @variant?.setExplorerGroup(@)
 
 
   getDiv: ->
@@ -22,15 +25,30 @@ class ExplorerGroupElement
 
 
   collapse: ->
-    $(@nestedTree).slideToggle('slow')
+    $(@nestedTree).slideToggle('fast')
 
 
   setVariant: (v) ->
+    @variant = v
     @varElement.setVariant(v)
+
+
+  focus: ->
+    $(@myContainer).find('.atomic-taro_explore_version-label').removeClass('focused')
 
 
   refresh: ->
     @varElement.refresh()
+    @variant.setExplorerGroup(@)
+
+
+  addVersion: (v) ->
+    vElem = new ExplorerVariantElement(@variant, v, @nestedTree, @nestedParentElem)
+    vElem.focus()
+    $('.atomic-taro_explore_version').removeClass('selected')
+    $('.atomic-taro_explore_group_label').removeClass('selected')
+    vElem.select()
+
 
   initialize: ->
     @myContainer = document.createElement('ul')
@@ -60,7 +78,10 @@ class ExplorerGroupElement
     @varElement = new ExplorerVariantElement(@variant, @rootVersion, @nestedTree, @nestedParentElem)
 
     listRoot.appendChild(@nestedTree)
-    @myContainer.appendChild(listRoot)
+    if $(@parentDiv).hasClass('list-tree')
+      @myContainer = listRoot
+    else
+      @myContainer.appendChild(listRoot)
 
 
   getLineNumbers: () ->

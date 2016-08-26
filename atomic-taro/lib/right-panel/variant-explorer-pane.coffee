@@ -23,7 +23,6 @@ class VariantExplorerPane
     variants = @manager.getVariants()
     for v in variants
       groupV = new ExplorerGroupElement(v, v.getModel().getRootVersion(), @pane)
-      v.setExplorerGroup(groupV)
 
     @addListeners()
 

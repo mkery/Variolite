@@ -54,7 +54,7 @@ class VariantView
 
     # wrapper div to browse other versions
     #@versionExplorer = new VersionExplorerView(@)
-    @explorerDiv = null
+    @explorerGroupElement = null
 
 
   deactivate: ->
@@ -192,10 +192,11 @@ class VariantView
     v.getModel().setNestedParent([version, @])
 
   newVersion: ->
-    @model.newVersion()
+    v = @model.newVersion()
     $(@versionBookmarkBar).empty()
     @addNameBookmarkBar(@versionBookmarkBar)
     $(@dateHeader).text(@model.getDate())
+    @addVersiontoExplorer(v)
 
   toggleActive: (v) ->
     @model.toggleActive(v)
@@ -228,12 +229,16 @@ class VariantView
     $(@variantsButton).remove()
 
 
-  setExplorerGroup: (div) ->
-    @explorerDiv = div
+  setExplorerGroup: (elem) ->
+    @explorerGroupElement = elem
+
+
+  addVersiontoExplorer: (v) ->
+    @explorerGroupElement.addVersion(v)
 
 
   switchExplorerToVersion: (v) ->
-    #$(@explorerDiv).find('.atomic-taro_explore_version-label').removeClass('focused')
+    #$(@explorerGroupElement).find('.atomic-taro_explore_version-label').removeClass('focused')
     #$('.'+v.title).addClass('focused')
     #TODO
 
