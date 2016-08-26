@@ -27,6 +27,10 @@ class VariantExplorerPane
     @addListeners()
 
 
+  newVariant: (v) ->
+    new ExplorerGroupElement(v, v.getModel().getRootVersion(), @pane)
+
+
   # Gets the root element
   getElement: ->
     @pane

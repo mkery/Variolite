@@ -38,6 +38,8 @@ class AtomicTaroToolPane
   addListeners: ->
     $(document).on 'mousedown', '.atomic-taro_tools-resize-handle', (e) => @resizeStarted(e)
 
+  getVariantPanel: ->
+    @variantExplorer
 
   resizeStarted: =>
     $(document).on('mousemove', @resizeToolView)
