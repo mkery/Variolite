@@ -15,6 +15,7 @@ class Variant
     @nestedParent = null
     @copied = false
     @collapsed = false
+    @count = 0
 
     if @marker?
       text = @sourceEditor.getTextInBufferRange(@marker.getBufferRange())
@@ -146,9 +147,6 @@ class Variant
   getCurrentVersion: ->
     @currentVersion
 
-  isCurrent: (v) ->
-    @currentVersion.title == v.title
-
 
   hasVersions: ->
     @rootVersion.children.length > 0
@@ -189,6 +187,12 @@ class Variant
     for h in @highlightMarkers
       h.destroy()
 
+  isCurrent: (v) ->
+    if v == @currentVersion
+      true
+    else
+      false
+
 
   newVersion: ->
     # new text has clean text before we add marker placeholders
@@ -209,7 +213,8 @@ class Variant
     @clearHighlights()
 
 
-  switchToVersion: (v) ->
+  switchToVersion: (v, params) ->
+    #prevVer = @currentVersion
     text = v.text
     @setCurrentVersionText_Close()
     @currentVersion.text = @sourceBuffer.getTextInRange(@marker.getBufferRange())
@@ -217,6 +222,12 @@ class Variant
     @setVersionText_Open(v, @marker.getBufferRange().start.row)
     @currentVersion = v
     @clearHighlights()
+    '''if params?.undoSkip? == false
+      #variant = @variantManager.getVariants().pop()
+      console.log @currentVersion
+      @undoAgent.pushChange({data: {undoSkip: true}, callback: @.switchToVersion(prevVer)})
+    '''
+
 
 
   setCurrentVersionText_Close: ->
@@ -331,9 +342,9 @@ class Variant
     root = v.rootVersion
     if root?
       variantView = @view.makeNewFromJson(v)
-      if nestParent?
-        variantView.getModel().setNestedParent([nestParent, @view])
       variantView.buildVariantDiv()
+      if nestParent?
+        v.getModel().setNestedParent([@, nestParent])
     variantView
 
 
