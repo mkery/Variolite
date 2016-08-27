@@ -162,11 +162,12 @@ class AtomicTaroView
 
 
   wrapNewVariant: (e, params) ->
-
+    # first, get range
     range = @exploratoryEditor.getSelectedBufferRange()
     start = range.start
     end = range.end
 
+    # now, see if there are any preexisting variants that overlap
     selected = @exploratoryEditor.findMarkers(containsBufferRange: range)
     nest_Parent = null
     for marker in selected
@@ -174,6 +175,7 @@ class AtomicTaroView
       if p?
         nest_Parent = [p.getModel().getCurrentVersion(),p]
 
+    # now initialize everything
     marker = @exploratoryEditor.markBufferRange(range, invalidate: 'never')
     #finally, make the new variant!
     variant = new VariantView(@exploratoryEditor, marker, "v0", @, @undoAgent)
@@ -189,6 +191,9 @@ class AtomicTaroView
     variant.setFooterMarkerDecoration(fd)
     variant.buildVariantDiv()
 
+    @explorer.getVariantPanel().newVariant(variant)
+
+    # Either add as a neted variant to a parent, or add as a top-level variant
     if nest_Parent?
       nest_Parent[1].addedNestedVariant(variant, nest_Parent[0])  #nest_Parent is an array - second item is the VariantView
     else
