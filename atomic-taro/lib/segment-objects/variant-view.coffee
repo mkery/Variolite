@@ -22,7 +22,7 @@ class VariantView
 
 
   initialize:  ->
-    @undoAgent = null
+    #@undoAgent = null
 
     # header bar that holds interactive components above text editor
     @headerWrapper = document.createElement('div')
@@ -55,6 +55,7 @@ class VariantView
     # wrapper div to browse other versions
     #@versionExplorer = new VersionExplorerView(@)
     @explorerGroupElement = null
+
 
 
   deactivate: ->
@@ -107,6 +108,10 @@ class VariantView
 
   getHeader: ->
     @headerWrapper
+
+
+  getExplorerElement: ->
+    @explorerGroupElement
 
   #getWrappedHeader: ->
   #  @versionExplorer.getHeader()
@@ -193,6 +198,7 @@ class VariantView
     @model.addNested(v)
     v.getModel().setNestedParent([version, @])
 
+
   newVersion: ->
     v = @model.newVersion()
     $(@versionBookmarkBar).empty()
@@ -200,18 +206,22 @@ class VariantView
     $(@dateHeader).text(@model.getDate())
     @addVersiontoExplorer(v)
 
+
   toggleActive: (v) ->
     @model.toggleActive(v)
 
+
   switchToVersion: (v, same) ->
-    if same? then same else same = true
-    same = @model.isCurrent(v) and same
+    #if same? then same else same = true
+    same = @model.isCurrent(v) #and same
     console.log "same: "+same
 
     np = @model.getNestedParent()
     # switch the highest level first
     if np?
       [p_version, p_variant] = np
+      console.log "look up parent "
+      console.log p_variant
       p_variant.switchToVersion(p_version, same)
     if same == true
       return # don't switch, this version is current
@@ -240,9 +250,7 @@ class VariantView
 
 
   switchExplorerToVersion: (v) ->
-    #$(@explorerGroupElement).find('.atomic-taro_explore_version-label').removeClass('focused')
-    #$('.'+v.title).addClass('focused')
-    #TODO
+    @explorerGroupElement.findSwitchVersion(v)
 
 
   highlightMultipleVersions: (v) ->

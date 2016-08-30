@@ -30,7 +30,7 @@ class VariantsManager
       # the variants? Needs more thought.
       if varStates?
         for i in [0...varStates.length]
-          @variants[i].deserialize(varStates[i].variants)
+          @variants[i].deserialize(varStates[i])
 
     buildVersionDivs: ->
       @variantWidth = $(@root.getElement()).width()

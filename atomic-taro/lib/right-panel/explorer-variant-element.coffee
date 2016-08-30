@@ -49,13 +49,20 @@ class ExplorerVariantElement
       nested.updateTitle()
 
 
-  refresh: ->
+  refresh: () ->
     # make sure label is refreshed
     nested = @version.nested
+    #console.log "REFRESH"
+    #console.log @version
+    #console.log nested
     # now, make sure nested elemes are correct
     for nelem, index in @nestChildrenDivs
       nelem.setVariant(nested[index])
+      #console.log nested[index]
       nelem.refresh()
+
+    for child in @childDivs
+      child.setVariant(@variant)
 
 
   collapse: ->
@@ -71,6 +78,9 @@ class ExplorerVariantElement
   '''
   setVariant: (v) ->
     @variant = v
+    #@version = v.getModel().findVersion(@version.title)
+    #console.log "found version?"
+    #console.log @version
 
 
   liPlain: (variant, version) ->
@@ -118,9 +128,34 @@ class ExplorerVariantElement
       @parentElement.switchToVersion()
       if @variant == null
         @parentElement.refresh()
+        console.log "refreshed???"
+        console.log @variant
+        console.log "parent element?"
+        console.log @parentElement
 
     @variant.switchToVersion(@version)
     @focus()
+
+
+  findSwitchVersion: (version, variant) ->
+    console.log "switching to version "+version.title
+    console.log @version.title
+    if @version == version
+      #@refresh()
+      if @variant == null
+        @variant = variant
+      @focus()
+      return true
+    else
+      for child in @childDivs
+        if child.findSwitchVersion(version, variant)
+          return true
+      for nest, index in @nestChildrenDivs
+        v = version.nested[index]
+        if nest.findSwitchVersion(version, v)
+          return true
+    return false
+
 
   focus: ->
     if @parentElement?

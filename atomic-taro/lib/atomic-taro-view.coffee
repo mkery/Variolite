@@ -56,9 +56,9 @@ class AtomicTaroView
         console.log state
 
         stateVariants = state.atomicTaroViewState.variants
-        console.log "state variants????"
-        #console.log stateVariants
-        @variantManager.deserialize(stateVariants)
+        #console.log "state variants????"
+        #console.log stateVariants.variants
+        @variantManager.deserialize(stateVariants.variants)
         @postInit_buildView()
       .fail =>
         console.log "No saved taro file found."
@@ -66,6 +66,14 @@ class AtomicTaroView
 
   saveAs: (newItemPath) ->
     console.log "asked me to save!!!"
+
+
+  save: ->
+    console.log "asked me to save!!!"
+
+
+  getURI: ->
+    @filePath
 
   getPath: ->
     @filePath

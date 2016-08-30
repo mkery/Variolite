@@ -45,8 +45,10 @@ class ExplorerGroupElement
     @varElement.updateTitle()
 
 
-  refresh: ->
+  refresh: () ->
     @varElement.refresh()
+    #console.log "variant??????"
+    #console.log @variant
     @variant.setExplorerGroup(@)
 
 
@@ -58,8 +60,8 @@ class ExplorerGroupElement
     vElem.select()
 
 
-  renameVersion: (v, title) ->
-    # foo
+  findSwitchVersion: (v) ->
+    @varElement.findSwitchVersion(v)
 
 
   initialize: ->
