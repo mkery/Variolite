@@ -16,12 +16,15 @@ class Variant
     @nestedParent = null
     @copied = false
     @collapsed = false
+
     '''
       pendingDestruction is a way to keep variants around (in case the user clicks
       dissolve then later undo) but prevents this variant from being counted in a
       save action. Figure out a better way of handling this in the long run!
     '''
     @pendingDestruction = false
+
+
 
     if @marker?
       text = @sourceEditor.getTextInBufferRange(@marker.getBufferRange())
@@ -37,6 +40,7 @@ class Variant
     @highlightMarkers = []
     @overlapText = ""
     @prevTitles = []
+    @prevVers = []
 
 
   getView: ->
@@ -165,9 +169,6 @@ class Variant
   getCurrentVersion: ->
     @currentVersion
 
-  isCurrent: (v) ->
-    @currentVersion.title == v.title
-
 
   hasVersions: ->
     @rootVersion.children.length > 0
@@ -184,7 +185,6 @@ class Variant
     selections[0].setBufferRange(textSelection)
     selections[0].toggleLineComments()
     @clearHighlights()
-
     if params?.undoSkip? == false
       @undoAgent.pushChange({data: {undoSkip: true}, callback: @toggleActive})
     #console.log textSelection
@@ -208,6 +208,12 @@ class Variant
     for h in @highlightMarkers
       h.destroy()
 
+  isCurrent: (v) ->
+    if v == @currentVersion
+      true
+    else
+      false
+
 
   newVersion: ->
     # new text has clean text before we add marker placeholders
@@ -229,7 +235,8 @@ class Variant
     @currentVersion
 
 
-  switchToVersion: (v) ->
+  switchToVersion: (v, params) =>
+    @prevVers.push(@currentVersion)
     text = v.text
     @setCurrentVersionText_Close()
     @currentVersion.text = @sourceBuffer.getTextInRange(@marker.getBufferRange())
@@ -237,7 +244,13 @@ class Variant
     @setVersionText_Open(v, @marker.getBufferRange().start.row)
     @currentVersion = v
     @clearHighlights()
+    if params?.undoSkip? == false
+      @undoAgent.pushChange({data: {undoSkip: true}, callback: @getPrevVersion})
 
+
+  getPrevVersion: =>
+    v = @prevVers.pop()
+    @.getView().switchToVersion(v)
 
   setCurrentVersionText_Close: ->
     trueEnd = @marker.getBufferRange().end
@@ -351,9 +364,9 @@ class Variant
     root = v.rootVersion
     if root?
       variantView = @view.makeNewFromJson(v)
-      if nestParent?
-        variantView.getModel().setNestedParent([nestParent, @view])
       variantView.buildVariantDiv()
+      if nestParent?
+        v.getModel().setNestedParent([@, nestParent])
     variantView
 
 
