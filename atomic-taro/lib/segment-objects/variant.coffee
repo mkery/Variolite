@@ -31,6 +31,7 @@ class Variant
     @highlightMarkers = []
     @overlapText = ""
     @prevTitles = []
+    @prevVers = []
 
 
   getView: ->
@@ -163,7 +164,6 @@ class Variant
     selections[0].setBufferRange(textSelection)
     selections[0].toggleLineComments()
     @clearHighlights()
-
     if params?.undoSkip? == false
       @undoAgent.pushChange({data: {undoSkip: true}, callback: @toggleActive})
     #console.log textSelection
@@ -214,8 +214,8 @@ class Variant
     @currentVersion
 
 
-  switchToVersion: (v, params) ->
-    #prevVer = @currentVersion
+  switchToVersion: (v, params) =>
+    @prevVers.push(@currentVersion)
     text = v.text
     @setCurrentVersionText_Close()
     @currentVersion.text = @sourceBuffer.getTextInRange(@marker.getBufferRange())
@@ -223,13 +223,13 @@ class Variant
     @setVersionText_Open(v, @marker.getBufferRange().start.row)
     @currentVersion = v
     @clearHighlights()
-    '''if params?.undoSkip? == false
-      #variant = @variantManager.getVariants().pop()
-      console.log @currentVersion
-      @undoAgent.pushChange({data: {undoSkip: true}, callback: @.switchToVersion(prevVer)})
-    '''
+    if params?.undoSkip? == false
+      @undoAgent.pushChange({data: {undoSkip: true}, callback: @getPrevVersion})
 
 
+  getPrevVersion: =>
+    v = @prevVers.pop()
+    @.getView().switchToVersion(v)
 
   setCurrentVersionText_Close: ->
     trueEnd = @marker.getBufferRange().end
