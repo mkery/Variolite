@@ -82,7 +82,8 @@ class AnnotationProcessorBuffer extends TextBuffer
 
     insertOffset = 0
     for v in variants
-      insertOffset = @annotateVersion(v, insertOffset)
+      if v.getModel().isAlive() # not dissolved or otherwise destroyed
+        insertOffset = @annotateVersion(v, insertOffset)
 
     @subBuffer.getText()
 

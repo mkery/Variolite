@@ -24,6 +24,10 @@ class ExplorerGroupElement
     @myContainer
 
 
+  dissolve: ->
+    $(@myContainer).html('')
+
+
   collapse: ->
     $(@nestedTree).slideToggle('fast')
 
@@ -37,6 +41,10 @@ class ExplorerGroupElement
     $(@myContainer).find('.atomic-taro_explore_version-label').removeClass('focused')
 
 
+  updateTitle: ->
+    @varElement.updateTitle()
+
+
   refresh: ->
     @varElement.refresh()
     @variant.setExplorerGroup(@)
@@ -48,6 +56,10 @@ class ExplorerGroupElement
     $('.atomic-taro_explore_version').removeClass('selected')
     $('.atomic-taro_explore_group_label').removeClass('selected')
     vElem.select()
+
+
+  renameVersion: (v, title) ->
+    # foo
 
 
   initialize: ->

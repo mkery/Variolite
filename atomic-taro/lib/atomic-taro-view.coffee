@@ -6,7 +6,8 @@ require 'jquery-ui-browserify'
 require './ui-helpers/jquery.hoverIntent.minified.js'
 fs = require 'fs'
 
-{TextBuffer} = require 'atom'
+{Pane} = require 'atom'
+{TextEditor} = require 'atom'
 {Point, Range} = require 'atom'
 VariantsManager = require './variants-manager'
 Variant = require './segment-objects/variant'
@@ -40,6 +41,8 @@ class AtomicTaroView
   deactivate: ->
     @variantManager.deactivate()
 
+  saveActiveItemAs: ->
+    console.log "save as!"
 
   # Returns an object that can be retrieved when package is activated
   serialize: ->
@@ -60,6 +63,12 @@ class AtomicTaroView
       .fail =>
         console.log "No saved taro file found."
         @postInit_buildView()
+
+  saveAs: (newItemPath) ->
+    console.log "asked me to save!!!"
+
+  getPath: ->
+    @filePath
 
   getWidth: ->
     @exploratoryEditor.getElement().getWidth() - 20
@@ -121,6 +130,7 @@ class AtomicTaroView
   initExploratoryEditor: (sourceEditor) ->
     sourceCode = sourceEditor.getBuffer().getText()
     exploratoryEditor = atom.workspace.buildTextEditor(buffer: new AnnotationProcessorBuffer(text: sourceCode, undoAgent: @undoAgent, filePath: @filePath, variantView: @), grammar: atom.grammars.selectGrammar("file."+@fileType),  scrollPastEnd: true)
+    atom.textEditors.add(exploratoryEditor)
     exploratoryEditor
 
 
@@ -168,42 +178,49 @@ class AtomicTaroView
     end = range.end
 
     # now, see if there are any preexisting variants that overlap
+    overlap_start = @exploratoryEditor.findMarkers(containsBufferPosition: range.start)
+    overlap_end = @exploratoryEditor.findMarkers(containsBufferPosition: range.end)
     selected = @exploratoryEditor.findMarkers(containsBufferRange: range)
-    nest_Parent = null
-    for marker in selected
-      p = marker.getProperties().myVariant
-      if p?
-        nest_Parent = [p.getModel().getCurrentVersion(),p]
+    #console.log "found N markers: start "+overlap_start.length+", end: "+overlap_end.length+", "+selected.length
 
-    # now initialize everything
-    marker = @exploratoryEditor.markBufferRange(range, invalidate: 'never')
-    #finally, make the new variant!
-    variant = new VariantView(@exploratoryEditor, marker, "v0", @, @undoAgent)
-    marker.setProperties(myVariant: variant)
-    headerElement = variant.getHeader()
-    hm = @exploratoryEditor.markScreenPosition([start.row - 1, start.col], invalidate: 'never')
-    hd = @exploratoryEditor.decorateMarker(hm, {type: 'block', position: 'after', item: headerElement})
-    variant.setHeaderMarker(hm)
-    variant.setHeaderMarkerDecoration(hd)
+    # cannot allow new variants that partially intersect other variants
+    if overlap_start.length == overlap_end.length == selected.length
+      nest_Parent = null
+      for marker in selected
+        p = marker.getProperties().myVariant
+        if p?
+          nest_Parent = [p.getModel().getCurrentVersion(),p]
 
-    footerElement = variant.getFooter()
-    fd = @exploratoryEditor.decorateMarker(marker, {type: 'block', position: 'after', item: footerElement})
-    variant.setFooterMarkerDecoration(fd)
-    variant.buildVariantDiv()
+      # now initialize everything
+      marker = @exploratoryEditor.markBufferRange(range, invalidate: 'never')
+      #finally, make the new variant!
+      variant = new VariantView(@exploratoryEditor, marker, "v0", @, @undoAgent)
+      marker.setProperties(myVariant: variant)
+      headerElement = variant.getHeader()
+      hm = @exploratoryEditor.markScreenPosition([start.row - 1, start.col], invalidate: 'never')
+      hd = @exploratoryEditor.decorateMarker(hm, {type: 'block', position: 'after', item: headerElement})
+      variant.setHeaderMarker(hm)
+      variant.setHeaderMarkerDecoration(hd)
 
-    @explorer.getVariantPanel().newVariant(variant)
+      footerElement = variant.getFooter()
+      fd = @exploratoryEditor.decorateMarker(marker, {type: 'block', position: 'after', item: footerElement})
+      variant.setFooterMarkerDecoration(fd)
+      variant.buildVariantDiv()
 
-    # Either add as a neted variant to a parent, or add as a top-level variant
-    if nest_Parent?
-      nest_Parent[1].addedNestedVariant(variant, nest_Parent[0])  #nest_Parent is an array - second item is the VariantView
-    else
-      @variantManager.getVariants().push(variant)
+      @explorer.getVariantPanel().newVariant(variant)
+
+      # Either add as a neted variant to a parent, or add as a top-level variant
+      if nest_Parent != null
+        nest_Parent[1].addedNestedVariant(variant, nest_Parent[0])  #nest_Parent is an array - second item is the VariantView
+      else
+        console.log "adding variant to manager"
+        @variantManager.getVariants().push(variant)
 
 
-    if params?.undoSkip? == false
-      variant = @variantManager.getVariants().pop()
-      console.log variant
-      @undoAgent.pushChange({data: {undoSkip: true}, callback: variant.dissolve})
+      if params?.undoSkip? == false
+        varList = @variantManager.getVariants()
+        variant = varList[varList.length - 1]
+        @undoAgent.pushChange({data: {undoSkip: true}, callback: variant.dissolve})
 
 
 

@@ -17,7 +17,12 @@ class VariantsManager
 
 
     serialize: ->
-      variants: v.serialize() for v in @variants
+      cereal = []
+      for v in @variants
+        c = v.serialize()
+        if c?
+          cereal.push c
+      variants: cereal
 
     deserialize: (varStates) ->
       #TODO when could perhaps the number of saved variants

@@ -31,6 +31,9 @@ module.exports = AtomicTaro =
     @subscriptions.add atom.commands.add 'atom-workspace', 'core:save', (e) =>
       @handleSaveEvent(e)
 
+    @subscriptions.add atom.commands.add 'atom-workspace', 'core:save-as', (e) =>
+      @handleSaveAsEvent(e)
+
     '''
     We set up an opener such that if the user
     opens our package while on a python file, it
@@ -54,6 +57,8 @@ module.exports = AtomicTaro =
       fileName = @filePath.substring(lastIndex + 1)
       [fileBase, fileType] = fileName.split(".")
       statePath = folder+"/"+fileBase+".taro"
+      atom.views.addViewProvider AtomicTaroView, (taroView) ->
+        toolPane.getElement()
       @atomicTaroView = new AtomicTaroView statePath, @filePath, fileName, fileType, plainCodeEditor
       @atomicTaroView
 
@@ -122,3 +127,9 @@ module.exports = AtomicTaro =
         console.log cereal
         fs.writeFile (folder+"/"+fileName+".taro"), JSON.stringify(cereal), (error) ->
           console.error("Error writing file", error) if error
+
+  handleSaveAsEvent: (e) ->
+    editor = atom.workspace.getActivePaneItem()
+    if editor instanceof AtomicTaroView
+      #console.log atom.workspace.getActivePane()
+      console.log "SAVE AS"

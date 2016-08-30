@@ -63,7 +63,8 @@ class VariantView
   dissolve: =>
     @headerMarkDecoration.destroy()
     @footerMarkDecoration.destroy()
-    @getMarker
+    @model.dissolve()
+    @explorerGroupElement.dissolve()
     for n in @model.getNested()
       n.dissolve()
 
@@ -114,6 +115,7 @@ class VariantView
     @model.setTitle(title, version)
     $(@versionBookmarkBar).empty()
     @addNameBookmarkBar(@versionBookmarkBar)
+    @explorerGroupElement.updateTitle()
 
 
   setHeaderMarker: (hm) ->

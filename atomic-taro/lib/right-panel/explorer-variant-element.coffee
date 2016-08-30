@@ -41,10 +41,16 @@ class ExplorerVariantElement
       @childDivs.push new ExplorerVariantElement(@variant, child, @parentDiv, @parentElement)
 
 
+  updateTitle: -> #TODO optimize!!
+    $(@myLabel).html(@version.title)
+    for child in @childDivs
+      child.updateTitle()
+    for nested in @nestChildrenDivs
+      nested.updateTitle()
+
+
   refresh: ->
     # make sure label is refreshed
-    #$(@myLabel).html(@version.title)
-
     nested = @version.nested
     # now, make sure nested elemes are correct
     for nelem, index in @nestChildrenDivs

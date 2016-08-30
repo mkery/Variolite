@@ -11,10 +11,17 @@ class Variant
     @sourceBuffer = @sourceEditor.getBuffer()
     #the header div has it's own marker that must follow around the top of the main marker
     @headerMarker = null
+    @range = null # to hold the last range of markers, in case the markers are destroyed
 
     @nestedParent = null
     @copied = false
     @collapsed = false
+    '''
+      pendingDestruction is a way to keep variants around (in case the user clicks
+      dissolve then later undo) but prevents this variant from being counted in a
+      save action. Figure out a better way of handling this in the long run!
+    '''
+    @pendingDestruction = false
 
     if @marker?
       text = @sourceEditor.getTextInBufferRange(@marker.getBufferRange())
@@ -50,7 +57,6 @@ class Variant
       text
 
 
-
   recurseNestLabel: (n, text) ->
     [version, variant] = n
     text = version.title + ": " + text
@@ -77,14 +83,16 @@ class Variant
 
 
   serialize: ->
-    if @marker?
-      text = @sourceEditor.getTextInBufferRange(@marker.getBufferRange())
-      @currentVersion.text = text
+    # we don't want a variant to be saved unless we plan to keep it
+    if @pendingDestruction == false
+      if @marker?
+        text = @sourceEditor.getTextInBufferRange(@marker.getBufferRange())
+        @currentVersion.text = text
 
-      # Now, since we can have nested variants that are not in
-      # JSON form, put everything in JSON form
-      rootVersion: if @rootVersion? then @serializeWalk(@rootVersion) else null
-      currentVersion:  {title: @currentVersion.title}
+        # Now, since we can have nested variants that are not in
+        # JSON form, put everything in JSON form
+        rootVersion: if @rootVersion? then @serializeWalk(@rootVersion) else null
+        currentVersion:  {title: @currentVersion.title}
 
 
   serializeWalk: (version) ->
@@ -113,6 +121,17 @@ class Variant
         false
       else
         true
+
+
+  dissolve: =>
+    @range = @marker.getBufferRange()
+    @marker.destroy()
+    @headerMarker.destroy()
+    @pendingDestruction = true
+
+
+  isAlive: ->
+    !@pendingDestruction
 
 
   getMarker: ->
