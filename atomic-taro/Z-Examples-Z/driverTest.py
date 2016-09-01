@@ -5,19 +5,17 @@ import sys
 import math
 
 
-#%%^%%OllieYa
+#%%^%%Ollie
 def distance(x0, y0, x1, y1):
 	return math.sqrt((x1-x0)**2 + (y1-y0)**2)
-#Ollie is a dog.
+#Ollie is a dog!!!!!!!
 
 def computeAngle (p1, p2):
-#%%^%%TreeTreeYa!
 	dot = 0
 	if computeNorm(p2[0], p2[1]) == 0 or computeNorm(p1[0], p1[1])==0: #may be incorrect
 		dot = 0 #Taro goes here
 	else:
 		dot = (p2[0]*p1[0]+p2[1]*p1[1])/float(computeNorm(p1[0], p1[1])*computeNorm(p2[0], p2[1]))
-#^^%^^
 	if dot > 1:
 		dot = 1 #Fish goes here
 	elif dot < -1:

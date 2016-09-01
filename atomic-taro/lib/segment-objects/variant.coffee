@@ -24,8 +24,6 @@ class Variant
     '''
     @pendingDestruction = false
 
-
-
     if @marker?
       text = @sourceEditor.getTextInBufferRange(@marker.getBufferRange())
       date = @dateNow()
@@ -119,7 +117,11 @@ class Variant
     @rootVersion = state.rootVersion
     @walkVersions @rootVersion, (v) =>
       if v.title == currentTitle
+        console.log "current Nested"
         for n, index in @currentVersion.nested
+          console.log n
+          console.log v.nested[index]
+          n.deserialize(v.nested[index])
           v.nested[index] = n
         @currentVersion = v
         false
@@ -159,11 +161,19 @@ class Variant
     if version.children? and flag
       for child in version.children
         @walkVersions(child, fun)
+    else
+      version
 
 
   getRootVersion: ->
     #@versions
     @rootVersion
+
+
+  findVersion: (name) ->
+    @walkVersions @rootVersion, (v) =>
+      if v.title == name
+        return false
 
 
   getCurrentVersion: ->
@@ -209,10 +219,11 @@ class Variant
       h.destroy()
 
   isCurrent: (v) ->
-    if v == @currentVersion
-      true
+    console.log "current version is "+@currentVersion.title+", compared to "+v.title
+    if v.title == @currentVersion.title
+      return true
     else
-      false
+      return false
 
   getPrevs: ->
     prevVers
@@ -296,6 +307,7 @@ class Variant
         # now store this start beacon so that we can add the marker later
         v.nested[n_index] = @testConvertJSONVariant(v.nested[n_index], v)
         n = v.nested[n_index]
+        @view.getExplorerElement().refresh()
 
         queue.push {n: n, row: lineno + offsetRow}
         n_index += 1
@@ -368,7 +380,7 @@ class Variant
       variantView = @view.makeNewFromJson(v)
       variantView.buildVariantDiv()
       if nestParent?
-        v.getModel().setNestedParent([@, nestParent])
+        variantView.getModel().setNestedParent([nestParent, @view])
     variantView
 
 
