@@ -225,6 +225,8 @@ class Variant
     else
       return false
 
+  getPrevs: ->
+    prevVers
 
   newVersion: ->
     # new text has clean text before we add marker placeholders

@@ -69,6 +69,22 @@ class VariantView
     for n in @model.getNested()
       n.dissolve()"
 
+  archive: ->
+
+    console.log @explorerGroupElement#.variant.currentVersionName
+
+    $(@explorerGroupElement.variant.currentVersionName).remove()
+    v = $('.icon-primitive-square').data("version")
+    @switchToVersion(v)
+    console.log @model
+    console.log @headerWrapper
+
+
+    #$('.icon-primitive-square').remove()
+
+
+
+
   serialize: ->
     #todo add ui
     @model.serialize()
@@ -439,6 +455,14 @@ class VariantView
     $(buttonDissolve).click =>
       @dissolve()
     variantsMenu.appendChild(buttonDissolve)
+
+    buttonArchive = document.createElement("div")
+    buttonArchive.classList.add('variants-hoverMenu-buttons')
+    buttonArchive.classList.add('archiveVariantButton')
+    $(buttonArchive).html("archive")
+    $(buttonArchive).click =>
+      @archive()
+    variantsMenu.appendChild(buttonArchive)
 
   addOutputButton: (headerContainer) ->
     @outputButton = document.createElement("div")
