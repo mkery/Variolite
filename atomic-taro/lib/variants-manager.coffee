@@ -128,7 +128,7 @@ class VariantsManager
         hoverMenu = $(this).children('.variants-hoverMenu')
         hoverMenu.slideUp('fast')
 
-      $(document).on 'click', '.icon-primitive-square', (ev) ->
+      $(document).on 'click', '.atomic-taro_editor-header_version-title', (ev) ->
         v = $(this).data("version")
         ev.stopPropagation()
         ev.preventDefault()

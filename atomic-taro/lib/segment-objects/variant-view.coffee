@@ -61,13 +61,13 @@ class VariantView
   deactivate: ->
     @model.getMarker().destroy()
 
-  dissolve: =>
-    @headerMarkDecoration.destroy()
+  dissolve: => # re-add when you can safely undo!
+    "@headerMarkDecoration.destroy()
     @footerMarkDecoration.destroy()
     @model.dissolve()
     @explorerGroupElement.dissolve()
     for n in @model.getNested()
-      n.dissolve()
+      n.dissolve()"
 
   serialize: ->
     #todo add ui
@@ -342,11 +342,14 @@ class VariantView
   addVersionBookmark: (v, current, versionBookmarkBar, singleton) ->
     versionTitle = document.createElement("span")
     versionTitle.classList.add('atomic-taro_editor-header_version-title')
+    $(versionTitle).data("version", v)
+    $(versionTitle).data("variant", @)
+
     squareIcon = document.createElement("span")
     #console.log "singleton? "+singleton
     if !singleton
-      $(squareIcon).data("version", v)
-      $(squareIcon).data("variant", @)
+      #$(squareIcon).data("version", v)
+      #$(squareIcon).data("variant", @)
       squareIcon.classList.add('icon-primitive-square')
       versionTitle.appendChild(squareIcon)
     title = document.createElement("span")

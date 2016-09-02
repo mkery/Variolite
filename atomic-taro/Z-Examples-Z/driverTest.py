@@ -5,17 +5,19 @@ import sys
 import math
 
 
-#%%^%%Ollie
+#%%^%%OllieYa
 def distance(x0, y0, x1, y1):
 	return math.sqrt((x1-x0)**2 + (y1-y0)**2)
-#Ollie is a dog!!!!!!!
+#Ollie is a dog.
 
 def computeAngle (p1, p2):
+#%%^%%Tree-1
 	dot = 0
 	if computeNorm(p2[0], p2[1]) == 0 or computeNorm(p1[0], p1[1])==0: #may be incorrect
-		dot = 0 #Taro goes here
+		dot = 0 #Taro goes here!!!!
 	else:
 		dot = (p2[0]*p1[0]+p2[1]*p1[1])/float(computeNorm(p1[0], p1[1])*computeNorm(p2[0], p2[1]))
+#^^%^^
 	if dot > 1:
 		dot = 1 #Fish goes here
 	elif dot < -1:
@@ -33,10 +35,9 @@ def compute_AllAngles (trip):
 		ang = computeAngle(dV[i-1], dV[i])
 		np.append(angles, [ang, dV[i][2]]) #append angle with timepoint
 	return angles
-
-
-
 #^^%^^
+
+
 #%%^%% Speed
 """def findSpeed_Dist(trip):
 	v = []
@@ -46,10 +47,9 @@ def compute_AllAngles (trip):
 		dist += d
 		v.append(3.6*d)
 	return v,dist"""
-
+#^^%^^
 
 def findStops(speeds):
-#^^%^^
 	stops = [] #stops are a start and end time pair
 	start = -1
 	end = -1
