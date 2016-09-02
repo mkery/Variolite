@@ -85,6 +85,22 @@ class VariantView
 
 
 
+  archive: ->
+
+    console.log @explorerGroupElement#.variant.currentVersionName
+
+    $(@explorerGroupElement.variant.currentVersionName).remove()
+    v = $('.icon-primitive-square').data("version")
+    @switchToVersion(v)
+    console.log @model
+    console.log @headerWrapper
+
+
+    #$('.icon-primitive-square').remove()
+
+
+
+
   serialize: ->
     #todo add ui
     @model.serialize()
