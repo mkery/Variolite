@@ -31,6 +31,8 @@ class VariantView
     @headerBar.classList.add('atomic-taro_editor-header-box')
     @nestLabelContainer = null
     @collapseIcon = null
+    @visibleVersions = []
+    @buttonArchive = null
 
     #footer bar that simply marks the end
     @footerWrapper = document.createElement('div')
@@ -69,35 +71,29 @@ class VariantView
     for n in @model.getNested()
       n.dissolve()"
 
-  archive: ->
-
-    console.log @explorerGroupElement#.variant.currentVersionName
-
-    $(@explorerGroupElement.variant.currentVersionName).remove()
-    v = $('.icon-primitive-square').data("version")
-    @switchToVersion(v)
-    console.log @model
-    console.log @headerWrapper
-
-
-    #$('.icon-primitive-square').remove()
-
-
-
 
   archive: ->
+    # No versions showing to archive
+    # If just 1 don't bother switching to a another verison
+    if @visibleVersions.length < 2
+      return
 
-    console.log @explorerGroupElement#.variant.currentVersionName
+    # make the current version inactive so it's not
+    # re-drawn on the version bookmark bar
+    c = @model.getCurrentVersion()
+    @model.archiveCurrentVerion()
 
-    $(@explorerGroupElement.variant.currentVersionName).remove()
-    v = $('.icon-primitive-square').data("version")
+    # Switch to an adjacent version in the version bookmark bar
+    for v, index in @visibleVersions
+      if v.title == c.title
+        if index > 0
+          v = @visibleVersions[index - 1]
+        else
+          v = @visibleVersions[index + 1]
     @switchToVersion(v)
-    console.log @model
-    console.log @headerWrapper
 
-
-    #$('.icon-primitive-square').remove()
-
+    if @visibleVersions.length < 2
+      $(@buttonArchive).hide()
 
 
 
@@ -258,6 +254,7 @@ class VariantView
     if same == true
       return # don't switch, this version is current
     console.log "switching version! "+v.title
+
     @model.switchToVersion(v)
     $(@versionBookmarkBar).empty()
     $(@activeButton).data("version", v)
@@ -364,48 +361,58 @@ class VariantView
     $(varIcons).html("<span class='icon-primitive-square'></span><span class='icon-primitive-square active'></span>")
     headerContainer.appendChild(varIcons)'''
 
+
   addNameBookmarkBar: (versionBookmarkBar) ->
     current = @model.getCurrentVersion()
     root = @model.getRootVersion()
     singleton = !@model.hasVersions()
+    @visibleVersions = [] # reset
     @addVersionBookmark(root, current, versionBookmarkBar, singleton)
+    if @visibleVersions.length > 1
+      $(@buttonArchive).show()
+    else
+      $(@buttonArchive).hide()
 
 
   addVersionBookmark: (v, current, versionBookmarkBar, singleton) ->
-    versionTitle = document.createElement("span")
-    versionTitle.classList.add('atomic-taro_editor-header_version-title')
-    $(versionTitle).data("version", v)
-    $(versionTitle).data("variant", @)
+    console.log "active? "+v.title+"  "+v.active
+    if v.active == true # don't show a version that is archived
+      @visibleVersions.push v
+      versionTitle = document.createElement("span")
+      versionTitle.classList.add('atomic-taro_editor-header_version-title')
+      $(versionTitle).data("version", v)
+      $(versionTitle).data("variant", @)
 
-    squareIcon = document.createElement("span")
-    #console.log "singleton? "+singleton
-    if !singleton
-      #$(squareIcon).data("version", v)
-      #$(squareIcon).data("variant", @)
-      squareIcon.classList.add('icon-primitive-square')
-      versionTitle.appendChild(squareIcon)
-    title = document.createElement("span")
-    $(title).text(v.title)
-    title.classList.add('version-title')
-    title.classList.add('native-key-bindings')
-    $(title).data("variant", @)
-    $(title).data("version", v)
-    versionTitle.appendChild(title)
-    versionBookmarkBar.appendChild(versionTitle)
+      squareIcon = document.createElement("span")
+      #console.log "singleton? "+singleton
+      if !singleton
+        #$(squareIcon).data("version", v)
+        #$(squareIcon).data("variant", @)
+        squareIcon.classList.add('icon-primitive-square')
+        versionTitle.appendChild(squareIcon)
+      title = document.createElement("span")
+      $(title).text(v.title)
+      title.classList.add('version-title')
+      title.classList.add('native-key-bindings')
+      $(title).data("variant", @)
+      $(title).data("version", v)
+      versionTitle.appendChild(title)
+      versionBookmarkBar.appendChild(versionTitle)
 
-    if(v.title == current.title)
-      if @focused
-        versionTitle.classList.add('focused')
-      squareIcon.classList.add('active')
-      versionTitle.classList.add('active')
-      @currentVersionName = versionTitle
+      if(v.title == current.title)
+        if @focused
+          versionTitle.classList.add('focused')
+        squareIcon.classList.add('active')
+        versionTitle.classList.add('active')
+        @currentVersionName = versionTitle
 
-    if(@model.isHighlighted(v))
-      if @focused
-        versionTitle.classList.add('focused')
-      squareIcon.classList.add('highlighted')
-      versionTitle.classList.add('highlighted')
+      if(@model.isHighlighted(v))
+        if @focused
+          versionTitle.classList.add('focused')
+        squareIcon.classList.add('highlighted')
+        versionTitle.classList.add('highlighted')
 
+    #regarless if this verison is active, check children
     for child in v.children
       @addVersionBookmark(child, current, versionBookmarkBar, false)
 
@@ -447,7 +454,7 @@ class VariantView
     buttonShow = document.createElement("div")
     buttonShow.classList.add('variants-hoverMenu-buttons')
     buttonShow.classList.add('showVariantsButton')
-    $(buttonShow).text("show")
+    $(buttonShow).text("show variant panel")
     $(buttonShow).data("variant", @)
     $(buttonShow).click (ev) =>
       ev.stopPropagation()
@@ -459,26 +466,30 @@ class VariantView
     buttonAdd = document.createElement("div")
     buttonAdd.classList.add('variants-hoverMenu-buttons')
     buttonAdd.classList.add('createVariantButton')
-    $(buttonAdd).html("<span class='icon icon-repo-create'>create new variant</span>")
+    $(buttonAdd).html("<span class='icon icon-repo-create'>new version</span>")
     $(buttonAdd).click =>
       @newVersion()
+      $(variantsMenu).hide()
     variantsMenu.appendChild(buttonAdd)
+
+    @buttonArchive = document.createElement("div")
+    @buttonArchive.classList.add('variants-hoverMenu-buttons')
+    @buttonArchive.classList.add('archiveVariantButton')
+    $(@buttonArchive).html("<span class='icon icon-dash'>archive version</span>")
+    $(@buttonArchive).click =>
+      @archive()
+      $(variantsMenu).hide()
+    variantsMenu.appendChild(@buttonArchive)
 
     buttonDissolve = document.createElement("div")
     buttonDissolve.classList.add('variants-hoverMenu-buttons')
     buttonDissolve.classList.add('dissolveVariantButton')
-    $(buttonDissolve).html("dissolve")
+    $(buttonDissolve).html("<span class='icon icon-dash'>dissolve variant</span>")
     $(buttonDissolve).click =>
       @dissolve()
+      $(variantsMenu).hide()
     variantsMenu.appendChild(buttonDissolve)
 
-    buttonArchive = document.createElement("div")
-    buttonArchive.classList.add('variants-hoverMenu-buttons')
-    buttonArchive.classList.add('archiveVariantButton')
-    $(buttonArchive).html("archive")
-    $(buttonArchive).click =>
-      @archive()
-    variantsMenu.appendChild(buttonArchive)
 
   addOutputButton: (headerContainer) ->
     @outputButton = document.createElement("div")

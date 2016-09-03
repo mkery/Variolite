@@ -27,9 +27,9 @@ class Variant
     if @marker?
       text = @sourceEditor.getTextInBufferRange(@marker.getBufferRange())
       date = @dateNow()
-      @currentVersion = {title: title, subtitle: 0, text: text, date: date, children: [], nested: []}
+      @currentVersion = {active: true, title: title, subtitle: 0, text: text, date: date, children: [], nested: []}
     else
-      @currentVersion = {title: "NoTitle", subtitle: 0, text: "", date: "", children: [], nested: []}
+      @currentVersion = {active: true, title: "NoTitle", subtitle: 0, text: "", date: "", children: [], nested: []}
 
     @rootVersion = @currentVersion
     #@versions = []
@@ -108,7 +108,7 @@ class Variant
           nested.push n #already in JSON form
         else
           nested.push n.serialize()
-    copy = {title: version.title, subtitle: version.subtitle, text: version.text, date: version.date, children: children, nested: nested}
+    copy = {active: true, title: version.title, subtitle: version.subtitle, text: version.text, date: version.date, children: children, nested: nested}
     copy
 
 
@@ -117,10 +117,10 @@ class Variant
     @rootVersion = state.rootVersion
     @walkVersions @rootVersion, (v) =>
       if v.title == currentTitle
-        console.log "current Nested"
+        #console.log "current Nested"
         for n, index in @currentVersion.nested
-          console.log n
-          console.log v.nested[index]
+          #console.log n
+          #console.log v.nested[index]
           n.deserialize(v.nested[index])
           v.nested[index] = n
         @currentVersion = v
@@ -134,6 +134,11 @@ class Variant
     @marker.destroy()
     @headerMarker.destroy()
     @pendingDestruction = true
+
+
+  archiveCurrentVerion: ->
+    @currentVersion.active = false
+
 
 
   isAlive: ->
@@ -240,7 +245,7 @@ class Variant
 
     subtitle = if @currentVersion.subtitle? then @currentVersion.subtitle else 0
     index = @currentVersion.title + "-" + (subtitle + 1)
-    newVersion = {title: index, text: newText, date: @dateNow(), children: [], nested: []}
+    newVersion = {active: true, title: index, text: newText, date: @dateNow(), children: [], nested: []}
     #@versions.push newVersion
     @currentVersion.children.push newVersion
     @currentVersion = newVersion
@@ -249,6 +254,7 @@ class Variant
 
 
   switchToVersion: (v, params) =>
+    v.active = true
     @prevVers.push(@currentVersion)
     text = v.text
     @setCurrentVersionText_Close()
