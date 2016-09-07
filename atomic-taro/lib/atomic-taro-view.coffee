@@ -181,7 +181,11 @@ class AtomicTaroView
 
   wrapNewVariant: (e, params) ->
     # first, get range
-    range = @exploratoryEditor.getSelectedBufferRange()
+    clickRange = @exploratoryEditor.getSelectedBufferRange()
+    start = clickRange.start
+    end = clickRange.end
+    range = [new Point(start.row, 0), new Point(end.row, 100000000000)]
+    range = @exploratoryEditor.getBuffer().clipRange(range)
     start = range.start
     end = range.end
 
@@ -201,18 +205,25 @@ class AtomicTaroView
 
       # now initialize everything
       marker = @exploratoryEditor.markBufferRange(range, invalidate: 'never')
+      #DEBUG# @exploratoryEditor.decorateMarker(marker, {type: 'highlight', class: 'highlight-green'})
+      
       #finally, make the new variant!
       variant = new VariantView(@exploratoryEditor, marker, "v0", @, @undoAgent)
       marker.setProperties(myVariant: variant)
       headerElement = variant.getHeader()
-      hm = @exploratoryEditor.markScreenPosition([start.row - 1, start.col], invalidate: 'never')
-      hd = @exploratoryEditor.decorateMarker(hm, {type: 'block', position: 'after', item: headerElement})
+      #console.log headerElement
+      hRange = [start, new Point(end.row - 1, end.col)]
+      hm = @exploratoryEditor.markBufferRange(hRange, invalidate: 'never', reversed: true)
+      #editor.decorateMarker(hm, type: 'highlight', class: 'highlight-pink')
+      hm.setProperties(myVariant: variant)
+      hdec = @exploratoryEditor.decorateMarker(hm, {type: 'block', position: 'before', item: headerElement})
       variant.setHeaderMarker(hm)
-      variant.setHeaderMarkerDecoration(hd)
+      variant.setHeaderMarkerDecoration(hdec)
 
       footerElement = variant.getFooter()
-      fd = @exploratoryEditor.decorateMarker(marker, {type: 'block', position: 'after', item: footerElement})
-      variant.setFooterMarkerDecoration(fd)
+      fdec = @exploratoryEditor.decorateMarker(marker, {type: 'block', position: 'after', item: footerElement})
+      variant.setFooterMarkerDecoration(fdec)
+
       variant.buildVariantDiv()
 
       @explorer.getVariantPanel().newVariant(variant)

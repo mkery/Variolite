@@ -11,7 +11,7 @@ def distance(x0, y0, x1, y1):
 #Ollie is a dog.
 
 def computeAngle (p1, p2):
-#%%^%%Tree2
+#%%^%%NoTitle
 	dot = 0
 	if computeNorm(p2[0], p2[1]) == 0 or computeNorm(p1[0], p1[1])==0: #may be incorrect
 		dot = 0 #Taro goes here!!!!
@@ -47,6 +47,7 @@ def compute_AllAngles (trip):
 		dist += d
 		v.append(3.6*d)
 	return v,dist"""
+#^^%^^
 #^^%^^
 
 def findStops(speeds):

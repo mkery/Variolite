@@ -1,6 +1,5 @@
 # from https://github.com/mkery/CS349-roads/blob/master/VisualizeDriver.py
 
-#%%^%%v0-1
 def plotTrip(filename):
 	tripName = int(os.path.basename(filename).split(".")[0])
 	tripPath = np.genfromtxt(filename, delimiter=',', skip_header=1, dtype=(float,float))
@@ -25,4 +24,3 @@ def plotTrip(filename):
 	pyplot.subplot(212)
 	pyplot.plot(v, label='velocity')
 	pyplot.show()
-#^^%^^

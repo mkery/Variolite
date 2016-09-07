@@ -63,13 +63,26 @@ class VariantView
   deactivate: ->
     @model.getMarker().destroy()
 
-  dissolve: => # re-add when you can safely undo!
-    "@headerMarkDecoration.destroy()
+
+
+  dissolve: () => # re-add when you can safely undo!
+    @headerMarkDecoration.destroy()
     @footerMarkDecoration.destroy()
     @model.dissolve()
     @explorerGroupElement.dissolve()
     for n in @model.getNested()
-      n.dissolve()"
+      n.dissolve()
+
+    @undoAgent.pushChange({data: {undoSkip: true}, callback: @reinstate})
+
+
+
+  reinstate: =>
+    @model.reinstate()
+    @explorerGroupElement.reinstate()
+    for n in @model.getNested()
+      n.reinstate()
+
 
 
   archive: ->
@@ -85,7 +98,7 @@ class VariantView
 
     # Switch to an adjacent version in the version bookmark bar
     for v, index in @visibleVersions
-      if v.title == c.title
+      if v.id == c.id
         if index > 0
           v = @visibleVersions[index - 1]
         else
@@ -375,7 +388,6 @@ class VariantView
 
 
   addVersionBookmark: (v, current, versionBookmarkBar, singleton) ->
-    console.log "active? "+v.title+"  "+v.active
     if v.active == true # don't show a version that is archived
       @visibleVersions.push v
       versionTitle = document.createElement("span")
@@ -399,7 +411,7 @@ class VariantView
       versionTitle.appendChild(title)
       versionBookmarkBar.appendChild(versionTitle)
 
-      if(v.title == current.title)
+      if(v.id == current.id)
         if @focused
           versionTitle.classList.add('focused')
         squareIcon.classList.add('active')

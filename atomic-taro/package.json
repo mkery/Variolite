@@ -18,6 +18,7 @@
     "jquery": "^2.1.4",
     "jquery-ui-browserify": "^1.0.0",
     "autocomplete-python": "^1.0.0",
-    "autocomplete-plus": "2.31.1"
+    "autocomplete-plus": "2.31.1",
+    "crypto": "^1.0.0"
   }
 }

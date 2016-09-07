@@ -92,7 +92,7 @@ class ExplorerVariantElement
     @myLabel.classList.add('atomic-taro_explore_version-label')
     @myLabel.classList.add('icon-git-commit')
     $(@myLabel).data('variantElem', @)
-    if version.title == variant?.getModel().getCurrentVersion().title
+    if version.id == variant?.getModel().getCurrentVersion().id
       @myLabel.classList.add('focused')
     $(@myLabel).html(version.title)
     @myContainer.appendChild(@myLabel)
@@ -112,7 +112,7 @@ class ExplorerVariantElement
     @myLabel.classList.add('atomic-taro_explore_version-label')
     $(@myLabel).data('variantElem', @)
     @myLabel.classList.add('icon-git-commit')
-    if version.title == variant?.getModel().getCurrentVersion().title
+    if version.id == variant?.getModel().getCurrentVersion().id
       @myLabel.classList.add('focused')
     $(@myLabel).html(version.title)
     ver.appendChild(@myLabel)

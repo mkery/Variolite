@@ -1,5 +1,6 @@
 {Point, Range, TextBuffer} = require 'atom'
 JsDiff = require 'diff'
+crypto = require 'crypto'
 
 '''
 Represents a single variant of exploratory code.
@@ -24,12 +25,14 @@ class Variant
     '''
     @pendingDestruction = false
 
+    id = crypto.randomBytes(20).toString('hex')
+
     if @marker?
       text = @sourceEditor.getTextInBufferRange(@marker.getBufferRange())
       date = @dateNow()
-      @currentVersion = {active: true, title: title, subtitle: 0, text: text, date: date, children: [], nested: []}
+      @currentVersion = {active: true, id: id, title: title, subtitle: 0, text: text, date: date, children: [], nested: []}
     else
-      @currentVersion = {active: true, title: "NoTitle", subtitle: 0, text: "", date: "", children: [], nested: []}
+      @currentVersion = {active: true, id: id, title: "NoTitle", subtitle: 0, text: "", date: "", children: [], nested: []}
 
     @rootVersion = @currentVersion
     #@versions = []
@@ -108,15 +111,15 @@ class Variant
           nested.push n #already in JSON form
         else
           nested.push n.serialize()
-    copy = {active: true, title: version.title, subtitle: version.subtitle, text: version.text, date: version.date, children: children, nested: nested}
+    copy = {active: version.active, id: version.id, title: version.title, subtitle: version.subtitle, text: version.text, date: version.date, children: children, nested: nested}
     copy
 
 
   deserialize: (state) ->
-    currentTitle = state.currentVersion.title
+    currentID = state.currentVersion.id
     @rootVersion = state.rootVersion
     @walkVersions @rootVersion, (v) =>
-      if v.title == currentTitle
+      if v.id == currentID
         #console.log "current Nested"
         for n, index in @currentVersion.nested
           #console.log n
@@ -134,6 +137,28 @@ class Variant
     @marker.destroy()
     @headerMarker.destroy()
     @pendingDestruction = true
+
+
+  reinstate: =>
+    if @pendingDestruction
+      @marker = @sourceEditor.markBufferRange(@range, invalidate: 'never')
+      @marker.setProperties(myVariant: @view)
+      #editor.decorateMarker(marker, type: 'highlight', class: 'highlight-green')
+
+      headerElement = @view.getHeader()
+      #console.log headerElement
+      hRange = [@range.start, new Point(@range.end.row - 1, @range.end.col)]
+      @headerMarker = @sourceEditor.markBufferRange(hRange, invalidate: 'never', reversed: true)
+      #editor.decorateMarker(hm, type: 'highlight', class: 'highlight-pink')
+      @headerMarker.setProperties(myVariant: @view)
+      hdec = @sourceEditor.decorateMarker(@headerMarker, {type: 'block', position: 'before', item: headerElement})
+      @view.setHeaderMarkerDecoration(hdec)
+
+      footerElement = @view.getFooter()
+      fdec = @sourceEditor.decorateMarker(@marker, {type: 'block', position: 'after', item: footerElement})
+      @view.setFooterMarkerDecoration(fdec)
+      @pendingDestruction = false
+
 
 
   archiveCurrentVerion: ->
@@ -175,10 +200,10 @@ class Variant
     @rootVersion
 
 
-  findVersion: (name) ->
+  '''findVersion: (id) ->
     @walkVersions @rootVersion, (v) =>
-      if v.title == name
-        return false
+      if v.id == id
+        return false'''
 
 
   getCurrentVersion: ->
@@ -213,7 +238,7 @@ class Variant
 
   isHighlighted: (v) ->
     for h in @highlighted
-      if h.title == v.title
+      if h.id == v.id
         return true
     false
 
@@ -225,7 +250,7 @@ class Variant
 
   isCurrent: (v) ->
     console.log "current version is "+@currentVersion.title+", compared to "+v.title
-    if v.title == @currentVersion.title
+    if v.id == @currentVersion.id
       return true
     else
       return false
@@ -245,7 +270,8 @@ class Variant
 
     subtitle = if @currentVersion.subtitle? then @currentVersion.subtitle else 0
     index = @currentVersion.title + "-" + (subtitle + 1)
-    newVersion = {active: true, title: index, text: newText, date: @dateNow(), children: [], nested: []}
+    id = crypto.randomBytes(20).toString('hex')
+    newVersion = {active: true, id: id, title: index, text: newText, date: @dateNow(), children: [], nested: []}
     #@versions.push newVersion
     @currentVersion.children.push newVersion
     @currentVersion = newVersion

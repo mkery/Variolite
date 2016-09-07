@@ -25,7 +25,11 @@ class ExplorerGroupElement
 
 
   dissolve: ->
-    $(@myContainer).html('')
+    $(@myContainer).hide()
+
+
+  reinstate: ->
+    $(@myContainer).show()
 
 
   collapse: ->
