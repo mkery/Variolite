@@ -9,12 +9,12 @@ OutputPane = require './output-pane'
 module.exports =
 class AtomicTaroToolPane
 
-  constructor: (@manager, @root) ->
+  constructor: (@manager, @programProcessor, @root) ->
     @pane = document.createElement('div')
     @pane.classList.add('atomic-taro_tools-pane')
 
     @variantExplorer = new VariantExplorerPane(@manager, @root)
-    @outputExplorer = new OutputPane(@manager, @root)
+    @outputExplorer = new OutputPane(@manager, @programProcessor, @root)
 
     @resizeRegion = document.createElement('div')
     @resizeRegion.classList.add('atomic-taro_tools-resize-handle')

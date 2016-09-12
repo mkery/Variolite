@@ -16,6 +16,7 @@ AnnotationProcessorBuffer = require './annotation-processor-buffer'
 VariantExplorerPane = require './right-panel/variant-explorer-pane'
 AtomicTaroToolPane = require './right-panel/atomic-taro-tool-pane'
 UndoAgent = require './undo-agent'
+ProgramProcessor = require './program-processor'
 
 module.exports =
 class AtomicTaroView
@@ -28,6 +29,7 @@ class AtomicTaroView
     @variantManager = null
 
     @undoAgent = new UndoAgent(50) #max undo entries
+    @programProcessor = null
 
     #divs
     @element = null
@@ -93,7 +95,7 @@ class AtomicTaroView
       atom.views.addViewProvider AtomicTaroToolPane, (toolPane) ->
         toolPane.getElement()
 
-      @explorer = new AtomicTaroToolPane(@variantManager, @)
+      @explorer = new AtomicTaroToolPane(@variantManager, @programProcessor, @)
 
   isShowingExplorer: ->
     @explorer_panel.isVisible()
@@ -125,6 +127,7 @@ class AtomicTaroView
 
     # create a variant manager
     @variantManager = new VariantsManager(variants, @)
+    @programProcessor = new ProgramProcessor(@filePath, @)
 
     #@element.appendChild(@exploratoryEditor.getElement())
 
@@ -179,6 +182,10 @@ class AtomicTaroView
     @variantManager.copyVariant(e)
 
 
+  registerOutput: (data) ->
+    @variantManager.registerOutput(data)
+
+
   wrapNewVariant: (e, params) ->
     # first, get range
     clickRange = @exploratoryEditor.getSelectedBufferRange()
@@ -206,7 +213,7 @@ class AtomicTaroView
       # now initialize everything
       marker = @exploratoryEditor.markBufferRange(range, invalidate: 'never')
       #DEBUG# @exploratoryEditor.decorateMarker(marker, {type: 'highlight', class: 'highlight-green'})
-      
+
       #finally, make the new variant!
       variant = new VariantView(@exploratoryEditor, marker, "v0", @, @undoAgent)
       marker.setProperties(myVariant: variant)

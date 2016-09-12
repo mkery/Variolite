@@ -154,6 +154,11 @@ class VariantView
   getExplorerElement: ->
     @explorerGroupElement
 
+
+  getActiveVersionIDs: ->
+    @model.getActiveVersionIDs()
+
+
   #getWrappedHeader: ->
   #  @versionExplorer.getHeader()
 

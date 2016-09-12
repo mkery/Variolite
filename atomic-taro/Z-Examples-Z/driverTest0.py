@@ -194,3 +194,6 @@ class Trip(object):
 """trip_test = Trip(sys.argv[1])
 trip_test.plotTrip()
 print trip_test.rdp"""
+
+print "YAY!"
+print "Ran a python file yay."

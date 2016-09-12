@@ -71,6 +71,17 @@ class Variant
     text
 
 
+  getActiveVersionIDs: ->
+    current = [@currentVersion.id]
+    if @currentVersion.nested.length > 0
+      nCur = []
+      for n in @currentVersion.nested
+        # assume all nested variants are instantiated
+        nCur.push n.getActiveVersionIDs()
+
+      current.push nCur
+    current
+
 
   dateNow: ->
     date = new Date()
@@ -198,6 +209,10 @@ class Variant
   getRootVersion: ->
     #@versions
     @rootVersion
+
+
+  getVariantID: ->
+    @rootVersion.id
 
 
   '''findVersion: (id) ->

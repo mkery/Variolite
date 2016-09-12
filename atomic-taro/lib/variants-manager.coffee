@@ -44,11 +44,20 @@ class VariantsManager
       for v in @variants
         v.deactivate()
 
+
     addVariant: (v) ->
       @variants.push v
 
+
     getVariants: ->
       @variants
+
+
+    registerOutput: (data) ->
+      for v in @variants
+        console.log "The current active versions"
+        console.log v.getActiveVersionIDs()
+
 
     '''
     Sort variants by their marker location. This is helpful for dealing with things
