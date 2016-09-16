@@ -10,7 +10,7 @@ module.exports =
 class VariantExplorerPane
 
 
-  constructor: (@manager, @root) ->
+  constructor: (@masterVariant, @root) ->
     @pane = document.createElement('div')
     @pane.classList.add('atomic-taro_explore-pane')
     @rootVariants = []
@@ -20,9 +20,7 @@ class VariantExplorerPane
   initialize: ->
     @pane.appendChild(@makeTitleDiv())
 
-    variants = @manager.getVariants()
-    for v in variants
-      groupV = new ExplorerGroupElement(v, v.getModel().getRootVersion(), @pane)
+    groupV = new ExplorerGroupElement(@masterVariant, @masterVariant.getModel().getRootVersion(), @pane)
 
     @addListeners()
 

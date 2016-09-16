@@ -9,12 +9,12 @@ OutputPane = require './output-pane'
 module.exports =
 class AtomicTaroToolPane
 
-  constructor: (@manager, @programProcessor, @root) ->
+  constructor: (@masterVariant, @programProcessor, @root) ->
     @pane = document.createElement('div')
     @pane.classList.add('atomic-taro_tools-pane')
 
-    @variantExplorer = new VariantExplorerPane(@manager, @root)
-    @outputExplorer = new OutputPane(@manager, @programProcessor, @root)
+    @variantExplorer = new VariantExplorerPane(@masterVariant, @root)
+    @outputExplorer = new OutputPane(@masterVariant, @programProcessor, @root)
 
     @resizeRegion = document.createElement('div')
     @resizeRegion.classList.add('atomic-taro_tools-resize-handle')
@@ -37,6 +37,11 @@ class AtomicTaroToolPane
 
   addListeners: ->
     $(document).on 'mousedown', '.atomic-taro_tools-resize-handle', (e) => @resizeStarted(e)
+
+
+  registerOutput: (data, commit) ->
+    @outputExplorer.registerOutput(data, commit)
+
 
   getVariantPanel: ->
     @variantExplorer

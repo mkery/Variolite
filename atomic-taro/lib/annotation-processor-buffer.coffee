@@ -71,19 +71,19 @@ class AnnotationProcessorBuffer extends TextBuffer
 
   annotateTextWithVariants: (text) ->
     console.log "attempting save!!!"
-    @variantView.sortVariants() #important!
-    variants = @variantView.getVariants()
+    masterVariant = @variantView.getMasterVariant()
+    masterVariant.sortVariants() #important!
     console.log "sorted???"
-    console.log variants
+
     if @subBuffer?
       @subBuffer.setText(@getText())
     else
       @subBuffer = new TextBuffer(text: @getText())
 
     insertOffset = 0
-    for v in variants
-      if v.getModel().isAlive() # not dissolved or otherwise destroyed
-        insertOffset = @annotateVersion(v, insertOffset)
+    children = masterVariant.getModel().getCurrentVersion().nested
+    for child in children
+      insertOffset = @annotateVersion(child, insertOffset)
 
     @subBuffer.getText()
 

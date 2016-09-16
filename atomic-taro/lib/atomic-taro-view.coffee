@@ -27,6 +27,7 @@ class AtomicTaroView
     @exploratoryEditor = null
     @variantWidth = null
     @variantManager = null
+    @masterVariant = null
 
     @undoAgent = new UndoAgent(50) #max undo entries
     @programProcessor = null
@@ -41,14 +42,14 @@ class AtomicTaroView
 
 
   deactivate: ->
-    @variantManager.deactivate()
+    @masterVariant.deactivate()
 
   saveActiveItemAs: ->
     console.log "save as!"
 
   # Returns an object that can be retrieved when package is activated
   serialize: ->
-    variants: @variantManager?.serialize()
+    variants: @masterVariant?.serialize()
 
 
   deserialize: (statePath) ->
@@ -60,7 +61,7 @@ class AtomicTaroView
         stateVariants = state.atomicTaroViewState.variants
         #console.log "state variants????"
         #console.log stateVariants.variants
-        @variantManager.deserialize(stateVariants.variants)
+        @masterVariant.deserialize(stateVariants)
         @postInit_buildView()
       .fail =>
         console.log "No saved taro file found."
@@ -77,11 +78,18 @@ class AtomicTaroView
   getURI: ->
     @filePath
 
+
   getPath: ->
     @filePath
 
+
   getWidth: ->
     @exploratoryEditor.getElement().getWidth() - 20
+
+
+  getMasterVariant: ->
+    @masterVariant
+
 
   postInit_buildView: ->
       @element.appendChild(@exploratoryEditor.getElement())
@@ -90,12 +98,15 @@ class AtomicTaroView
       #console.log @exploratoryEditor.getElement().getScrollHeight()
       #$(@exploratoryEditor.getElement()).css('overflow-y', 'scroll')
 
-      @variantManager.buildVersionDivs()
+      #console.log "master Variant"
+      #console.log @masterVariant
+      @masterVariant.buildVariantDiv()
+      @variantManager.addJqueryListeners()
 
       atom.views.addViewProvider AtomicTaroToolPane, (toolPane) ->
         toolPane.getElement()
 
-      @explorer = new AtomicTaroToolPane(@variantManager, @programProcessor, @)
+      @explorer = new AtomicTaroToolPane(@masterVariant, @programProcessor, @)
 
   isShowingExplorer: ->
     @explorer_panel.isVisible()
@@ -110,6 +121,7 @@ class AtomicTaroView
     else
       @explorer_panel = atom.workspace.addRightPanel({item: @explorer})
     @variantManager.updateExplorerPanelShowing(@explorer_panel.isVisible(), @getWidth())
+    @masterVariant.updateVariantWidth(@getWidth())
     @explorer_panel.isVisible()
 
   initializeView: ->
@@ -122,11 +134,27 @@ class AtomicTaroView
     @element = document.createElement('div')
     @element.classList.add('atomic-taro_pane')#, 'scroll-view')
 
+    # alert element
+    @alertElement = document.createElement('div')
+    @alertElement.classList.add('atomic-taro_alert-pane')
+    $(@alertElement).text("On commit m")
+    xIcon = document.createElement('span')
+    xIcon.classList.add('icon-x')
+    xIcon.classList.add('atomic-taro_commitAlert')
+    xIcon.classList.add('text-smaller')
+    $ => $(document).on 'click', '.icon-x.atomic-taro_commitAlert', (ev) =>
+      @masterVariant.backToTheFuture()
+      $(@alertElement).hide()
+
+    @alertElement.appendChild(xIcon)
+    $(@alertElement).hide()
+    @element.appendChild(@alertElement)
+
     #@variantWidth = $(@element).width() - 20 #@sourceEditor.getElement().getWidth() - 20
-    variants = @initVariants(@exploratoryEditor, @element)
+    @initVariants(@exploratoryEditor, @element)
 
     # create a variant manager
-    @variantManager = new VariantsManager(variants, @)
+    @variantManager = new VariantsManager(@masterVariant, @)
     @programProcessor = new ProgramProcessor(@filePath, @)
 
     #@element.appendChild(@exploratoryEditor.getElement())
@@ -172,8 +200,8 @@ class AtomicTaroView
   saveVariants: (e) ->
     @exploratoryEditor.save()
 
-  getVariants: ->
-    @variantManager.getVariants()
+  #getVariants: ->
+  #  @variantManager.getVariants()
 
   sortVariants: ->
     @variantManager.sortVariants()
@@ -183,7 +211,15 @@ class AtomicTaroView
 
 
   registerOutput: (data) ->
-    @variantManager.registerOutput(data)
+    commitId = @masterVariant.registerOutput(data)
+    @explorer.registerOutput(data, commitId)
+
+
+  travelToCommit: (commitId) ->
+    #$(@alertElement).text('Viewing commit '+commitId)
+    $(@alertElement).slideDown('fast')
+    @masterVariant.travelToCommit(commitId)
+
 
 
   wrapNewVariant: (e, params) ->
@@ -212,14 +248,14 @@ class AtomicTaroView
 
       # now initialize everything
       marker = @exploratoryEditor.markBufferRange(range, invalidate: 'never')
-      #DEBUG# @exploratoryEditor.decorateMarker(marker, {type: 'highlight', class: 'highlight-green'})
+      #@exploratoryEditor.decorateMarker(marker, {type: 'highlight', class: 'highlight-green'})
 
       #finally, make the new variant!
       variant = new VariantView(@exploratoryEditor, marker, "v0", @, @undoAgent)
       marker.setProperties(myVariant: variant)
       headerElement = variant.getHeader()
       #console.log headerElement
-      hRange = [start, new Point(end.row - 1, end.col)]
+      hRange = [start, new Point(end.row - 1, end.column)]
       hm = @exploratoryEditor.markBufferRange(hRange, invalidate: 'never', reversed: true)
       #editor.decorateMarker(hm, type: 'highlight', class: 'highlight-pink')
       hm.setProperties(myVariant: variant)
@@ -240,13 +276,13 @@ class AtomicTaroView
         nest_Parent[1].addedNestedVariant(variant, nest_Parent[0])  #nest_Parent is an array - second item is the VariantView
       else
         console.log "adding variant to manager"
-        @variantManager.getVariants().push(variant)
+        @masterVariant.addNested(variant)
 
 
-      if params?.undoSkip? == false
+      '''if params?.undoSkip? == false
         varList = @variantManager.getVariants()
         variant = varList[varList.length - 1]
-        @undoAgent.pushChange({data: {undoSkip: true}, callback: variant.dissolve})
+        @undoAgent.pushChange({data: {undoSkip: true}, callback: variant.dissolve})'''
 
 
 
@@ -271,11 +307,23 @@ class AtomicTaroView
     beacons = @findMarkers(editor)
     #console.log "beacons!! "
     #console.log beacons
+    wholeFile = [new Point(0,0), new Point(10000000, 10000000)]
+    range = @exploratoryEditor.getBuffer().clipRange(wholeFile)
+    marker = editor.markBufferRange(range, invalidate: 'never')
+    @masterVariant = new VariantView(@exploratoryEditor, marker, @fileName, @, @undoAgent)
+    # b = {start: range.start, end: range.end, nested: []}
+    # console.log "b is "
+    # console.log b
+    #@masterVariant = @addVariant(@exploratoryEditor, b, 0, 0, @fileName).variant
+
+
     list_offset = @addAllVariants(editor, beacons, 0, [])
-    #console.log "variant List"
-    #for l in list_offset.list
-    #  console.log l.getModel().getRootVersion()
-    list_offset.list
+    range = @exploratoryEditor.getBuffer().clipRange(range)
+    @masterVariant.getModel().getMarker().setBufferRange(range)
+    #console.log "RAnge: "+range
+
+    curr = @masterVariant.getModel().getCurrentVersion()
+    @masterVariant.addedNestedVariant(v, curr) for v in list_offset.list
 
 
   findMarkers: (editor) ->
@@ -303,7 +351,7 @@ class AtomicTaroView
     beacons
 
 
-  addAllVariants: (editor, beacons, rowDeletedOffset, variantList) ->
+  addAllVariants: (editor, beacons, rowDeletedOffset) ->
     variantList = []
     for b in beacons
       priorRow = rowDeletedOffset
@@ -313,7 +361,7 @@ class AtomicTaroView
       if nested.length > 0
         #cancel out end marker offset, since we are inside the range of that marker
         nestedOffset = rowDeletedOffset
-        list_offset = @addAllVariants(editor, nested, nestedOffset, variantList)
+        list_offset = @addAllVariants(editor, nested, nestedOffset)
         grandchildren = list_offset.list
         rowDeletedOffset = list_offset.offset
 
@@ -329,7 +377,7 @@ class AtomicTaroView
     {list: variantList, offset: rowDeletedOffset}
 
 
-  addVariant: (editor, b, rowDeletedOffset, endDeleteOffset) ->
+  addVariant: (editor, b, rowDeletedOffset, endDeleteOffset, title) ->
     if endDeleteOffset? == false
       endDeleteOffset = rowDeletedOffset
 
@@ -339,8 +387,8 @@ class AtomicTaroView
 
     # create a marker for this range so that we can keep track
     range = [sb, eb]
-    start = new Point(range[0].row - rowDeletedOffset, range[0].col)
-    end = new Point(range[1].row - endDeleteOffset - 1, range[1].col)
+    start = new Point(range[0].row - rowDeletedOffset, 0)
+    end = new Point(range[1].row - endDeleteOffset - 1, range[1].column)
     range = [start, new Point(end.row, 100000000000)]
     range = editorBuffer.clipRange(range)
     marker = editor.markBufferRange(range, invalidate: 'never')
@@ -351,7 +399,10 @@ class AtomicTaroView
     # now, trim annotations
     #rowStart = sb.range.start.row
     rowStart = sb.row
-    title = editorBuffer.lineForRow(rowStart - rowDeletedOffset)
+    if not title?
+      title = editorBuffer.lineForRow(rowStart - rowDeletedOffset)
+      #get title from removed annotation
+      title = title.trim().substring(6)
     #rowEnd = eb.range.end.row
     rowEnd = eb.row
     editorBuffer.deleteRow(rowStart - rowDeletedOffset)
@@ -359,17 +410,15 @@ class AtomicTaroView
     editorBuffer.deleteRow(rowEnd - endDeleteOffset)
     endDeleteOffset += 1
 
-    #get title from removed annotation
-    title = title.trim().substring(6)
 
     #finally, make the new variant!
     variant = new VariantView(editor, marker, title, @, @undoAgent)
     marker.setProperties(myVariant: variant)
-    #editor.decorateMarker(marker, type: 'highlight', class: 'highlight-green')
+    #editor.decorateMarker(marker, type: 'highlight', class: 'highlight-pink')
 
     headerElement = variant.getHeader()
     #console.log headerElement
-    hRange = [start, new Point(end.row - 1, end.col)]
+    hRange = [start, new Point(end.row - 1, end.column)]
     hm = editor.markBufferRange(hRange, invalidate: 'never', reversed: true)
     #editor.decorateMarker(hm, type: 'highlight', class: 'highlight-pink')
     hm.setProperties(myVariant: variant)

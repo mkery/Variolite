@@ -109,6 +109,9 @@ class VariantView
       $(@buttonArchive).hide()
 
 
+  sortVariants: ->
+    @model.sortVariants()
+
 
   serialize: ->
     #todo add ui
@@ -158,6 +161,12 @@ class VariantView
   getActiveVersionIDs: ->
     @model.getActiveVersionIDs()
 
+
+  travelToCommit: (commitId) ->
+    @model.travelToCommit(commitId)
+
+  backToTheFuture: ->
+    @model.backToTheFuture()
 
   #getWrappedHeader: ->
   #  @versionExplorer.getHeader()
@@ -230,6 +239,11 @@ class VariantView
     $(@variantsButton).removeClass('active')
 
 
+  registerOutput: (data) ->
+    @model.registerOutput(data)
+
+
+
   updateVariantWidth: (width) ->
     $(@headerWrapper).width(width)
     if @nestLabelContainer?
@@ -255,6 +269,7 @@ class VariantView
 
   toggleActive: (v) ->
     @model.toggleActive(v)
+
 
 
   switchToVersion: (v, same) ->
@@ -311,6 +326,7 @@ class VariantView
 
 
   buildVariantDiv: () ->
+    #console.log "Building variant "+@model.getCurrentVersion().title
     #----------header-------------
     width = @root.getWidth()
     $(@headerWrapper).width(width)
@@ -429,9 +445,9 @@ class VariantView
         squareIcon.classList.add('highlighted')
         versionTitle.classList.add('highlighted')
 
-    #regarless if this verison is active, check children
-    for child in v.children
-      @addVersionBookmark(child, current, versionBookmarkBar, false)
+    #regarless if this verison is active, check branches
+    for branch in v.branches
+      @addVersionBookmark(branch, current, versionBookmarkBar, false)
 
 
 

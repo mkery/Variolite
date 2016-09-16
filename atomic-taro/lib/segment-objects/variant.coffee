@@ -30,9 +30,9 @@ class Variant
     if @marker?
       text = @sourceEditor.getTextInBufferRange(@marker.getBufferRange())
       date = @dateNow()
-      @currentVersion = {active: true, id: id, title: title, subtitle: 0, text: text, date: date, children: [], nested: []}
+      @currentVersion = {active: true, id: id, title: title, subtitle: 0, text: text, date: date, branches: [], commits: [], nested: []}
     else
-      @currentVersion = {active: true, id: id, title: "NoTitle", subtitle: 0, text: "", date: "", children: [], nested: []}
+      @currentVersion = {active: true, id: id, title: "NoTitle", subtitle: 0, text: "", date: "", branches: [], commits: [], nested: []}
 
     @rootVersion = @currentVersion
     #@versions = []
@@ -48,6 +48,157 @@ class Variant
     @view
 
 
+  commit: (params) ->
+    @commitChunk(@dateNow(), 0)
+
+
+  commitChunk: (date, textPointer) ->
+    commit = {date: date}
+    chunks = []
+    @sortVariants() # necissary to make sure nested variants are in order
+
+    nested = @currentVersion.nested
+    if nested.length > 0
+      for nest in nested
+        model = nest.getModel()
+        marker = model.getMarker()
+        range = marker.getBufferRange()
+
+        freeRange = [new Point(textPointer, 0), new Point(range.start.row, 0)]
+        freeRange = @sourceBuffer.clipRange(freeRange)
+        if not freeRange.isEmpty()
+          if chunks.length > 0
+            freeText = "\n"+@sourceEditor.getTextInBufferRange(freeRange)
+          else
+            freeText = @sourceEditor.getTextInBufferRange(freeRange)
+          chunks.push {text: freeText}
+
+        textPointer = range.start.row
+        commitReference = model.commitChunk(date,textPointer)
+        chunks.push commitReference
+
+        textPointer = range.end.row + 1
+
+      #After nested, get any remaining free text
+      freeRange = [new Point(textPointer, 0), new Point(@marker.getBufferRange().end.row, 100000000)]
+      freeRange = @sourceBuffer.clipRange(freeRange)
+      if not freeRange.isEmpty()
+        #console.log "END free range"
+        #console.log freeRange
+        freeText = "\n"+@sourceEditor.getTextInBufferRange(freeRange)
+        chunks.push {text: freeText}
+
+    else
+      # entire variant
+      chunks.push {text: @sourceEditor.getTextInBufferRange(@marker.getBufferRange())}
+
+    commit.text = chunks
+    @currentVersion.commits.push commit
+    # return a reference, so that others can find this commit
+    return {varID: @getVariantID(), verID: @currentVersion.id, commitID: @currentVersion.commits.length - 1}
+
+
+
+  registerOutput: (data) ->
+    commit = @commit()
+    commit
+
+
+  backToTheFuture: ->
+    latestCommit = @currentVersion.commits.length - 1
+    @travelToCommit({commitID: latestCommit, verID: @currentVersion.id})
+    @currentVersion.commits.pop()
+
+
+  travelToCommit: (commitId) ->
+    @commit() # SAVE the latest version, not ideal to make a commit every time for this though
+    @sourceBuffer.setTextInRange(@marker.getBufferRange(), "", undo: 'skip')
+    @travel(commitId)
+
+
+  travel: (commitId, insertPoint) ->
+    versionID = commitId.verID
+    commitID = commitId.commitID
+
+    version = @findVersion(versionID)
+    commit = version.commits[commitID]
+    console.log "Reverting to commit "+commitID
+    console.log commit
+
+    version.active = true
+    text = commit.text
+
+    #@setCurrentVersionText_Close()
+    #@sourceBuffer.setTextInRange(@marker.getBufferRange(), "", undo: 'skip')
+    return @unravelCommitText(version, text, insertPoint)
+    #@currentVersion = version
+    #@clearHighlights()
+
+
+  unravelCommitText: (version, text, insertPoint) ->
+    if not insertPoint?
+      insertPoint = new Point(0,0)
+
+    start = insertPoint
+
+    subCommits = []
+
+    for item in text
+      if item.commitID?
+        # then this item is a nested variant
+        #subCommits.push {point: insertPoint, item: item}
+        for nest in version.nested
+          nestID = item.varID
+          if nest.getModel().getVariantID() == nestID
+            insertPoint = nest.getModel().travel(item, insertPoint)
+            break
+      else
+        range = @sourceBuffer.insert(insertPoint, item.text+" ", undo: 'skip')
+        insertPoint = range.end
+
+    newRange = [start, new Point(insertPoint.row, insertPoint.column - 1)]
+    newRange = @sourceBuffer.clipRange(newRange)
+    #console.log "New range for "+@currentVersion.title+" is "
+    #console.log newRange
+    @marker.setBufferRange(newRange)
+    if  @headerMarker?
+      @headerMarker.setBufferRange([newRange.start, new Point(newRange.end.row - 1, newRange.end.column)])
+    #@sourceEditor.decorateMarker(@marker, type: 'highlight', class: 'highlight-pink')
+
+    # for nest in version.nested
+    #   active = false
+    #   for sub in subCommits
+    #     nestID = sub.item.varID
+    #     if nest.getModel().getVariantID() == nestID
+    #       nest.getModel().travel(sub.item, sub.point)
+    #       active = true
+    #       break
+    #   if active == false
+    #     console.log "This variant should not be showing"
+    return insertPoint
+
+
+  '''
+  Sort variants by their marker location. This is helpful for dealing with things
+  like offset at save time.
+  '''
+  sortVariants: ->
+    if @currentVersion.nested.length > 0
+      nestList = @currentVersion.nested
+      nestList = nestList.sort (a, b) ->
+        rangeA = a.getModel().getMarker().getBufferRange()
+        startA = rangeA.start.row
+        rangeB = b.getModel().getMarker().getBufferRange()
+        startB = rangeB.start.row
+        #console.log "sorting "+startA+", "+startB
+        if startA < startB
+          return -1
+        if startA > startB
+          return 1
+        return 0
+
+
+
   getNestedParent: ->
     @nestedParent
 
@@ -58,15 +209,18 @@ class Variant
 
   generateNestLabel: ->
     if @nestedParent?
-      text = @recurseNestLabel(@nestedParent, "")
-      text
+      [version, variant] = @nestedParent
+      if variant?.getModel().getNestedParent()?
+        text = @recurseNestLabel(@nestedParent, "")
+        text
 
 
   recurseNestLabel: (n, text) ->
     [version, variant] = n
     text = version.title + ": " + text
     grandParent = variant.getModel().getNestedParent()
-    if grandParent?
+
+    if grandParent? and grandParent[1]?.getModel().getNestedParent()?
       text = @recurseNestLabel(grandParent, text)
     text
 
@@ -112,9 +266,9 @@ class Variant
 
 
   serializeWalk: (version) ->
-    children = []
-    if version.children.length > 0
-      (children.push @serializeWalk(c)) for c in version.children
+    branches = []
+    if version.branches.length > 0
+      (branches.push @serializeWalk(c)) for c in version.branches
     nested = []
     if version.nested.length > 0
       for n in version.nested
@@ -122,7 +276,7 @@ class Variant
           nested.push n #already in JSON form
         else
           nested.push n.serialize()
-    copy = {active: version.active, id: version.id, title: version.title, subtitle: version.subtitle, text: version.text, date: version.date, children: children, nested: nested}
+    copy = {active: version.active, id: version.id, title: version.title, subtitle: version.subtitle, text: version.text, date: version.date, branches: branches, commits: version.commits, nested: nested}
     copy
 
 
@@ -199,9 +353,9 @@ class Variant
 
   walkVersions: (version, fun) ->
     flag = fun(version)
-    if version.children? and flag
-      for child in version.children
-        @walkVersions(child, fun)
+    if version.branches? and flag
+      for branch in version.branches
+        @walkVersions(branch, fun)
     else
       version
 
@@ -215,10 +369,10 @@ class Variant
     @rootVersion.id
 
 
-  '''findVersion: (id) ->
+  findVersion: (id) ->
     @walkVersions @rootVersion, (v) =>
       if v.id == id
-        return false'''
+        return false
 
 
   getCurrentVersion: ->
@@ -226,7 +380,7 @@ class Variant
 
 
   hasVersions: ->
-    @rootVersion.children.length > 0
+    @rootVersion.branches.length > 0
 
 
   highlighted: ->
@@ -286,9 +440,9 @@ class Variant
     subtitle = if @currentVersion.subtitle? then @currentVersion.subtitle else 0
     index = @currentVersion.title + "-" + (subtitle + 1)
     id = crypto.randomBytes(20).toString('hex')
-    newVersion = {active: true, id: id, title: index, text: newText, date: @dateNow(), children: [], nested: []}
+    newVersion = {active: true, id: id, title: index, text: newText, date: @dateNow(), branches: [], commits: [], nested: []}
     #@versions.push newVersion
-    @currentVersion.children.push newVersion
+    @currentVersion.branches.push newVersion
     @currentVersion = newVersion
     @clearHighlights()
     @currentVersion
@@ -474,7 +628,6 @@ class Variant
         @overlapText += text
 
       start = new Point(end.row + 1, 0)
-
 
 
   getNested: ->

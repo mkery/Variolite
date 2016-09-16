@@ -37,8 +37,8 @@ class ExplorerVariantElement
       @liPlain(@variant, @version)
 
     # finally, add child nodes
-    for child in @version.children
-      @childDivs.push new ExplorerVariantElement(@variant, child, @parentDiv, @parentElement)
+    for branch in @version.branches
+      @childDivs.push new ExplorerVariantElement(@variant, branch, @parentDiv, @parentElement)
 
 
   updateTitle: -> #TODO optimize!!

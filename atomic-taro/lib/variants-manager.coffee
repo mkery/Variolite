@@ -32,13 +32,6 @@ class VariantsManager
         for i in [0...varStates.length]
           @variants[i].deserialize(varStates[i])
 
-    buildVersionDivs: ->
-      @variantWidth = $(@root.getElement()).width()
-      for v in @variants
-        v.buildVariantDiv()
-
-      @addJqueryListeners()
-
 
     deactivate: ->
       for v in @variants
@@ -97,14 +90,11 @@ class VariantsManager
         $('.showVariantsButton').text("hide")
       else
         $('.showVariantsButton').text("show")
-      @updateVariantWidth(w)
 
-    updateVariantWidth: (w) ->
-      for v in @variants
-        v.updateVariantWidth(w)
-      #$('.atomic-taro_editor-header-box').width(w)
+
 
     addJqueryListeners: (element) ->
+      @variantWidth = $(@root.getElement()).width()
       @addHeaderListeners(element)
       #@addScrollListeners(element)
       @addVariantsListeners(element)
