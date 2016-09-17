@@ -265,11 +265,15 @@ atom-text-editor, /* 1 */
   padding-right: 10px;
   margin: 0px;
   vertical-align: middle;
-  border: 1px solid @syntax-background-color;
-  background-color: @syntax-selection-color;
+  border: 1px solid @text-color-subtle;
+  background-color: white;//@syntax-selection-color;
   color: @syntax-text-color;
 }
-.variants-hoverMenu-buttons:hover{ color: @hue-1; border: 1px solid @hue-1;}
+.variants-hoverMenu-buttons:hover{
+  color: @hue-1;
+  //border: 1px solid @hue-1;
+  background-color: #E9EFF4;
+}
 
 
 .output-container{

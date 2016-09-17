@@ -40,7 +40,7 @@ class OutputPane
     xIcon.classList.add('atomic-taro_explore')
     xIcon.classList.add('text-smaller')
     $ => $(document).on 'click', '.icon-x.atomic-taro_explore', (ev) =>
-      @root.toggleExplorerView()
+      @atomicTaroView.toggleExplorerView()
 
     # playButton = document.createElement('span')
     # playButton.classList.add('icon-playback-play')
@@ -93,7 +93,8 @@ class OutputPane
 
     $(document).on 'dblclick', '.atomic-taro_output_box', {'atomicTaroView': @atomicTaroView}, (ev) ->
       $('.atomic-taro_output_box').removeClass('selected')
-      $(this).addClass('selected')
+      $('.atomic-taro_output_box').removeClass('travel')
+      $(this).addClass('travel')
       commit = $(this).data('commit')
       ev.data.atomicTaroView.travelToCommit(commit)
       console.log "return to commit "+commit

@@ -20,7 +20,7 @@ class VariantExplorerPane
   initialize: ->
     @pane.appendChild(@makeTitleDiv())
 
-    #groupV = new ExplorerGroupElement(@masterVariant, @masterVariant.getModel().getRootVersion(), @pane)
+    groupV = new ExplorerGroupElement(@masterVariant, @masterVariant.getModel().getRootVersion(), @pane)
 
     @addListeners()
 

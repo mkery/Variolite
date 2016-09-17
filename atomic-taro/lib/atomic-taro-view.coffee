@@ -176,6 +176,7 @@ class AtomicTaroView
     returnButton.appendChild(clockIcon)
     $ => $(document).on 'click', '.atomic-taro_commitBackButton', (ev) =>
       @masterVariant.backToTheFuture()
+      $('.atomic-taro_output_box').removeClass('travel')
       $(@alertPane).slideUp('fast')
 
     @alertPane.appendChild(returnButton)
