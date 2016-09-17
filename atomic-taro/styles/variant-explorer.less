@@ -8,9 +8,9 @@
 
 .atomic-taro_tools-pane {
   border: 1px solid @tool-panel-border-color;
-  margin-top: 5px;
+  margin-top: 37px;
   margin-right: 5px;
-  padding-left: 5px;
+  padding-left: 1px;
   display: flex;
   flex-direction: column;
 }
@@ -29,16 +29,21 @@
 .atomic-taro_explore-pane{
   min-width: 200px;
   font-size: @font-size;
-  padding-bottom: 10px;
-  margin-bottom: 15px;
-  border-bottom: 1px solid @text-color-subtle;
+  //padding-bottom: 10px;
+  //margin-bottom: 15px;
+  //border-bottom: 1px solid @text-color-subtle;
 }
 
 .atomic-taro_explore-title-container{
   border-bottom: 1px solid @hue-1;
   min-height: 20px;
   padding-left: 5px;
-  margin-bottom: 10px;
+  margin-bottom: 1px;
+  padding-top: 8px;
+}
+.atomic-taro_explore-title-container.active{
+  border: 2px solid @button-background-color-hover;
+  border-bottom: 1px solid @hue-1;
 }
 
 .icon-x.atomic-taro_explore{

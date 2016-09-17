@@ -31,24 +31,35 @@ class OutputPane
   makeTitleDiv: ->
     titleBox = document.createElement('div')
     titleBox.classList.add('atomic-taro_explore-title-container')
+    titleBox.classList.add('active')
     titleText = document.createElement('span')
     $(titleText).text("Output")
 
-    playButton = document.createElement('span')
-    playButton.classList.add('icon-playback-play')
-    playButton.classList.add('atomic-taro_explore-play-button')
-    $(playButton).click =>
-      @programProcessor.run()
+    xIcon = document.createElement('span')
+    xIcon.classList.add('icon-x')
+    xIcon.classList.add('atomic-taro_explore')
+    xIcon.classList.add('text-smaller')
+    $ => $(document).on 'click', '.icon-x.atomic-taro_explore', (ev) =>
+      @root.toggleExplorerView()
+
+    # playButton = document.createElement('span')
+    # playButton.classList.add('icon-playback-play')
+    # playButton.classList.add('atomic-taro_explore-play-button')
+    # $(playButton).click =>
+    #   @programProcessor.run()
 
     titleBox.appendChild(titleText)
-    titleBox.appendChild(playButton)
+    titleBox.appendChild(xIcon)
+    # titleBox.appendChild(playButton)
     titleBox
 
 
   registerOutput: (data, commit) ->
+    $('.atomic-taro_output_box').removeClass('newest')
     outputContainer = document.createElement('div')
     outputContainer.classList.add('list-item')
     outputContainer.classList.add('atomic-taro_output_box')
+    outputContainer.classList.add('newest')
     $(outputContainer).text(data)
     $(outputContainer).data('commit', commit)
 

@@ -227,6 +227,7 @@ class VariantView
     $(@currentVersionName).addClass('focused')
     $(@footerBar).addClass('active')
     $(@variantsButton).addClass('active')
+    $(@activeButton).show()
 
 
   unHover: ->
@@ -237,6 +238,7 @@ class VariantView
     $(@currentVersionName).removeClass('focused')
     $(@footerBar).removeClass('active')
     $(@variantsButton).removeClass('active')
+    $(@activeButton).hide()
 
 
   registerOutput: (data) ->
@@ -464,6 +466,7 @@ class VariantView
     @activeButton.classList.add('atomic-taro_editor-active-button')
     $(@activeButton).html("<span>#</span>")
     $(@activeButton).data("variant", @)
+    $(@activeButton).hide()
 
     #@activeButton = document.createElement("div")
     #@activeButton.classList.add('atomic-taro_editor-active-button')

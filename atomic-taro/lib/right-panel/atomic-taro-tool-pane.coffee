@@ -23,7 +23,7 @@ class AtomicTaroToolPane
     @addListeners()
 
   initialize: ->
-    @pane.appendChild(@variantExplorer.getElement())
+    #@pane.appendChild(@variantExplorer.getElement())
     @pane.appendChild(@outputExplorer.getElement())
     @pane.appendChild(@resizeRegion)
 

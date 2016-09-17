@@ -23,11 +23,17 @@
   cursor: default;
   margin-top: 2px;
   margin-bottom: 2px;
+  background-color: @button-background-color-hover;
+  border: 1px solid white;
   border-bottom: 1px solid @background-color-selected;
 }
 .atomic-taro_output_box.selected
 {
-  background-color: @background-color-selected;
+  border: 2px solid @text-color-warning;
+}
+.atomic-taro_output_box.newest
+{
+  background-color: white;
 }
 
 .atomic-taro_output_date

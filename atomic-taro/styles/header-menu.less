@@ -1,0 +1,45 @@
+// The ui-variables file is provided by base themes provided by Atom.
+//
+// See https://github.com/atom/atom-dark-ui/blob/master/styles/ui-variables.less
+// for a full listing of what's available.
+@import "ui-variables";
+@import "syntax-variables";
+
+
+.atomic-taro_main-menu{
+  padding-top: 10px;
+  padding-bottom: 10px;
+  padding-left: 10px;
+  background-color: white;
+  border-bottom: 1px solid @tool-panel-border-color;
+  font-family: Inconsolata, Monaco, Consolas, 'Courier New', Courier;
+  position: relative;
+  top: 0px;
+  z-index: 10;
+  color: @text-color;
+}
+
+.atomic-taro_main-menu_runIcon{
+  margin-left: 5px;
+  //border: 1px solid @base-border-color;
+  //font-size: 200%;
+  text-align: center;
+  padding: 2px;
+}
+.atomic-taro_main-menu_runIcon:hover{
+  background-color: @tab-background-color;
+}
+.atomic-taro_main-menu_runIcon.click{
+  color: @text-color-success;
+  background-color: @button-background-color-hover;
+}
+
+.main-menu_variantButton{
+  padding-left: 10px;
+  padding-right: 10px;
+  color: @syntax-text-color;
+  //font-family: Inconsolata, Monaco, Consolas, 'Courier New', Courier;
+  float: right;
+  border-left: 1px solid @tool-panel-border-color;
+  text-align: center;
+}

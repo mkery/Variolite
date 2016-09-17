@@ -153,16 +153,19 @@ class Variant
             insertPoint = nest.getModel().travel(item, insertPoint)
             break
       else
-        range = @sourceBuffer.insert(insertPoint, item.text+" ", undo: 'skip')
+        range = @sourceBuffer.insert(insertPoint, item.text, undo: 'skip')
         insertPoint = range.end
 
-    newRange = [start, new Point(insertPoint.row, insertPoint.column - 1)]
+    after = @sourceBuffer.insert(insertPoint, " ", undo: 'skip')
+    newRange = [start, new Point(insertPoint.row, insertPoint.column)]
     newRange = @sourceBuffer.clipRange(newRange)
     #console.log "New range for "+@currentVersion.title+" is "
     #console.log newRange
     @marker.setBufferRange(newRange)
     if  @headerMarker?
       @headerMarker.setBufferRange([newRange.start, new Point(newRange.end.row - 1, newRange.end.column)])
+
+    insertPoint = after.end
     #@sourceEditor.decorateMarker(@marker, type: 'highlight', class: 'highlight-pink')
 
     # for nest in version.nested

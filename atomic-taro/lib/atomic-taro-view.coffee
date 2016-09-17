@@ -135,20 +135,58 @@ class AtomicTaroView
     @element.classList.add('atomic-taro_pane')#, 'scroll-view')
 
     # alert element
-    @alertElement = document.createElement('div')
-    @alertElement.classList.add('atomic-taro_alert-pane')
-    $(@alertElement).text("On commit m")
-    xIcon = document.createElement('span')
-    xIcon.classList.add('icon-x')
-    xIcon.classList.add('atomic-taro_commitAlert')
-    xIcon.classList.add('text-smaller')
-    $ => $(document).on 'click', '.icon-x.atomic-taro_commitAlert', (ev) =>
-      @masterVariant.backToTheFuture()
-      $(@alertElement).hide()
+    menuContainer = document.createElement('div')
+    @mainMenu = document.createElement('div')
+    @mainMenu.classList.add('atomic-taro_main-menu')
+    branchIcon = document.createElement('span')
+    branchIcon.classList.add('icon-git-branch')
+    branchIcon.classList.add('atomic-taro_main-menu_branchIcon')
+    @runIcon = document.createElement('span')
+    @runIcon.classList.add('icon-playback-play')
+    @runIcon.classList.add('atomic-taro_main-menu_runIcon')
+    @mainMenu.appendChild(branchIcon)
+    @mainMenu.appendChild(@runIcon)
+    @addVariantButtons(@mainMenu)
+    $ => $(document).on 'mousedown', '.atomic-taro_main-menu_runIcon', (ev) =>
+      $(@runIcon).addClass('click')
+      @programProcessor.run()
+      if not @explorer_panel?
+        @explorer_panel = atom.workspace.addRightPanel({item: @explorer})
+      if not @explorer_panel.isVisible()
+        @explorer_panel.show()
+      @variantManager.updateExplorerPanelShowing(@explorer_panel.isVisible(), @getWidth())
+      @masterVariant.updateVariantWidth(@getWidth())
+    $ => $(document).on 'mouseup', '.atomic-taro_main-menu_runIcon', (ev) =>
+      $(@runIcon).removeClass('click')
 
-    @alertElement.appendChild(xIcon)
-    $(@alertElement).hide()
-    @element.appendChild(@alertElement)
+    @alertPane = document.createElement('div')
+    @alertPane.classList.add('atomic-taro_main-menu_alertBox')
+    lockIcon = document.createElement('span')
+    lockIcon.classList.add('icon-lock')
+    lockIcon.classList.add('atomic-taro_commitLock')
+
+    @commitAlertLabel = document.createElement('span')
+    @commitAlertLabel.classList.add('atomic-taro_commitAlertLabel')
+    $(@commitAlertLabel).text("commit N on 9/16/16 10:20pm")
+
+    returnButton = document.createElement('span')
+    returnButton.classList.add('atomic-taro_commitBackButton')
+    clockIcon = document.createElement('span')
+    clockIcon.classList.add('icon-arrow-left')
+    returnButton.appendChild(clockIcon)
+    $ => $(document).on 'click', '.atomic-taro_commitBackButton', (ev) =>
+      @masterVariant.backToTheFuture()
+      $(@alertPane).slideUp('fast')
+
+    @alertPane.appendChild(returnButton)
+    @alertPane.appendChild(lockIcon)
+    @alertPane.appendChild(@commitAlertLabel)
+    $(@alertPane).hide()
+
+    menuContainer.appendChild(@mainMenu)
+    menuContainer.appendChild(@alertPane)
+
+    @element.appendChild(menuContainer)
 
     #@variantWidth = $(@element).width() - 20 #@sourceEditor.getElement().getWidth() - 20
     @initVariants(@exploratoryEditor, @element)
@@ -163,6 +201,36 @@ class AtomicTaroView
     atom.contextMenu.add {'atom-pane': [{label: 'Paste Segment', command: 'atomic-taro:taropaste'}]}
     atom.contextMenu.add {'atom-text-editor': [{label: 'Paste Segment', command: 'atomic-taro:taropaste'}]}
 
+  addVariantButtons: () ->
+    variantsButton = document.createElement("span")
+    variantsButton.classList.add('main-menu_variantButton')
+    variantsButton.classList.add('variants-button')
+    $(variantsButton).text("variants")
+    @mainMenu.appendChild(variantsButton)
+    variantsMenu = document.createElement("div")
+    variantsMenu.classList.add('variants-hoverMenu')
+    $(variantsMenu).hide()
+    variantsButton.appendChild(variantsMenu)
+
+    buttonShow = document.createElement("div")
+    buttonShow.classList.add('variants-hoverMenu-buttons')
+    buttonShow.classList.add('showVariantsButton')
+    $(buttonShow).text("show variant panel")
+    $(buttonShow).data("variant", @)
+    $(buttonShow).click (ev) =>
+      ev.stopPropagation()
+      @toggleExplorerView()
+      $(variantsMenu).hide()
+    variantsMenu.appendChild(buttonShow)
+
+    buttonAdd = document.createElement("div")
+    buttonAdd.classList.add('variants-hoverMenu-buttons')
+    buttonAdd.classList.add('createVariantButton')
+    $(buttonAdd).html("<span class='icon icon-repo-create'>new version</span>")
+    $(buttonAdd).click =>
+      @newVersion()
+      $(variantsMenu).hide()
+    variantsMenu.appendChild(buttonAdd)
 
 
   # init Exploratory Editor
@@ -216,8 +284,8 @@ class AtomicTaroView
 
 
   travelToCommit: (commitId) ->
-    #$(@alertElement).text('Viewing commit '+commitId)
-    $(@alertElement).slideDown('fast')
+    $(@commitAlertLabel).text("viewing commit "+commitId.commitID)
+    $(@alertPane).show()
     @masterVariant.travelToCommit(commitId)
 
 
