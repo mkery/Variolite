@@ -4,7 +4,7 @@
 // for a full listing of what's available.
 @import "ui-variables";
 @import "syntax-variables";
-
+@import "taro-variables";
 
 .atomic-taro_main-menu{
   padding-top: 10px;
@@ -13,6 +13,7 @@
   background-color: white;
   border-bottom: 1px solid @tool-panel-border-color;
   font-family: Inconsolata, Monaco, Consolas, 'Courier New', Courier;
+  font-size: @fontDemoSize;
   position: relative;
   top: 0px;
   z-index: 10;
@@ -32,6 +33,10 @@
 .atomic-taro_main-menu_runIcon.click{
   color: @text-color-success;
   background-color: @button-background-color-hover;
+}
+
+.atomic-taro_main-menu_branchIcon{
+  margin-left: 10px;
 }
 
 .main-menu_variantButton{

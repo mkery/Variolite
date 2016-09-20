@@ -1,0 +1,42 @@
+// The ui-variables file is provided by base themes provided by Atom.
+//
+// See https://github.com/atom/atom-dark-ui/blob/master/styles/ui-variables.less
+// for a full listing of what's available.
+@import "ui-variables";
+@import "syntax-variables";
+
+.atomic-taro_commit-traveler{
+  padding: 5px;
+  padding-bottom: 10px;
+  padding-top: 10px;
+  background-color: white;
+  border: 1px solid @text-color;//@tool-panel-border-color;
+  font-family: Inconsolata, Monaco, Consolas, 'Courier New', Courier;
+  z-index: 5;
+  color: @text-color;
+}
+.atomic-taro_commit-traveler.textOnly{
+  padding-top: 2px;
+  padding-bottom: 2px;
+  border: 1px solid white;//@tool-panel-border-color;
+  border-bottom: 1px solid @text-color;//@tool-panel-border-color;
+}
+
+
+.atomic-taro_commit-history-button{
+  margin-right: 5px;
+  color: @mono-3;
+  float: right;
+  min-height: 10px;
+  min-width: 15px;
+  padding-top: 2px;
+  cursor: pointer;
+  text-align: center;
+}
+.atomic-taro_commit-history-button:hover{
+  color: @hue-1;
+  border: 1px solid @mono-3;
+}
+.atomic-taro_commit-history-button.clicked{
+  color: @hue-1;
+}

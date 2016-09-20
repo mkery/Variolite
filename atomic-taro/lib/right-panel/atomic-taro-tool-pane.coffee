@@ -24,6 +24,7 @@ class AtomicTaroToolPane
 
   initialize: ->
     #@pane.appendChild(@variantExplorer.getElement())
+    @pane.appendChild(@addSearchBar())
     @pane.appendChild(@outputExplorer.getElement())
     @pane.appendChild(@resizeRegion)
 
@@ -59,3 +60,17 @@ class AtomicTaroToolPane
 
     width = $(@pane).outerWidth() + $(@pane).offset().left - pageX
     $(@pane).width(width)
+
+  addSearchBar: ->
+    searchContainer = document.createElement('div')
+    searchContainer.classList.add('atomic-taro_search-bar-container')
+    searchIcon = document.createElement('span')
+    searchIcon.classList.add('icon-search-save')
+    searchIcon.classList.add('atomic-taro_search-icon')
+    searchBar = document.createElement('input')
+    searchBar.type = "text"
+    searchBar.classList.add('atomic-taro_search-bar')
+
+    searchContainer.appendChild(searchIcon)
+    searchContainer.appendChild(searchBar)
+    searchContainer

@@ -4,13 +4,14 @@
 // for a full listing of what's available.
 @import "ui-variables";
 @import "syntax-variables";
-
+@import "taro-variables";
 
 .atomic-taro {
 }
 
 
 .atomic-taro_pane {
+  font-size: @fontDemoSize;
   //overflow: scroll;
   height: 100%;
   overflow-y: hidden;
@@ -63,7 +64,7 @@ atom-text-editor, /* 1 */
 .atomic-taro_editor-header-wrapper{
   color: @mono-3;
   font-family: Inconsolata, Monaco, Consolas, 'Courier New', Courier;
-  font-size: @font-size;
+  font-size: @fontDemoSize;//@font-size;
   cursor: default;
 }
 
@@ -71,7 +72,7 @@ atom-text-editor, /* 1 */
   display: inline-block;
   color: @mono-3;
   font-family: Inconsolata, Monaco, Consolas, 'Courier New', Courier;
-  font-size: @font-size;
+  font-size: @fontDemoSize;//@font-size;
   margin: 0px;
   margin-top: 2px;
   transition: border-width 0.1s ease-in-out;
@@ -115,6 +116,7 @@ atom-text-editor, /* 1 */
 }
 
 .atomic-taro_editor-active-button{
+  padding-top: 2px;
   margin-right: 5px;
   color: @mono-3;
   float: right;
@@ -278,7 +280,7 @@ atom-text-editor, /* 1 */
 
 .output-container{
   font-family: Inconsolata, Monaco, Consolas, 'Courier New', Courier;
-  font-size: @font-size;
+  font-size: @fontDemoSize;//@font-size;
   background-color: @syntax-selection-color;
   margin: 0px;
   border: 1px solid @syntax-selection-color;//@mono-3;

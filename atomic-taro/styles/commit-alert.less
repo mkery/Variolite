@@ -36,3 +36,25 @@
 .atomic-taro_commitBackButton:hover{
   background-color: rgba(255, 255, 255, 0.4);
 }
+
+
+// For moding the style of other elements of the interface while time traveling
+
+.atomic-taro_editor-header-box.historical{
+  border-top:  1px solid @text-color-warning;
+}
+.atomic-taro_editor-header-box.historical:hover, .atomic-taro_editor-header-box.historical.active{
+  border: 1px solid @text-color-warning;
+}
+
+.atomic-taro_commit-traveler.historical{
+  border: 1px solid @text-color-warning;
+}
+
+.atomic-taro_editor-footer-box.historical{
+  border-top:  1px solid @text-color-warning;
+}
+.atomic-taro_editor-footer-box.historical.active{
+  border-top:  1px solid @syntax-text-color;
+  border-bottom:  2px solid @text-color-warning;
+}

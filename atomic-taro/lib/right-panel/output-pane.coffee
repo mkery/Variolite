@@ -18,6 +18,7 @@ class OutputPane
   initialize: ->
     @pane.appendChild(@makeTitleDiv())
     @pane.appendChild(@outputList)
+    @pane.appendChild(@makeContextMenu())
     @addJqueryListeners()
 
 
@@ -63,12 +64,42 @@ class OutputPane
     $(outputContainer).text(data)
     $(outputContainer).data('commit', commit)
 
+
     outDate = document.createElement('div')
     outDate.classList.add('atomic-taro_output_date')
     $(outDate).text(@dateNow())
     outputContainer.appendChild(outDate)
 
     @outputList.appendChild(outputContainer)
+
+
+  tagCommit: (outputBox) ->
+    
+
+
+  makeContextMenu: ->
+    @rightClickMenu = document.createElement('div')
+    @rightClickMenu.classList.add('atomic-taro_output-rmenu')
+
+    travelBox = document.createElement('div')
+    travelBox.classList.add('output-rmemu_itemBox')
+    travelBox.classList.add('output-rmemu_travel')
+    travel = document.createElement('span')
+    $(travel).text("travel to commit")
+    travelBox.appendChild(travel)
+
+    tagBox = document.createElement('div')
+    tagBox.classList.add('output-rmemu_itemBox')
+    tagBox.classList.add('output-rmemu_tag')
+    tag = document.createElement('span')
+    $(tag).text("add tag")
+    tagBox.appendChild(tag)
+
+    @rightClickMenu.appendChild(tagBox)
+    @rightClickMenu.appendChild(travelBox)
+    $(@rightClickMenu).hide()
+    @rightClickMenu
+
 
 
   dateNow: ->
@@ -99,3 +130,26 @@ class OutputPane
       ev.data.atomicTaroView.travelToCommit(commit)
       console.log "return to commit "+commit
       ev.stopPropagation()
+
+    $(document).on 'mousedown', '.atomic-taro_output_box', {'menu': @rightClickMenu}, (ev) ->
+      if ev.which == 3
+        ev.stopPropagation()
+        $(ev.data.menu).show()
+        $(ev.data.menu).offset({left:ev.pageX,top:ev.pageY})
+        $(ev.data.menu).data('output', this)
+
+    $(document).on 'click', '.output-rmemu_tag', (ev) =>
+      ev.stopPropagation()
+      $(@rightClickMenu).hide()
+      output = $(@rightClickMenu).data('output')
+      @tagCommit(output)
+
+    $(document).on 'click', '.output-rmemu_travel', (ev) =>
+      ev.stopPropagation()
+      output = $(@rightClickMenu).data('output')
+      $('.atomic-taro_output_box').removeClass('selected')
+      $('.atomic-taro_output_box').removeClass('travel')
+      $(output).addClass('travel')
+      $(@rightClickMenu).hide()
+      @atomicTaroView.travelToCommit($(output).data('commit'))
+      #@travelToCommit()

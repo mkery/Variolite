@@ -145,6 +145,11 @@ class VariantsManager
         v = $(this).data("variant")
         v.toggleActive()
 
+      $(document).on 'click', '.atomic-taro_commit-history-button', (ev) ->
+        $(this).addClass('clicked')
+        v = $(this).data("variant")
+        v.toggleCommitTimeline()
+
     addHeaderListeners: (element) ->
       $(document).on 'mouseenter', '.atomic-taro_editor-header-wrapper', (ev) ->
         view = $(this).data('view')

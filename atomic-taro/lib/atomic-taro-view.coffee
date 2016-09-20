@@ -144,6 +144,9 @@ class AtomicTaroView
     @runIcon = document.createElement('span')
     @runIcon.classList.add('icon-playback-play')
     @runIcon.classList.add('atomic-taro_main-menu_runIcon')
+    @historyButton = document.createElement("span")
+    @historyButton.classList.add('icon-history')
+    @mainMenu.appendChild(@historyButton)
     @mainMenu.appendChild(branchIcon)
     @mainMenu.appendChild(@runIcon)
     @addVariantButtons(@mainMenu)
@@ -177,6 +180,9 @@ class AtomicTaroView
     $ => $(document).on 'click', '.atomic-taro_commitBackButton', (ev) =>
       @masterVariant.backToTheFuture()
       $('.atomic-taro_output_box').removeClass('travel')
+      $('.atomic-taro_editor-header-box').removeClass('historical')
+      $('.atomic-taro_commit-traveler').removeClass('historical')
+      $('.atomic-taro_editor-footer-box').removeClass('historical')
       $(@alertPane).slideUp('fast')
 
     @alertPane.appendChild(returnButton)
@@ -287,6 +293,9 @@ class AtomicTaroView
   travelToCommit: (commitId) ->
     $(@commitAlertLabel).text("viewing commit "+commitId.commitID)
     $(@alertPane).show()
+    $('.atomic-taro_editor-header-box').addClass('historical')
+    $('.atomic-taro_commit-traveler').addClass('historical')
+    $('.atomic-taro_editor-footer-box').addClass('historical')
     @masterVariant.travelToCommit(commitId)
 
 

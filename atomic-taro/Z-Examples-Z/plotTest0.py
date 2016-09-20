@@ -41,13 +41,16 @@ def velocities_and_distance_covered(trip):
 		distancesum += dist
 	return v, distancesum
 
+#%%^%%plot
 def plotTrip(filename):
 	tripName = int(os.path.basename(filename).split(".")[0])
 	tripPath = np.genfromtxt(filename, delimiter=',', skip_header=1, dtype=(float,float))
 
+#%%^%%reduce trip first
 	reducedTrip = rdp_trip.rdp(tripPath, epsilon=0.75)
 	v, distancesum = velocities_and_distance_covered(tripPath)
 	stops = findStops(v)
+#^^%^^
 
 	startPoint = (tripPath[0][0], tripPath[1][1])
 	pyplot.plot(tripPath[:,0], tripPath[:,1], 'bx', startPoint[0], startPoint[1], 'bs')
@@ -60,7 +63,7 @@ def plotTrip(filename):
 	pyplot.ylabel('y')
 	pyplot.xlabel('x')
 	pyplot.show()
-
+#^^%^^
 
 doc = sys.argv[1]
 plotTrip(doc)

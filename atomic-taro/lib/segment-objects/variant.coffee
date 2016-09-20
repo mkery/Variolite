@@ -49,7 +49,8 @@ class Variant
 
 
   commit: (params) ->
-    @commitChunk(@dateNow(), 0)
+    start = @marker.getBufferRange().start.row
+    @commitChunk(@dateNow(), start)
 
 
   commitChunk: (date, textPointer) ->
@@ -105,6 +106,7 @@ class Variant
 
 
   backToTheFuture: ->
+    console.log "BACK TO THE FUTURE"
     latestCommit = @currentVersion.commits.length - 1
     @travelToCommit({commitID: latestCommit, verID: @currentVersion.id})
     @currentVersion.commits.pop()
@@ -125,6 +127,11 @@ class Variant
     console.log "Reverting to commit "+commitID
     console.log commit
 
+    if versionID != @currentVersion.id
+      console.log "Need to switch versions from "+@currentVersion.title+" to "+version.title
+      @currentVersion = version
+      @view.switchHeaderToVersion(version)
+
     version.active = true
     text = commit.text
 
@@ -137,7 +144,8 @@ class Variant
 
   unravelCommitText: (version, text, insertPoint) ->
     if not insertPoint?
-      insertPoint = new Point(0,0)
+      insertPoint = @marker.getBufferRange().start
+      console.log "Beginning insert at "+insertPoint
 
     start = insertPoint
 
@@ -146,7 +154,6 @@ class Variant
     for item in text
       if item.commitID?
         # then this item is a nested variant
-        #subCommits.push {point: insertPoint, item: item}
         for nest in version.nested
           nestID = item.varID
           if nest.getModel().getVariantID() == nestID
@@ -372,10 +379,20 @@ class Variant
     @rootVersion.id
 
 
-  findVersion: (id) ->
-    @walkVersions @rootVersion, (v) =>
-      if v.id == id
-        return false
+  findVersion: (id, node) ->
+    if not node?
+      node = @rootVersion
+    if node.id == id
+      return node
+
+    for child in node.branches
+      if child.id == id
+        return child
+
+    for child in node.branches
+        c = findVersion(id, child)
+        if c?
+          return c
 
 
   getCurrentVersion: ->

@@ -228,6 +228,8 @@ class VariantView
     $(@footerBar).addClass('active')
     $(@variantsButton).addClass('active')
     $(@activeButton).show()
+    $(@historyButton).show()
+    $(@branchButton).show()
 
 
   unHover: ->
@@ -239,6 +241,8 @@ class VariantView
     $(@footerBar).removeClass('active')
     $(@variantsButton).removeClass('active')
     $(@activeButton).hide()
+    $(@historyButton).hide()
+    $(@branchButton).hide()
 
 
   registerOutput: (data) ->
@@ -273,6 +277,26 @@ class VariantView
     @model.toggleActive(v)
 
 
+  toggleCommitTimeline: () ->
+    if $(@commitTraveler).is(":visible")
+      $(@commitTraveler).hide()
+    else
+      commitNum = @model.getCurrentVersion().commits.length
+      if commitNum > 0
+        $(@commitTraveler).removeClass("textOnly")
+        $(@commitSlider).html("")
+        $(@commitSlider).slider({
+          max: commitNum,
+          min: 0,
+          value: commitNum,
+          slide: (event, ui) =>
+            @travelToCommit({commitID: ui.value, verID: @model.getCurrentVersion().id})
+        })
+      else
+        $(@commitTraveler).addClass("textOnly")
+        $(@commitSlider).html("No commits to show yet!")
+      $(@commitTraveler).show()
+
 
   switchToVersion: (v, same) ->
     #if same? then same else same = true
@@ -291,6 +315,10 @@ class VariantView
     console.log "switching version! "+v.title
 
     @model.switchToVersion(v)
+    @switchHeaderToVersion(v)
+
+
+  switchHeaderToVersion: (v) ->
     $(@versionBookmarkBar).empty()
     $(@activeButton).data("version", v)
     @addNameBookmarkBar(@versionBookmarkBar)
@@ -337,11 +365,14 @@ class VariantView
     $(@headerBar).width(width)
     @addHeaderDiv(@headerBar)
     @headerWrapper.appendChild(@headerBar)
+    @headerWrapper.appendChild(@addCommitLine())
     #add placeholders for versions and output
     @addVariantButtons(@headerBar)
     #@addOutputButton(@headerBar)
     # add pinButton
     @addActiveButton(@headerBar)
+    @addHistoryButton(@headerBar)
+    @addBranchButton(@headerBar)
     #---------output region
     #@addOutputDiv()
     #@headerBar.appendChild(@outputDiv)
@@ -396,6 +427,16 @@ class VariantView
     varIcons.classList.add('atomic-taro_editor-header-varIcon')
     $(varIcons).html("<span class='icon-primitive-square'></span><span class='icon-primitive-square active'></span>")
     headerContainer.appendChild(varIcons)'''
+
+
+  addCommitLine: ->
+    @commitTraveler = document.createElement('div')
+    @commitTraveler.classList.add('atomic-taro_commit-traveler')
+    @commitSlider = document.createElement('div')
+    @commitSlider.classList.add('commit-slider')
+    @commitTraveler.appendChild(@commitSlider)
+    $(@commitTraveler).hide()
+    @commitTraveler
 
 
   addNameBookmarkBar: (versionBookmarkBar) ->
@@ -472,6 +513,22 @@ class VariantView
     #@activeButton.classList.add('atomic-taro_editor-active-button')
     headerContainer.appendChild(@activeButton)
 
+  addHistoryButton: (headerContainer) ->
+    @historyButton = document.createElement("span")
+    @historyButton.classList.add('atomic-taro_commit-history-button')
+    @historyButton.classList.add('icon-history')
+    $(@historyButton).data("variant", @)
+    $(@historyButton).hide()
+    headerContainer.appendChild(@historyButton)
+
+  addBranchButton: (headerContainer) ->
+    @branchButton = document.createElement("span")
+    @branchButton.classList.add('atomic-taro_commit-history-button')
+    @branchButton.classList.add('icon-git-branch')
+    $(@branchButton).data("variant", @)
+    $(@branchButton).hide()
+    headerContainer.appendChild(@branchButton)
+
   addVariantButtons: (headerContainer) ->
     @variantsButton = document.createElement("div")
     @variantsButton.classList.add('atomic-taro_editor-header-buttons')
@@ -502,7 +559,7 @@ class VariantView
     buttonAdd = document.createElement("div")
     buttonAdd.classList.add('variants-hoverMenu-buttons')
     buttonAdd.classList.add('createVariantButton')
-    $(buttonAdd).html("<span class='icon icon-repo-create'>new version</span>")
+    $(buttonAdd).html("<span class='icon icon-repo-create'>new branch</span>")
     $(buttonAdd).click =>
       @newVersion()
       $(variantsMenu).hide()
@@ -511,7 +568,7 @@ class VariantView
     @buttonArchive = document.createElement("div")
     @buttonArchive.classList.add('variants-hoverMenu-buttons')
     @buttonArchive.classList.add('archiveVariantButton')
-    $(@buttonArchive).html("<span class='icon icon-dash'>archive version</span>")
+    $(@buttonArchive).html("<span class='icon icon-dash'>archive brach</span>")
     $(@buttonArchive).click =>
       @archive()
       $(variantsMenu).hide()

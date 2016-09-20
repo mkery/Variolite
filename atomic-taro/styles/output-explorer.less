@@ -4,6 +4,7 @@
 // for a full listing of what's available.
 @import "ui-variables";
 @import "syntax-variables";
+@import "taro-variables";
 
 
 .atomic-taro_explore-play-button
@@ -44,4 +45,28 @@
 {
   color: @text-color-subtle;
   font-style: italic;
+}
+
+.atomic-taro_output-rmenu{
+  cursor: default;
+  z-index: 6px;
+  position: absolute;
+  right: 0px;
+  border: 1px solid @text-color-subtle;
+  background-color: white;
+  font-family: Inconsolata, Monaco, Consolas, 'Courier New', Courier;
+  font-size: @fontDemoSize;
+  color: @text-color;
+}
+
+.output-rmemu_itemBox{
+  cursor: default;
+  text-align: center;
+  padding: 2px;
+  border: 1px solid @tool-panel-border-color;
+}
+.output-rmemu_itemBox:hover{
+  color: @hue-1;
+  border: 1px solid @hue-1;
+  background-color: #E9EFF4;
 }

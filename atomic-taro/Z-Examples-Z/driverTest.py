@@ -5,24 +5,22 @@ import sys
 import math
 
 
-#%%^%%Ollie-1
+#%%^%%Distance7
 def distance(x0, y0, x1, y1):
 	return math.sqrt((x1-x0)**2 + (y1-y0)**2)
-#Ollie is a dog.
+
 
 def computeAngle (p1, p2):
 	dot = 0
-#%%^%%Compute dot
 	if computeNorm(p2[0], p2[1]) == 0 or computeNorm(p1[0], p1[1])==0: #may be incorrect
-		dot = 0 #Taro goes here
+		dot = 0
 	else:
 		dot = (p2[0]*p1[0]+p2[1]*p1[1])/float(computeNorm(p1[0], p1[1])*computeNorm(p2[0], p2[1]))
-#^^%^^
 	if dot > 1:
-		dot = 1 #Fish goes here
+		dot = 1
 	elif dot < -1:
 		dot = -1
-	return math.acos(dot)*180/math.pi
+	return math.acos(dot)*180/math.pi 
 #^^%^^
 #Ollie ends here
 
@@ -37,10 +35,9 @@ def compute_AllAngles (trip):
 	return angles
 
 
-
-#^^%^^
+ """def findSpeed_Dist(trip):
 #%%^%% Speed
-"""def findSpeed_Dist(trip):
+#^^%^^
 	v = []
 	dist = 0
 	for i in range(1, trip.shape[0]):
@@ -50,7 +47,7 @@ def compute_AllAngles (trip):
 	return v,dist"""
 
 
-def findStops(speeds):
+def findStops(speeds): 
 #^^%^^
 	stops = [] #stops are a start and end time pair
 	start = -1
@@ -105,7 +102,7 @@ class Trip(object):
 
 
 	#changed the implementation of this method, which brought the metrics up a bit
-	#I used km/h, but we can easily change that
+	#I used km/h, but we can easily change that 
 #^^%^^
 	def findSpeed_Hist(self, trip):
 
@@ -192,6 +189,7 @@ class Trip(object):
 """trip_test = Trip(sys.argv[1])
 trip_test.plotTrip()
 print trip_test.rdp"""
-
-print "YAY!"
-print "Ran a python file yay."
+print "Trip #87 v=44.0, a=0.2, d=5 miles"
+#print "Trip #87 v=48.3, a=4.2, d=5 miles"
+#print "Trip #4 v=66.7, a=5.2, d=100 miles"
+  
