@@ -16,4 +16,4 @@ class ProgramProcessor
       @atomicTaroView.registerOutput(data)
     # receive error messages and process
     py.stderr.on 'data', (data) =>
-      console.log data.toString().trim()
+      @atomicTaroView.registerOutput(data)

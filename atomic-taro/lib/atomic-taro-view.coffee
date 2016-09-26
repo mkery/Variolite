@@ -354,7 +354,7 @@ class AtomicTaroView
         nest_Parent[1].addedNestedVariant(variant, nest_Parent[0])  #nest_Parent is an array - second item is the VariantView
       else
         console.log "adding variant to manager"
-        @masterVariant.addNested(variant)
+        @masterVariant.addedNestedVariant(variant, @masterVariant.getModel().getCurrentVersion())
 
 
       '''if params?.undoSkip? == false

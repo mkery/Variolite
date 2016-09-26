@@ -73,8 +73,13 @@ class OutputPane
     @outputList.appendChild(outputContainer)
 
 
-  tagCommit: (outputBox) ->
-    
+  tagCommit: (outputBox, tag) ->
+    badge = document.createElement('span')
+    badge.classList.add('badge')
+    badge.classList.add('badge-info')
+    $(badge).text(tag)
+    outputBox.appendChild(badge)
+
 
 
   makeContextMenu: ->
@@ -91,9 +96,13 @@ class OutputPane
     tagBox = document.createElement('div')
     tagBox.classList.add('output-rmemu_itemBox')
     tagBox.classList.add('output-rmemu_tag')
-    tag = document.createElement('span')
-    $(tag).text("add tag")
-    tagBox.appendChild(tag)
+    @tagText = document.createElement('input')
+    @tagText.type = "text"
+    @tagText.placeholder = "tag"
+    @tagText.classList.add('tag-input-text')
+    @tagText.classList.add('input-text')
+    @tagText.classList.add('native-key-bindings')
+    tagBox.appendChild(@tagText)
 
     @rightClickMenu.appendChild(tagBox)
     @rightClickMenu.appendChild(travelBox)
@@ -132,17 +141,27 @@ class OutputPane
       ev.stopPropagation()
 
     $(document).on 'mousedown', '.atomic-taro_output_box', {'menu': @rightClickMenu}, (ev) ->
-      if ev.which == 3
+      if ev.which != 1
+        console.log "right click!"
         ev.stopPropagation()
         $(ev.data.menu).show()
         $(ev.data.menu).offset({left:ev.pageX,top:ev.pageY})
         $(ev.data.menu).data('output', this)
 
-    $(document).on 'click', '.output-rmemu_tag', (ev) =>
-      ev.stopPropagation()
+    $(document).on 'blur', '.output-rmemu_tag', (e) =>
       $(@rightClickMenu).hide()
       output = $(@rightClickMenu).data('output')
-      @tagCommit(output)
+      @tagCommit(output, $(@tagText).val())
+      @tagText.value = ""
+
+
+    $(document).on 'keyup', '.tag-input-text', (e) =>
+      if(e.keyCode == 13)# enter key
+        $(@rightClickMenu).hide()
+        output = $(@rightClickMenu).data('output')
+        @tagCommit(output, $(@tagText).val())
+        @tagText.value = ""
+
 
     $(document).on 'click', '.output-rmemu_travel', (ev) =>
       ev.stopPropagation()

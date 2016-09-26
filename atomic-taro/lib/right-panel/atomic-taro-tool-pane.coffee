@@ -68,9 +68,11 @@ class AtomicTaroToolPane
     searchIcon.classList.add('icon-search-save')
     searchIcon.classList.add('atomic-taro_search-icon')
     searchBar = document.createElement('input')
-    searchBar.type = "text"
+    searchBar.type = "search"
+    searchBar.placeholder = "search"
+    searchBar.classList.add('input-search')
     searchBar.classList.add('atomic-taro_search-bar')
 
-    searchContainer.appendChild(searchIcon)
+    #searchContainer.appendChild(searchIcon)
     searchContainer.appendChild(searchBar)
     searchContainer

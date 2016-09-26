@@ -528,7 +528,7 @@ class Variant
         # now store this start beacon so that we can add the marker later
         v.nested[n_index] = @testConvertJSONVariant(v.nested[n_index], v)
         n = v.nested[n_index]
-        @view.getExplorerElement().refresh()
+        #@view.getExplorerElement().refresh()
 
         queue.push {n: n, row: lineno + offsetRow}
         n_index += 1

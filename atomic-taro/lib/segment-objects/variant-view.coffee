@@ -69,7 +69,7 @@ class VariantView
     @headerMarkDecoration.destroy()
     @footerMarkDecoration.destroy()
     @model.dissolve()
-    @explorerGroupElement.dissolve()
+    #@explorerGroupElement.dissolve()
     for n in @model.getNested()
       n.dissolve()
 
@@ -79,7 +79,7 @@ class VariantView
 
   reinstate: =>
     @model.reinstate()
-    @explorerGroupElement.reinstate()
+    #@explorerGroupElement.reinstate()
     for n in @model.getNested()
       n.reinstate()
 
@@ -163,9 +163,16 @@ class VariantView
 
 
   travelToCommit: (commitId) ->
-    @model.travelToCommit(commitId)
+    $(@headerBar).addClass('historical')
+    $(@commitTraveler).addClass('historical')
+    $(@footerBar).addClass('historical')
+    @hover()
+    commit = @model.travelToCommit(commitId)
 
   backToTheFuture: ->
+    $(@headerBar).removeClass('historical')
+    $(@commitTraveler).removeClass('historical')
+    $(@footerBar).removeClass('historical')
     @model.backToTheFuture()
 
   #getWrappedHeader: ->
@@ -175,7 +182,7 @@ class VariantView
     @model.setTitle(title, version)
     $(@versionBookmarkBar).empty()
     @addNameBookmarkBar(@versionBookmarkBar)
-    @explorerGroupElement.updateTitle()
+    #@explorerGroupElement.updateTitle()
 
 
   setHeaderMarker: (hm) ->
@@ -290,7 +297,10 @@ class VariantView
           min: 0,
           value: commitNum,
           slide: (event, ui) =>
-            @travelToCommit({commitID: ui.value, verID: @model.getCurrentVersion().id})
+            if ui.value == ui.max
+              @backToTheFuture()
+            else
+              @travelToCommit({commitID: ui.value, verID: @model.getCurrentVersion().id})
         })
       else
         $(@commitTraveler).addClass("textOnly")
@@ -338,11 +348,11 @@ class VariantView
 
 
   addVersiontoExplorer: (v) ->
-    @explorerGroupElement.addVersion(v)
+    #@explorerGroupElement.addVersion(v)
 
 
   switchExplorerToVersion: (v) ->
-    @explorerGroupElement.findSwitchVersion(v)
+    #@explorerGroupElement.findSwitchVersion(v)
 
 
   highlightMultipleVersions: (v) ->

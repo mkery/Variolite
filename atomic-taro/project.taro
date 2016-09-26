@@ -1,1 +1,0 @@
-{"atomicTaroViewState":{"sourceFile":true,"segments":[{"title":"Shared Functions"},{"currentVariant":{"title":"Box 1"},"variants":{"title":"Box 1","text":"\ndef box1(x):\n    print \"box 1\"\n","children":null}},{"currentVariant":{"title":"Box 2"},"variants":{"title":"Box 2","text":"\ndef box2():\n    print \"box 2\"\n","children":null}}]}}
