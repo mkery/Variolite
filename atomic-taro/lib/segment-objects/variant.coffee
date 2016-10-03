@@ -5,26 +5,30 @@ crypto = require 'crypto'
 '''
 Represents a single variant of exploratory code.
 '''
+
+'''
+  TODO: - compare multiple
+        - travel to different versions and commits
+'''
+
 module.exports =
 class Variant
 
   constructor: (@view, @sourceEditor, @marker, title, @undoAgent) ->
-    @sourceBuffer = @sourceEditor.getBuffer()
-    #the header div has it's own marker that must follow around the top of the main marker
-    @headerMarker = null
+    @sourceBuffer = @sourceEditor.getBuffer()  # really Variolite's buffer
+    @headerMarker = null # the header div has it's own marker
     @range = null # to hold the last range of markers, in case the markers are destroyed
 
     @nestedParent = null
-    @copied = false
     @collapsed = false
 
-    '''
-      pendingDestruction is a way to keep variants around (in case the user clicks
-      dissolve then later undo) but prevents this variant from being counted in a
-      save action. Figure out a better way of handling this in the long run!
-    '''
+
+    # pendingDestruction is a way to keep variants around (in case the user clicks
+    # dissolve then later undo) but prevents this variant from being counted in a
+    # save action. Figure out a better way of handling this in the long run!
     @pendingDestruction = false
 
+    # TODO do not need to re-generate id for variant that has one!
     id = crypto.randomBytes(20).toString('hex')
 
     if @marker?
@@ -35,8 +39,9 @@ class Variant
       @currentVersion = {active: true, id: id, title: "NoTitle", subtitle: 0, text: "", date: "", branches: [], commits: [], nested: []}
 
     @rootVersion = @currentVersion
-    #@versions = []
-    #@versions.push @currentVersion
+
+    # Global variables to do with comparing multiple versions.
+    # ??? TODO Rename to clarify!
     @highlighted = []
     @highlightMarkers = []
     @overlapText = ""
@@ -44,6 +49,9 @@ class Variant
     @prevVers = []
 
 
+  '''
+    Returns the VariantView associated with this Variant.
+  '''
   getView: ->
     @view
 
@@ -694,17 +702,6 @@ class Variant
 
   setText: (text) ->
     @currentVersion.text = text
-
-
-
-  getCopied: ->
-    @copied
-
-
-
-  setCopied: (bool) ->
-    @copied = bool
-
 
 
   collapse: ->

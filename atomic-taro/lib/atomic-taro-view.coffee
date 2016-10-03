@@ -17,41 +17,65 @@ VariantExplorerPane = require './right-panel/variant-explorer-pane'
 AtomicTaroToolPane = require './right-panel/atomic-taro-tool-pane'
 UndoAgent = require './undo-agent'
 ProgramProcessor = require './program-processor'
+MainHeaderMenu = require './main-header-menu'
+
+'''
+  TODO - rethink annotation-processor-buffer
+       - get save working
+       - get serialize/deserialize working again
+'''
 
 module.exports =
 class AtomicTaroView
 
-
   constructor: (statePath, @filePath, @fileName, @fileType, sourceEditor) ->
+    # editors. The source editor is the editor of the original file.
+    # The exploratory editor is uses our annotation processor buffer.
     @sourceEditor = sourceEditor
     @exploratoryEditor = null
-    @variantWidth = null
-    @variantManager = null
+
+    @variantListeners = null # holds jquery listeners
+
+    # The master variant is a top level variant that wraps the entire file
     @masterVariant = null
 
     @undoAgent = new UndoAgent(50) #max undo entries
-    @programProcessor = null
+    @programProcessor = null # object to run code and record output
 
     #divs
     @element = null
     @explorer = null
-    @explorer_panel = null
+    @explorer_panel = null # the Panel object of @explorer
+
     # try to get saved meta data for this file, if there is any
     @initializeView()
     @deserialize(statePath)
 
 
+  '''
+    ???
+  '''
   deactivate: ->
     @masterVariant.deactivate()
 
-  saveActiveItemAs: ->
-    console.log "save as!"
 
-  # Returns an object that can be retrieved when package is activated
+  '''
+    ??? used ??? Tear down any state and detach
+  '''
+  destroy: ->
+    @element.remove()
+
+
+  '''
+    Returns an object that can be retrieved when package is activated
+  '''
   serialize: ->
     variants: @masterVariant?.serialize()
 
 
+  '''
+    Decodes a JSON file metadata into variant boxes and commits
+  '''
   deserialize: (statePath) ->
     # try to get saved meta data for this file, if there is any
     $.getJSON (statePath), (state) =>
@@ -63,53 +87,74 @@ class AtomicTaroView
         #console.log stateVariants.variants
         @masterVariant.deserialize(stateVariants)
         @postInit_buildView()
+
       .fail =>
         console.log "No saved taro file found."
         @postInit_buildView()
 
+
+  '''
+    ??? used
+  '''
   saveAs: (newItemPath) ->
     console.log "asked me to save!!!"
 
 
+  '''
+    ??? used
+  '''
   save: ->
     console.log "asked me to save!!!"
 
 
+  '''
+    ??? used
+  '''
   getURI: ->
     @filePath
 
 
+  '''
+    Returns the file path of the current program file being shown in the tool.
+  '''
   getPath: ->
     @filePath
 
 
+  '''
+    Returns the current width of the editor area of the tool, when the editor
+    is resized.
+  '''
   getWidth: ->
     @exploratoryEditor.getElement().getWidth() - 20
 
 
+  '''
+    There is a master variant that wraps the entire file.
+  '''
   getMasterVariant: ->
     @masterVariant
 
 
-  postInit_buildView: ->
-      @element.appendChild(@exploratoryEditor.getElement())
-      #console.log "HEIGHT??"
-      #console.log @exploratoryEditor.getElement().getHeight()
-      #console.log @exploratoryEditor.getElement().getScrollHeight()
-      #$(@exploratoryEditor.getElement()).css('overflow-y', 'scroll')
+  '''
+    There is a master variant that wraps the entire file.
+  '''
+  getExplorerPanel: ->
+    @explorer_panel
 
-      #console.log "master Variant"
-      #console.log @masterVariant
-      @masterVariant.buildVariantDiv()
-      @variantManager.addJqueryListeners()
-
-      atom.views.addViewProvider AtomicTaroToolPane, (toolPane) ->
-        toolPane.getElement()
-
-      @explorer = new AtomicTaroToolPane(@masterVariant, @programProcessor, @)
 
   isShowingExplorer: ->
     @explorer_panel.isVisible()
+
+
+  showExplorerView: ->
+    if not @explorer_panel?
+      @explorer_panel = atom.workspace.addRightPanel({item: @explorer})
+    if not @explorer_panel.isVisible()
+      @explorer_panel.show()
+    @variantListeners.updateExplorerPanelShowing(@isShowingExplorer(), @getWidth())
+    @masterVariant.updateVariantWidth(@getWidth())
+
 
   toggleExplorerView: ->
     if @explorer_panel?
@@ -120,10 +165,48 @@ class AtomicTaroView
 
     else
       @explorer_panel = atom.workspace.addRightPanel({item: @explorer})
-    @variantManager.updateExplorerPanelShowing(@explorer_panel.isVisible(), @getWidth())
+    @variantListeners.updateExplorerPanelShowing(@explorer_panel.isVisible(), @getWidth())
     @masterVariant.updateVariantWidth(@getWidth())
     @explorer_panel.isVisible()
 
+
+  '''
+    When the user hits the 'run' button, this sends the current program to be run.
+    The output is then passed back to @registerOutput()
+  '''
+  runProgram: ->
+    @programProcessor.run()
+
+
+  '''
+    When the user's program is run, Variolite wraps the output and returns the
+    output to here.
+  '''
+  registerOutput: (data) ->
+    commitId = @masterVariant.registerOutput(data)
+    @explorer.registerOutput(data, commitId)
+
+
+
+
+  '''
+    Gets the root element
+  '''
+  getElement: ->
+    @element
+
+
+  '''
+    Adds Jquery listeners and functions to all variant boxes
+  '''
+  addJqueryListeners: ->
+    @variantListeners.addJqueryListeners(@element)
+
+
+  '''
+    Run when tool is first opened, to put all the main div elements in place, while the
+    variant informaiton may still be loading.
+  '''
   initializeView: ->
     # exploratoryEditor is the python file modified to show our visualization things
     @exploratoryEditor = @initExploratoryEditor(@sourceEditor)
@@ -134,113 +217,44 @@ class AtomicTaroView
     @element = document.createElement('div')
     @element.classList.add('atomic-taro_pane')#, 'scroll-view')
 
-    # alert element
-    menuContainer = document.createElement('div')
-    @mainMenu = document.createElement('div')
-    @mainMenu.classList.add('atomic-taro_main-menu')
-    branchIcon = document.createElement('span')
-    branchIcon.classList.add('icon-git-branch')
-    branchIcon.classList.add('atomic-taro_main-menu_branchIcon')
-    @runIcon = document.createElement('span')
-    @runIcon.classList.add('icon-playback-play')
-    @runIcon.classList.add('atomic-taro_main-menu_runIcon')
-    @historyButton = document.createElement("span")
-    @historyButton.classList.add('icon-history')
-    @mainMenu.appendChild(@historyButton)
-    @mainMenu.appendChild(branchIcon)
-    @mainMenu.appendChild(@runIcon)
-    @addVariantButtons(@mainMenu)
-    $ => $(document).on 'mousedown', '.atomic-taro_main-menu_runIcon', (ev) =>
-      $(@runIcon).addClass('click')
-      @programProcessor.run()
-      if not @explorer_panel?
-        @explorer_panel = atom.workspace.addRightPanel({item: @explorer})
-      if not @explorer_panel.isVisible()
-        @explorer_panel.show()
-      @variantManager.updateExplorerPanelShowing(@explorer_panel.isVisible(), @getWidth())
-      @masterVariant.updateVariantWidth(@getWidth())
-    $ => $(document).on 'mouseup', '.atomic-taro_main-menu_runIcon', (ev) =>
-      $(@runIcon).removeClass('click')
-
-    @alertPane = document.createElement('div')
-    @alertPane.classList.add('atomic-taro_main-menu_alertBox')
-    lockIcon = document.createElement('span')
-    lockIcon.classList.add('icon-lock')
-    lockIcon.classList.add('atomic-taro_commitLock')
-
-    @commitAlertLabel = document.createElement('span')
-    @commitAlertLabel.classList.add('atomic-taro_commitAlertLabel')
-    $(@commitAlertLabel).text("commit N on 9/16/16 10:20pm")
-
-    returnButton = document.createElement('span')
-    returnButton.classList.add('atomic-taro_commitBackButton')
-    clockIcon = document.createElement('span')
-    clockIcon.classList.add('icon-arrow-left')
-    returnButton.appendChild(clockIcon)
-    $ => $(document).on 'click', '.atomic-taro_commitBackButton', (ev) =>
-      @masterVariant.backToTheFuture()
-      $('.atomic-taro_output_box').removeClass('travel')
-      $('.atomic-taro_editor-header-box').removeClass('historical')
-      $('.atomic-taro_commit-traveler').removeClass('historical')
-      $('.atomic-taro_editor-footer-box').removeClass('historical')
-      $(@alertPane).slideUp('fast')
-
-    @alertPane.appendChild(returnButton)
-    @alertPane.appendChild(lockIcon)
-    @alertPane.appendChild(@commitAlertLabel)
-    $(@alertPane).hide()
-
-    menuContainer.appendChild(@mainMenu)
-    menuContainer.appendChild(@alertPane)
-
-    @element.appendChild(menuContainer)
+    # menu at the top of the code
+    mainHeaderMenu = new MainHeaderMenu(@)
+    @element.appendChild(mainHeaderMenu.getElement())
 
     #@variantWidth = $(@element).width() - 20 #@sourceEditor.getElement().getWidth() - 20
     @initVariants(@exploratoryEditor, @element)
 
     # create a variant manager
-    @variantManager = new VariantsManager(@masterVariant, @)
+    @variantListeners = new VariantsManager(@masterVariant, @)
     @programProcessor = new ProgramProcessor(@filePath, @)
 
-    #@element.appendChild(@exploratoryEditor.getElement())
-
+    # right click menu
     atom.contextMenu.add {'atom-pane': [{label: 'Copy Segment', command: 'atomic-taro:tarocopy'}]}
     atom.contextMenu.add {'atom-pane': [{label: 'Paste Segment', command: 'atomic-taro:taropaste'}]}
     atom.contextMenu.add {'atom-text-editor': [{label: 'Paste Segment', command: 'atomic-taro:taropaste'}]}
 
-  addVariantButtons: () ->
-    variantsButton = document.createElement("span")
-    variantsButton.classList.add('main-menu_variantButton')
-    variantsButton.classList.add('variants-button')
-    $(variantsButton).text("variants")
-    @mainMenu.appendChild(variantsButton)
-    variantsMenu = document.createElement("div")
-    variantsMenu.classList.add('variants-hoverMenu')
-    $(variantsMenu).hide()
-    variantsButton.appendChild(variantsMenu)
 
-    buttonShow = document.createElement("div")
-    buttonShow.classList.add('variants-hoverMenu-buttons')
-    buttonShow.classList.add('showVariantsButton')
-    $(buttonShow).text("show variant panel")
-    $(buttonShow).data("variant", @)
-    $(buttonShow).click (ev) =>
-      ev.stopPropagation()
-      @toggleExplorerView()
-      $(variantsMenu).hide()
-    variantsMenu.appendChild(buttonShow)
+  '''
+    Run after the variant's have loaded in their meta-data, so that we can finish
+    up building and display the tool.
+  '''
+  postInit_buildView: ->
+      @element.appendChild(@exploratoryEditor.getElement())
 
-    buttonAdd = document.createElement("div")
-    buttonAdd.classList.add('variants-hoverMenu-buttons')
-    buttonAdd.classList.add('createVariantButton')
-    $(buttonAdd).html("<span class='icon icon-repo-create'>new version</span>")
-    $(buttonAdd).click =>
-      @newVersion()
-      $(variantsMenu).hide()
-    variantsMenu.appendChild(buttonAdd)
+      @masterVariant.buildVariantDiv()
+      @variantListeners.addJqueryListeners()
+
+      atom.views.addViewProvider AtomicTaroToolPane, (toolPane) ->
+        toolPane.getElement()
+
+      @explorer = new AtomicTaroToolPane(@masterVariant, @programProcessor, @)
 
 
-  # init Exploratory Editor
+  '''
+    Creates a TextEditor that uses AnnotationProcessorBuffer for this tool. Ideally
+    we can use the text editor that is already there once we figure out a good alternative
+    for dealing with annotations!
+  '''
   initExploratoryEditor: (sourceEditor) ->
     sourceCode = sourceEditor.getBuffer().getText()
     exploratoryEditor = atom.workspace.buildTextEditor(buffer: new AnnotationProcessorBuffer(text: sourceCode, undoAgent: @undoAgent, filePath: @filePath, variantView: @), grammar: atom.grammars.selectGrammar("file."+@fileType),  scrollPastEnd: true)
@@ -248,48 +262,47 @@ class AtomicTaroView
     exploratoryEditor
 
 
-
+  '''
+    Detects when the cursor is focused or in the boundaries of a variant box
+  '''
   initCursorListeners: ->
     @exploratoryEditor.onDidChangeCursorPosition (ev) =>
       cursorPosition = ev.newBufferPosition
-      active = @variantManager.getFocusedVariant()
+      active = @variantListeners.getFocusedVariant()
       if active?
         activeMarker = active.getMarker()
         if !activeMarker.getBufferRange().containsPoint(cursorPosition)
-          @variantManager.unFocusVariant(active)
+          @variantListeners.unFocusVariant(active)
 
       m = @exploratoryEditor.findMarkers(containsBufferPosition: cursorPosition)
-      #console.log "MARKERS FOUND"
-      #console.log m
+
       if m.length > 0
-        @variantManager.setFocusedVariant(m)
+        @variantListeners.setFocusedVariant(m)
 
 
-
-  # This is the title that shows up on the tab
+  '''
+   This is the title that shows up on the tab in Atom
+  '''
   getTitle: -> @fileName
 
 
-
-  #since atom doesn't know how ot save our editor, we manually set this up
+  '''
+    Since atom doesn't know how to save our editor, we manually set this up
+  '''
   saveVariants: (e) ->
     @exploratoryEditor.save()
 
-  #getVariants: ->
-  #  @variantManager.getVariants()
-
-  sortVariants: ->
-    @variantManager.sortVariants()
-
-  copyVariant: (e) ->
-    @variantManager.copyVariant(e)
 
 
-  registerOutput: (data) ->
-    commitId = @masterVariant.registerOutput(data)
-    @explorer.registerOutput(data, commitId)
+  #sortVariants: ->
+  #  @variantListeners.sortVariants()
 
 
+
+  '''
+    When the user selects to 'travel' to an earlier commit, this starts the process
+    of adjusting the whole UI to reflect that past or future state of the code.
+  '''
   travelToCommit: (commitId) ->
     $(@commitAlertLabel).text("viewing commit "+commitId.commitID)
     $(@alertPane).show()
@@ -299,7 +312,10 @@ class AtomicTaroView
     @masterVariant.travelToCommit(commitId)
 
 
-
+  '''
+    When the user selects to 'travel' to an earlier commit, this starts the process
+    of adjusting the whole UI to reflect that past or future state of the code.
+  '''
   wrapNewVariant: (e, params) ->
     # first, get range
     clickRange = @exploratoryEditor.getSelectedBufferRange()
@@ -357,53 +373,48 @@ class AtomicTaroView
         @masterVariant.addedNestedVariant(variant, @masterVariant.getModel().getCurrentVersion())
 
 
-      '''if params?.undoSkip? == false
-        varList = @variantManager.getVariants()
-        variant = varList[varList.length - 1]
-        @undoAgent.pushChange({data: {undoSkip: true}, callback: variant.dissolve})'''
+      # if params?.undoSkip? == false
+      #   varList = @variantListeners.getVariants()
+      #   variant = varList[varList.length - 1]
+      #   @undoAgent.pushChange({data: {undoSkip: true}, callback: variant.dissolve})
 
 
 
-  # Tear down any state and detach
-  destroy: ->
-    @element.remove()
 
-
-
-  # Gets the root element
-  getElement: ->
-    @element
-
-
-
-  addJqueryListeners: ->
-    @variantManager.addJqueryListeners(@element)
-
-
-
+  '''
+    Starting with a plain code file, adds existing variant boxes to display.
+    Existing variant boxes are indicated by annotations in the code.
+  '''
   initVariants: (editor) ->
+    # Get the location of all variant annotaions in the file.
     beacons = @findMarkers(editor)
-    #console.log "beacons!! "
-    #console.log beacons
+
+    # First, wrap the entire file in a variant by default
     wholeFile = [new Point(0,0), new Point(10000000, 10000000)]
     range = @exploratoryEditor.getBuffer().clipRange(wholeFile)
     marker = editor.markBufferRange(range, invalidate: 'never')
     @masterVariant = new VariantView(@exploratoryEditor, marker, @fileName, @, @undoAgent)
-    # b = {start: range.start, end: range.end, nested: []}
-    # console.log "b is "
-    # console.log b
-    #@masterVariant = @addVariant(@exploratoryEditor, b, 0, 0, @fileName).variant
 
-
+    # Build all variant boxes indicated by annotations
     list_offset = @addAllVariants(editor, beacons, 0, [])
+
+    # Fix range for the master variant. Since we've just deleted a bunch of
+    # rows that only contained variant annotations, the length of the file
+    # has changed.
     range = @exploratoryEditor.getBuffer().clipRange(range)
     @masterVariant.getModel().getMarker().setBufferRange(range)
-    #console.log "RAnge: "+range
 
+    # Now, make all variant boxes in the file nested children of the master
+    # file-level variant.
     curr = @masterVariant.getModel().getCurrentVersion()
     @masterVariant.addedNestedVariant(v, curr) for v in list_offset.list
 
 
+
+  '''
+    Search file for variant box annotations and match nested pairs of annotations to
+    get the boundaries of each variant box, even if they are nested.
+  '''
   findMarkers: (editor) ->
     beacons = []
     sourceBuffer = editor.buffer
@@ -429,60 +440,72 @@ class AtomicTaroView
     beacons
 
 
+
+  '''
+    For each start/end pair of annotaions in 'beacons', replace them with a variant box in the
+    code. As we delete the annotations to replace them with GUI, keep the rowDeletedOffset
+    updated.
+  '''
   addAllVariants: (editor, beacons, rowDeletedOffset) ->
     variantList = []
     for b in beacons
       priorRow = rowDeletedOffset
 
+      # First, recursively add any nested variant boxes of this variant box
       nested = b.nested
       grandchildren = []
       if nested.length > 0
         #cancel out end marker offset, since we are inside the range of that marker
         nestedOffset = rowDeletedOffset
         list_offset = @addAllVariants(editor, nested, nestedOffset)
-        grandchildren = list_offset.list
+        grandchildren = list_offset.list # list of new VariantViews
         rowDeletedOffset = list_offset.offset
 
+      # Now, create this variant box
       v_offset = @addVariant(editor, b, priorRow, rowDeletedOffset)
       variant = v_offset.variant
       variantList.push variant
-      rowDeletedOffset = v_offset.offset
-      for g in grandchildren
+      rowDeletedOffset = v_offset.offset # update rowDeletedOffset
+      for g in grandchildren # If there where nested, now add these to the current Variant
         variant.addedNestedVariant(g, variant.getModel().getCurrentVersion())
-
 
     #return
     {list: variantList, offset: rowDeletedOffset}
 
 
+
+  '''
+    Build a single Variant.
+  '''
   addVariant: (editor, b, rowDeletedOffset, endDeleteOffset, title) ->
     if endDeleteOffset? == false
       endDeleteOffset = rowDeletedOffset
 
-    sb = b.start #startBeacon[i]
-    eb = b.end #endBeacon[i]
+    # Get start and end annotation Point of beacon
+    sb = b.start
+    eb = b.end
     editorBuffer = editor.getBuffer()
 
     # create a marker for this range so that we can keep track
     range = [sb, eb]
-    start = new Point(range[0].row - rowDeletedOffset, 0)
+    start = new Point(range[0].row - rowDeletedOffset, 0) # substract rowDeletedOffset
     end = new Point(range[1].row - endDeleteOffset - 1, range[1].column)
     range = [start, new Point(end.row, 100000000000)]
-    range = editorBuffer.clipRange(range)
+    range = editorBuffer.clipRange(range) # This is important! To end at the end of the last line.
     marker = editor.markBufferRange(range, invalidate: 'never')
 
     '''below, useful for debug!!!'''
     #dec = editor.decorateMarker(marker, type: 'highlight', class: 'highlight-pink')
 
-    # now, trim annotations
-    #rowStart = sb.range.start.row
+
+    # get title from start annnotation
     rowStart = sb.row
     if not title?
       title = editorBuffer.lineForRow(rowStart - rowDeletedOffset)
-      #get title from removed annotation
       title = title.trim().substring(6)
-    #rowEnd = eb.range.end.row
     rowEnd = eb.row
+
+    # now, delete annotation rows
     editorBuffer.deleteRow(rowStart - rowDeletedOffset)
     endDeleteOffset += 1
     editorBuffer.deleteRow(rowEnd - endDeleteOffset)

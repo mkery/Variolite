@@ -40,7 +40,7 @@ def findStops(speeds):
 			end = -1
 	if start > -1:
 		stops.append([start, len(speeds)])
-	return stops 
+	return stops
 #^^%^^
 
 
@@ -76,7 +76,7 @@ class Trip(object):
 	 	self.advSpeed = self.tripDist/self.tripTime #meters per second
 	 	self.maxSpeed = max(self.v)
 
-	 	self.stops = findStops(self.v)#len(findStops(self.v)) 
+	 	self.stops = findStops(self.v)#len(findStops(self.v))
 #^^%^^
 
 
@@ -174,4 +174,3 @@ print computeAngle([1,4], [6,12])
 
 
 #print "Trip #87 v=44.0, a=0.2, d=2 miles, stops = 9, avAngle = 18.9"
-    
