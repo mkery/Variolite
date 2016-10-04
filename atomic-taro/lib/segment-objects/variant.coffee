@@ -9,6 +9,10 @@ Represents a single variant of exploratory code.
 '''
   TODO: - compare multiple
         - travel to different versions and commits
+        - output data is not recorded with commits
+        - can make a commit even when nothing has changed D:
+        - Is currentVersion maintained when traveling in commits?
+        - How to deal with variant boxes that were dissolved but existed in the past?
 '''
 
 module.exports =
@@ -56,11 +60,18 @@ class Variant
     @view
 
 
+  '''
+    Starts the process of creating a new commit
+  '''
   commit: (params) ->
     start = @marker.getBufferRange().start.row
     @commitChunk(@dateNow(), start)
 
 
+  '''
+    Takes the current variant and chunks into nested variants recusively. For each nested
+    variant, it records a commit.
+  '''
   commitChunk: (date, textPointer) ->
     commit = {date: date}
     chunks = []
@@ -107,12 +118,17 @@ class Variant
     return {varID: @getVariantID(), verID: @currentVersion.id, commitID: @currentVersion.commits.length - 1}
 
 
-
+  '''
+    Records an output and a commit that generated it
+  '''
   registerOutput: (data) ->
     commit = @commit()
     commit
 
 
+  '''
+    Travels to most recent in time commit.
+  '''
   backToTheFuture: ->
     console.log "BACK TO THE FUTURE"
     latestCommit = @currentVersion.commits.length - 1
@@ -120,12 +136,20 @@ class Variant
     @currentVersion.commits.pop()
 
 
+  '''
+    Starts process of travel to a commit.
+    Changes display to show the user's code as it was at the time of a specific commit
+  '''
   travelToCommit: (commitId) ->
     @commit() # SAVE the latest version, not ideal to make a commit every time for this though
     @sourceBuffer.setTextInRange(@marker.getBufferRange(), "", undo: 'skip')
     @travel(commitId)
 
 
+  '''
+    Changes display to show the user's code as it was at the time of a specific commit.
+    Recursively loads in commits from chunked text.
+  '''
   travel: (commitId, insertPoint) ->
     versionID = commitId.verID
     commitID = commitId.commitID
@@ -150,6 +174,10 @@ class Variant
     #@clearHighlights()
 
 
+  '''
+    Given a chunked formatted text of a commit, parses this back into code that
+    goes outside variant boxes, variant boxes and their nested boxes.
+  '''
   unravelCommitText: (version, text, insertPoint) ->
     if not insertPoint?
       insertPoint = @marker.getBufferRange().start
@@ -197,8 +225,8 @@ class Variant
 
 
   '''
-  Sort variants by their marker location. This is helpful for dealing with things
-  like offset at save time.
+    Sort variants by their marker location. This is helpful for dealing with things
+    like offset at save time.
   '''
   sortVariants: ->
     if @currentVersion.nested.length > 0
@@ -216,15 +244,23 @@ class Variant
         return 0
 
 
-
+  '''
+    Returns the variant box that this variant box is a nested child of.
+  '''
   getNestedParent: ->
     @nestedParent
 
 
+  '''
+    Used when a variant is created, to add the pointer to its nested parent.
+  '''
   setNestedParent: (p) ->
     @nestedParent = p
 
 
+  '''
+    Returns a string to display the variant's header div as being nested.
+  '''
   generateNestLabel: ->
     if @nestedParent?
       [version, variant] = @nestedParent
@@ -233,6 +269,9 @@ class Variant
         text
 
 
+  '''
+    Recursive helper for generateNestLabel
+  '''
   recurseNestLabel: (n, text) ->
     [version, variant] = n
     text = version.title + ": " + text
@@ -243,6 +282,9 @@ class Variant
     text
 
 
+  '''
+    ??? Who calls this?
+  '''
   getActiveVersionIDs: ->
     current = [@currentVersion.id]
     if @currentVersion.nested.length > 0
@@ -255,6 +297,10 @@ class Variant
     current
 
 
+  '''
+    Helper function to display the current data and time. Returns a formatted
+    String.
+  '''
   dateNow: ->
     date = new Date()
     hour = date.getHours()
@@ -269,7 +315,10 @@ class Variant
     $.datepicker.formatDate('mm/dd/yy', date)+" "+hour+":"+minute+sign
 
 
-
+  '''
+    Saves the state of this variant so that if can be loaded later when the
+    tool is closed and opened.
+  '''
   serialize: ->
     # we don't want a variant to be saved unless we plan to keep it
     if @pendingDestruction == false
@@ -280,9 +329,12 @@ class Variant
         # Now, since we can have nested variants that are not in
         # JSON form, put everything in JSON form
         rootVersion: if @rootVersion? then @serializeWalk(@rootVersion) else null
-        currentVersion:  {title: @currentVersion.title}
+        currentVersion:  @currentVersion.id
 
 
+  '''
+    Recursive helper for @serialize
+  '''
   serializeWalk: (version) ->
     branches = []
     if version.branches.length > 0
@@ -298,23 +350,42 @@ class Variant
     copy
 
 
+  '''
+    Takes serialized JSON record of state and initilizes this variant with the
+    saved data.
+  '''
   deserialize: (state) ->
-    currentID = state.currentVersion.id
+    currentID = state.currentVersion
     @rootVersion = state.rootVersion
-    @walkVersions @rootVersion, (v) =>
-      if v.id == currentID
-        #console.log "current Nested"
-        for n, index in @currentVersion.nested
-          #console.log n
-          #console.log v.nested[index]
-          n.deserialize(v.nested[index])
-          v.nested[index] = n
-        @currentVersion = v
-        false
-      else
-        true
+    @deserializeWalk(@rootVersion, currentID)
+    #console.log "loaded in variant "
+    #console.log @rootVersion
 
 
+  '''
+    Recursive helper for @deserialize
+  '''
+  deserializeWalk: (version, currentVerID) ->
+    # If this is the current version, initialize all of it's nested
+    if version.id == currentVerID
+      #console.log "Already current version?"
+      #console.log @currentVersion
+      for n, index in @currentVersion.nested
+        #console.log n
+        #console.log v.nested[index]
+        n.deserialize(version.nested[index])
+        version.nested[index] = n
+      @currentVersion = version
+
+    # Continue to deserialize all the branches of version
+    for branch in version.branches
+      @deserializeWalk(branch, currentVerID)
+
+
+  '''
+    Removes variant box from code and flattens whatever is currently in the variant
+    box into the file.
+  '''
   dissolve: =>
     @range = @marker.getBufferRange()
     @marker.destroy()
@@ -322,6 +393,10 @@ class Variant
     @pendingDestruction = true
 
 
+  '''
+    If a variant box was dissolved in this session, re-adds it to the code and re-adds
+    the VariantView header elements.
+  '''
   reinstate: =>
     if @pendingDestruction
       @marker = @sourceEditor.markBufferRange(@range, invalidate: 'never')
@@ -343,50 +418,83 @@ class Variant
       @pendingDestruction = false
 
 
-
+  '''
+    ??? Not used?
+  '''
   archiveCurrentVerion: ->
     @currentVersion.active = false
 
 
-
+  '''
+    Helper function. Returns if this variant is 'pending destruction', meaning the user
+    chose to dissolve it. If they did, then this variant shuld not be saved with the file.
+  '''
   isAlive: ->
     !@pendingDestruction
 
 
+  '''
+    Returns the marker associated with this variant.
+  '''
   getMarker: ->
     @marker
 
 
+  '''
+    Sets this variant's main marker. This is useful in cases where the marker needs to
+    be destroyed and re-added later.
+  '''
   setMarker: (m) ->
     @marker = m
 
 
+  '''
+    Sets this variant's header marker. This is useful in cases where the marker needs to
+    be destroyed and re-added later.
+  '''
   setHeaderMarker: (hm) ->
     @headerMarker = hm
 
 
+  '''
+    Return this variant's header marker, which is simply a second marker to place the
+    header div of the variant, for implementation reasons of how editor decorations work in Atom
+  '''
   getHeaderMarker: ->
     @headerMarker
 
 
-  walkVersions: (version, fun) ->
-    flag = fun(version)
-    if version.branches? and flag
-      for branch in version.branches
-        @walkVersions(branch, fun)
-    else
-      version
+  '''
+    Recurse a given function over all versions of a given variant
+  '''
+  # walkVersions: (version, fun) ->
+  #   flag = fun(version)
+  #   if version.branches? and flag
+  #     for branch in version.branches
+  #       @walkVersions(branch, fun)
+  #   else
+  #     version
 
 
+  '''
+    Returns the root version of this variant box. The root version is simply the first
+    version that existed in the commit tree.
+  '''
   getRootVersion: ->
     #@versions
     @rootVersion
 
 
+  '''
+    Returns this variant box's ID. The variant box ID is simple the root version's ID
+  '''
   getVariantID: ->
     @rootVersion.id
 
 
+  '''
+    Given an ID, find the version in this variant box's commit tree that matches.
+  '''
   findVersion: (id, node) ->
     if not node?
       node = @rootVersion
@@ -398,23 +506,35 @@ class Variant
         return child
 
     for child in node.branches
-        c = findVersion(id, child)
+        c = @findVersion(id, child)
         if c?
           return c
 
 
+  '''
+    Return whatever version is currently showing in the editor.
+  '''
   getCurrentVersion: ->
     @currentVersion
 
 
+  '''
+    For display versions, return if this variant box has more than 1 version.
+  '''
   hasVersions: ->
     @rootVersion.branches.length > 0
 
 
+  '''
+    Return if this version is focused on by the user's cursor.
+  '''
   highlighted: ->
     @highlighted
 
 
+  '''
+    Toggles whether the contents of the variant are commented out or not.
+  '''
   toggleActive: (params) =>
     textSelection =  @marker.getBufferRange()
     selections = @sourceEditor.getSelections()
@@ -424,37 +544,45 @@ class Variant
     @clearHighlights()
     if params?.undoSkip? == false
       @undoAgent.pushChange({data: {undoSkip: true}, callback: @toggleActive})
-    #console.log textSelection
-    #ideas - somehow create a selection and use the API to toggle comments. Problem with
-    #this is I don't know how to create a selection and looking at the docs, it doesn't appear
-    # you can just call a constructor on it
-    #idea 2 - use reg expression to append comments to the beginning of lines
-    #problem is how would we know to un-toggle those comments and not already existing
-    #comments?
-    #console.log "done with toggleActive"
 
+
+  '''
+    TODO rename. What is this?? I think it's for selecting multiple versions
+    to compare or linked edit them.
+  '''
   isHighlighted: (v) ->
     for h in @highlighted
       if h.id == v.id
         return true
     false
 
+  '''
+    TODO rename. What is this?? I think it's for selecting multiple versions
+    to compare or linked edit them.
+  '''
   clearHighlights: ->
     @highlighted = []
     @overlapText = ""
     for h in @highlightMarkers
       h.destroy()
 
+  '''
+    Returns true if the given version has the same ID as @currentVersion, false otherwise.
+  '''
   isCurrent: (v) ->
-    console.log "current version is "+@currentVersion.title+", compared to "+v.title
+    #console.log "current version is "+@currentVersion.title+", compared to "+v.title
     if v.id == @currentVersion.id
       return true
     else
       return false
 
-  getPrevs: ->
-    prevVers
+  # getPrevs: ->
+  #   @prevVers
 
+
+  '''
+    Creates a new version of this variant box, a new branch in the commit tree.
+  '''
   newVersion: ->
     # new text has clean text before we add marker placeholders
     newText = @sourceEditor.getTextInBufferRange(@marker.getBufferRange())
@@ -476,6 +604,10 @@ class Variant
     @currentVersion
 
 
+  '''
+    Switches to a new version. Instantiates that version if it has nested variant boxes
+    that have never been opened and built before in this session.
+  '''
   switchToVersion: (v, params) =>
     v.active = true
     @prevVers.push(@currentVersion)
@@ -490,10 +622,17 @@ class Variant
       @undoAgent.pushChange({data: {undoSkip: true}, callback: @getPrevVersion})
 
 
+  '''
+    A helper for undo-ing @switchToVersion
+  '''
   getPrevVersion: =>
     v = @prevVers.pop()
     @.getView().switchToVersion(v)
 
+
+  '''
+    TODO
+  '''
   setCurrentVersionText_Close: ->
     trueEnd = @marker.getBufferRange().end
 

@@ -7,11 +7,11 @@ import math
 def distance(x0, y0, x1, y1):
 	return math.sqrt((x1-x0)**2 + (y1-y0)**2)
 
-#%%^%%angle-norm
+#%%^%%angle-1
 def computeAngle (p1, p2):
-	dot = 0
+	dot = 0 # dogffffffff
 	dot = (p2[0]*p1[0]+p2[1]*p1[1])/float(computeNorm(p1[0], p1[1])*computeNorm(p2[0], p2[1]))
-	return math.acos(dot)*180/math.pi
+	return math.acos(dot)*180/math.pi        
 #^^%^^
 
 
@@ -164,8 +164,8 @@ class Trip(object):
 		pyplot.plot(self.acc, 'b-')"""
 		pyplot.show()
 
-print computeAngle([1,4], [6,12])
-#print "Trip #86 v=23.6, a=4.8, d=52 miles, stops = 6, anvAngle = 5.2"
+#print computeAngle([1,4], [6,12])
+print "Trip #86 v=23.6, a=4.8, d=52 miles, stops = 6, anvAngle = 5.2"
 #print "Trip #86 v=24, a=4.8, d=52 miles, stops = 12, anvAngle = 5.2"
 #print "Trip #86 v=24, a=4.8, d=52 miles, stops = 12, anvAngle = 5.8"
 #print "Trip #87 v=44.0, a=0.2, d=2 miles, stops = 4, avAngle = 16.5"

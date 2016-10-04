@@ -5,6 +5,15 @@ Variant = require './variant'
 variant view represents the visual appearance of a variant, and contains a
 variant object.
 '''
+'''
+  TODO
+    - a way to archive variants
+    - ditching the variant explorer?
+    - deactivate
+    - serialize UI state?
+    - date appearing correctly
+    - should output be shown locally?
+'''
 module.exports =
 class VariantView
 
@@ -15,15 +24,24 @@ class VariantView
     @initialize()
 
 
+  '''
+    Alternative constructor. Used in the senario where variant box has an unitialized
+    nested variant box in a version that was not loaded at startup. Meaning, it wasn't
+    showing annotations in the code, since it wasn't the current version at startup, so
+    it's not built until later. Returns a new variant box given save data and the current
+    parent variant box view @.
+  '''
   makeNewFromJson: (json) ->
     variantView = new VariantView(@sourceEditor, null, "", @root, @undoAgent)
     variantView.getModel().deserialize(json)
     variantView
 
 
+  '''
+    Shared by both constructors, sets up global div variables but does not build all
+    components until later when the save data is loaded.
+  '''
   initialize:  ->
-    #@undoAgent = null
-
     # header bar that holds interactive components above text editor
     @headerWrapper = document.createElement('div')
     @headerWrapper.classList.add('atomic-taro_editor-header-wrapper')
@@ -55,28 +73,34 @@ class VariantView
     @focused = false
 
     # wrapper div to browse other versions
-    #@versionExplorer = new VersionExplorerView(@)
-    @explorerGroupElement = null
+    @explorerGroupElement = null #TODO not used
 
 
-
+  '''
+    TODO used?
+  '''
   deactivate: ->
     @model.getMarker().destroy()
 
 
-
+  '''
+    Dissolves the variant box, returning whatever is currently in the box down to plain
+    code sitting flat in the file. Removes all variant box divs.
+  '''
   dissolve: () => # re-add when you can safely undo!
     @headerMarkDecoration.destroy()
     @footerMarkDecoration.destroy()
     @model.dissolve()
-    #@explorerGroupElement.dissolve()
+    #@explorerGroupElement.dissolve() TODO
     for n in @model.getNested()
       n.dissolve()
 
     @undoAgent.pushChange({data: {undoSkip: true}, callback: @reinstate})
 
 
-
+  '''
+    Reverse of @dissolve. A way to undo a dissolve action on this variant box.
+  '''
   reinstate: =>
     @model.reinstate()
     #@explorerGroupElement.reinstate()
@@ -84,7 +108,10 @@ class VariantView
       n.reinstate()
 
 
-
+  '''
+    TODO. Removes the currenty active version of this variant box from the header bar.
+    This means that version still exists in the commit tree but cannot be interacted with.
+  '''
   archive: ->
     # No versions showing to archive
     # If just 1 don't bother switching to a another verison
@@ -109,14 +136,24 @@ class VariantView
       $(@buttonArchive).hide()
 
 
+  '''
+    Used ???
+  '''
   sortVariants: ->
     @model.sortVariants()
 
 
+  '''
+    Saves the state of the variant box into a json format so that it can be reactivated
+    when the tool is closed and opened again later.
+  '''
   serialize: ->
-    #todo add ui
+    #TODO add ui
     @model.serialize()
 
+  '''
+    Takes JSON formatted save data and updates the variant box to reflect that saved state
+  '''
   deserialize: (state) ->
     @model.deserialize(state)
     '''$(@versionBookmarkBar).empty()
@@ -124,44 +161,73 @@ class VariantView
     $(@dateHeader).text(@model.getDate())'''
 
 
-  variantSerialize: ->
-    @model.variantSerialize()
+  #???
+  # variantSerialize: ->
+  #   @model.variantSerialize()
 
 
+  '''
+    Get the model associated with this view; the data associated with the divs of this
+    variant box.
+  '''
   getModel: ->
     @model
 
 
+  '''
+    Returns the text editor marker that marks the range in the editor controlled by
+    this variant box.
+  '''
   getMarker: ->
     @model.getMarker()
 
 
+  '''
+    Returns the title of the currently viewed version of this variant box.
+  '''
   getTitle: ->
     @model.getTitle()
 
 
+  '''
+    Returns the div element for the footer
+  '''
   getFooter: ->
-    @footerWrapper
+    @footerWrapper #TODO is the wrapper needed?
 
 
-  #getWrappedFooter: ->
-  #  @versionExplorer.getFooter()
+  # ???
+  # getOutputsDiv: ->
+  #   @outputDiv
 
-  getOutputsDiv: ->
-    @outputDiv
-
+  '''
+    Returns the div element that displays the header of this variant box
+  '''
   getHeader: ->
     @headerWrapper
 
 
+  '''
+    TODO ???
+  '''
   getExplorerElement: ->
     @explorerGroupElement
 
 
+  '''
+    Gets the IDs of all versions actively selected in this variant box.
+    ??? Presumably for linked editing.
+  '''
   getActiveVersionIDs: ->
     @model.getActiveVersionIDs()
 
 
+  '''
+    Begins the process of traveling to a specific commit in this variant box.
+    Changes the appearance of the header and footer to give some visual indication
+    that we care time traveling. Then starts the model in the actual text manipulation
+    needed for traveling.
+  '''
   travelToCommit: (commitId) ->
     $(@headerBar).addClass('historical')
     $(@commitTraveler).addClass('historical')
@@ -169,15 +235,22 @@ class VariantView
     @hover()
     commit = @model.travelToCommit(commitId)
 
+
+  '''
+    Changes the appearance of the header to reflect returning to the most contemporary
+    commit. Starts the model actually returning back to this commit.
+  '''
   backToTheFuture: ->
     $(@headerBar).removeClass('historical')
     $(@commitTraveler).removeClass('historical')
     $(@footerBar).removeClass('historical')
     @model.backToTheFuture()
 
-  #getWrappedHeader: ->
-  #  @versionExplorer.getHeader()
 
+  '''
+    From the GUI the user can change the title of this version. Sends the new title
+    back to the model to change this in the data. Also updates the display.
+  '''
   setTitle: (title, version) ->
     @model.setTitle(title, version)
     $(@versionBookmarkBar).empty()
@@ -185,35 +258,68 @@ class VariantView
     #@explorerGroupElement.updateTitle()
 
 
+  '''
+    Sets the text editor marker associated with the header div. Needed for
+    initialization and for re-adding variant boxes.
+  '''
   setHeaderMarker: (hm) ->
     @model.setHeaderMarker(hm)
 
 
+  '''
+    Returns the text editor marker associated with the header div.
+  '''
   getHeaderMarker: ->
     @model.getHeaderMarker()
 
 
+  '''
+    A Decoration is an Atom object that attatches a particular text editor
+    display to a given marker. We store the decoration here that decorates the
+    text in the variant box range with the variant header div.
+  '''
   setHeaderMarkerDecoration: (decoration) ->
     @headerMarkDecoration = decoration
 
 
+  '''
+    Remove the decoration from the code. Used for removing and adding variant boxes.
+    Removes the div of the header.
+  '''
   destroyHeaderMarkerDecoration: ->
     @headerMarkDecoration.destroy()
 
 
+  '''
+    A Decoration is an Atom object that attatches a particular text editor
+    display to a given marker. We store the decoration here that decorates the
+    text in the variant box range with the variant footer div.
+  '''
   setFooterMarkerDecoration: (decoration) ->
     @footerMarkDecoration = decoration
 
 
+  '''
+    Remove the decoration from the code. Used for removing and adding variant boxes.
+    Removes the div of the footer.
+  '''
   destroyFooterMarkerDecoration: ->
     @footerMarkDecoration.destroy()
 
 
-  focus: (cursorPosition) ->
+  '''
+    The user has placed their cursor in the range of this variant box, so update the
+    display to highlight the UI as active.
+  '''
+  focus: () ->
     @focused = true
     @hover()
 
 
+  '''
+    The user has removed their cursor from the range of this variant box, so update the
+    display to not-highlight the UI.
+  '''
   unFocus: ->
     @focused = false
     for n in @model.getNested()
@@ -224,10 +330,16 @@ class VariantView
     $('.atomic-taro_editor-header_version-title').removeClass('highlighted')
 
 
+  '''
+    Returns if the UI state is focused, meaning the cursor is in the range of this box.
+  '''
   isFocused: ->
     @focused
 
 
+  '''
+    Set UI to highlighted active.
+  '''
   hover: ->
     $(@headerBar).addClass('active')
     $(@dateHeader).addClass('active')
@@ -239,6 +351,9 @@ class VariantView
     $(@branchButton).show()
 
 
+  '''
+    Set UI to not-highlighted inactive.
+  '''
   unHover: ->
     if @focused
       return
@@ -252,11 +367,16 @@ class VariantView
     $(@branchButton).hide()
 
 
+  '''
+    When the user's code is run, associate the output with a commit of this variant box.
+  '''
   registerOutput: (data) ->
     @model.registerOutput(data)
 
 
-
+  '''
+    Handle resize of the width.
+  '''
   updateVariantWidth: (width) ->
     $(@headerWrapper).width(width)
     if @nestLabelContainer?
@@ -267,11 +387,17 @@ class VariantView
       n.updateVariantWidth(width)
 
 
+  '''
+    Attatches a new nested variant to this parent variant box.
+  '''
   addedNestedVariant: (v, version) ->
     @model.addNested(v)
     v.getModel().setNestedParent([version, @])
 
 
+  '''
+    Adds a new version to this variant box.
+  '''
   newVersion: ->
     v = @model.newVersion()
     $(@versionBookmarkBar).empty()
@@ -280,10 +406,16 @@ class VariantView
     @addVersiontoExplorer(v)
 
 
+  '''
+    Toggles the code as commented or uncommented.
+  '''
   toggleActive: (v) ->
     @model.toggleActive(v)
 
 
+  '''
+    Show the commit timeline to view and travel between commits.
+  '''
   toggleCommitTimeline: () ->
     if $(@commitTraveler).is(":visible")
       $(@commitTraveler).hide()
@@ -308,6 +440,9 @@ class VariantView
       $(@commitTraveler).show()
 
 
+  '''
+    Switch between versions. ???
+  '''
   switchToVersion: (v, same) ->
     #if same? then same else same = true
     same = @model.isCurrent(v) #and same
@@ -328,6 +463,9 @@ class VariantView
     @switchHeaderToVersion(v)
 
 
+  '''
+    Update the highlighting in the header to reflect the change in active version.
+  '''
   switchHeaderToVersion: (v) ->
     $(@versionBookmarkBar).empty()
     $(@activeButton).data("version", v)
@@ -336,6 +474,9 @@ class VariantView
     @switchExplorerToVersion(v)
 
 
+  '''
+    Update the highlighting to show that a version is no longer an active one.
+  '''
   makeNonCurrentVariant: ->
     $(@headerBar).removeClass('activeVariant')
     $(@headerBar).addClass('inactiveVariant')
@@ -343,18 +484,24 @@ class VariantView
     $(@variantsButton).remove()
 
 
+  # ???
   setExplorerGroup: (elem) ->
     @explorerGroupElement = elem
 
 
+  # ???
   addVersiontoExplorer: (v) ->
     #@explorerGroupElement.addVersion(v)
 
 
+  # ???
   switchExplorerToVersion: (v) ->
     #@explorerGroupElement.findSwitchVersion(v)
 
 
+  '''
+    TODO for selecting multiple versions.
+  '''
   highlightMultipleVersions: (v) ->
     console.log "highlight!"
     @model.compareToVersion(v)
@@ -365,6 +512,10 @@ class VariantView
     @switchExplorerToVersion(v)
 
 
+  '''
+    On initialization, once all saved data in loaded into the model, finally build the
+    UI for this variant box.
+  '''
   buildVariantDiv: () ->
     #console.log "Building variant "+@model.getCurrentVersion().title
     #----------header-------------
@@ -397,6 +548,10 @@ class VariantView
           n.buildVariantDiv()
 
 
+  '''
+    The header wrapper contains the collapseIcon and also labels to indicate if a
+    variant box is nested within another one.
+  '''
   addHeaderWrapperLabel: (headerContainer) ->
     @collapseIcon = document.createElement("span")
     @collapseIcon.classList.add("icon-chevron-down")
@@ -415,6 +570,7 @@ class VariantView
     else
       width -= 20
     width
+
 
 
   addHeaderDiv: (headerContainer) ->
