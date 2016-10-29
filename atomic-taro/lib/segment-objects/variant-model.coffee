@@ -157,7 +157,7 @@ class VariantModel
     Changes display to show the user's code as it was at the time of a specific commit
   '''
   travelToCommit: (commitId) ->
-    @currentBranch.saveUncomittedState() # SAVE the latest version, not ideal to make a commit every time for this though
+    @currentBranch.recordCurrentState() # SAVE the latest version, not ideal to make a commit every time for this though
 
     versionID = commitId.verID
     commitID = commitId.commitID
