@@ -2,6 +2,7 @@
 JsDiff = require 'diff'
 crypto = require 'crypto'
 GitUtils = require './git-utils'
+VariantBranch = require './variant-branch'
 
 '''
 Represents a single variant of exploratory code.
@@ -18,7 +19,7 @@ Represents a single variant of exploratory code.
 '''
 
 module.exports =
-class Variant
+class VariantModel
 
   constructor: (@view, @sourceEditor, @marker, title, @undoAgent, @provenanceAgent) ->
     @sourceBuffer = @sourceEditor.getBuffer()  # really Variolite's buffer
@@ -35,16 +36,20 @@ class Variant
     @pendingDestruction = false
 
     # TODO do not need to re-generate id for variant that has one!
-    id = crypto.randomBytes(20).toString('hex')
+    @variantID = crypto.randomBytes(20).toString('hex')
 
+    # Branch objects for each version associated with this variant
+    @branches = []
+    @currentBranch = null # the currently selected branch
+
+    params = null
     if @marker?
       text = @sourceEditor.getTextInBufferRange(@marker.getBufferRange())
       date = @dateNow()
-      @currentVersion = {active: true, id: id, title: title, subtitle: 0, text: text, date: date, branches: [], commits: [], nested: []}
-    else
-      @currentVersion = {active: true, id: id, title: "NoTitle", subtitle: 0, text: "", date: "", branches: [], commits: [], nested: []}
+      params = {title: title, text: text, date: date}
 
-    @rootVersion = @currentVersion
+    @currentBranch = new VariantBranch(@, params)
+    @branches.push @currentBranch
 
     # Global variables to do with comparing multiple versions.
     # ??? TODO Rename to clarify!
@@ -63,113 +68,88 @@ class Variant
 
 
   '''
+    Returns the text currently in range of this Variant
+  '''
+  getTextInVariantRange: (range) ->
+    if range?
+      @sourceEditor.getTextInBufferRange(range)
+    else
+     @sourceEditor.getTextInBufferRange(@marker.getBufferRange())
+
+
+  '''
+    Removes the text currently in range of this Variant
+  '''
+  clearTextInRange: ->
+     @sourceBuffer.setTextInRange(@marker.getBufferRange(), "", undo: 'skip')
+
+
+  '''
+    Insert text in range of this Variant
+  '''
+  insertTextInRange: (point, text, undo) ->
+    @sourceBuffer.insert(point, text, undo: undo)
+
+
+  '''
+    Completely replace the text in this variant with the given text
+  '''
+  setTextInVariantRange: (text, undo) ->
+    @sourceBuffer.setTextInRange(@marker.getBufferRange(), text, undo: undo)
+
+
+  '''
+    Clip a range in this Variant to the exact start and end points of the
+    text in there.
+  '''
+  clipRange: (range) ->
+    @sourceBuffer.clipRange(range)
+
+
+  deleteVariantRow: (row, undo) ->
+    @sourceBuffer.deleteRow(row, undo: undo)
+
+
+  '''
+    Returns the range of this Variant
+  '''
+  getVariantRange: ->
+    @marker.getBufferRange()
+
+  '''
+    Sets the range of this variant
+  '''
+  setRange: (newRange) ->
+    @marker.setBufferRange(newRange)
+
+
+  '''
+    Sets the range of the header marker of this variant
+  '''
+  setHeaderRange: (newRange) ->
+    if  @headerMarker?
+      @headerMarker.setBufferRange([newRange.start, new Point(newRange.end.row - 1, newRange.end.column)])
+
+
+  '''
     Records an output and a commit that generated it
   '''
   registerOutput: (data) ->
-    commit = @commit()
+    commit = @currentBranch.commit()
     # store provenance information
     @provenanceAgent.store(data, commit)
     commit
 
 
-  '''
-    Returns if the variant box has changed since the last run
-  '''
-  isChanged: ->
-    @currentVersion.text = @sourceEditor.getTextInBufferRange(@marker.getBufferRange())
-    if ( @currentVersion.latestCommit? )
-      return @currentVersion.text != @currentVersion.latestCommit.text
-    return true
-
-
-  '''
-    Starts the process of creating a new commit
-  '''
   commit: ->
-    #console.log "Commit called"
-    # check if anything has changed first
-    diff = @isChanged()
-
-    # if it changed create a new commit
-    if diff
-      @currentVersion.latestCommit = {text: "", id: ""}
-      @currentVersion.latestCommit.text = @sourceEditor.getTextInBufferRange(@marker.getBufferRange())
-      @currentVersion.latestCommit.id = @commitChunk(@dateNow()) # chunks the current state so that it can be quickly reloaded
-      commit = @currentVersion.latestCommit.id
-    # if nothing has changed, point to the latest commit
-    else
-      #console.log "UNCHANGED"
-      commit = @currentVersion.latestCommit.id
-
-    #@git-utils -- commit
-    commit
-
-
-  '''
-    Takes the current variant and chunks into nested variants recusively. For each nested
-    variant, it records a commit.
-  '''
-  commitChunk: (date, textPointer) ->
-    #console.log "commit Chunk called! "+@currentVersion.title
-    textPointer = @marker.getBufferRange().start.row
-    commit = {date: date}
-    chunks = []
-    @sortVariants() # necissary to make sure nested variants are in order
-
-    nested = @currentVersion.nested
-    if nested.length > 0
-      for nest in nested
-        model = nest.getModel()
-        marker = model.getMarker()
-        range = marker.getBufferRange()
-
-        freeRange = [new Point(textPointer, 0), new Point(range.start.row, 0)]
-        freeRange = @sourceBuffer.clipRange(freeRange)
-        if not freeRange.isEmpty()
-          if chunks.length > 0
-            freeText = "\n"+@sourceEditor.getTextInBufferRange(freeRange)
-          else
-            freeText = @sourceEditor.getTextInBufferRange(freeRange)
-          chunks.push {text: freeText}
-
-        textPointer = range.start.row
-        commitReference = model.commit()
-        chunks.push commitReference
-
-        textPointer = range.end.row + 1
-
-      #After nested, get any remaining free text
-      freeRange = [new Point(textPointer, 0), new Point(@marker.getBufferRange().end.row, 100000000)]
-      freeRange = @sourceBuffer.clipRange(freeRange)
-      if not freeRange.isEmpty()
-        #console.log "END free range"
-        #console.log freeRange
-        freeText = "\n"+@sourceEditor.getTextInBufferRange(freeRange)
-        chunks.push {text: freeText}
-
-    else
-      # entire variant
-      chunks.push {text: @sourceEditor.getTextInBufferRange(@marker.getBufferRange())}
-
-    commit.text = chunks
-    #console.log @currentVersion.commits
-    @currentVersion.commits.push commit
-    #console.log "commited a version "
-    #console.log @currentVersion.commits
-    #@git-utils commit
-    # return a reference, so that others can find this commit
-    return {varID: @getVariantID(), verID: @currentVersion.id, commitID: @currentVersion.commits.length - 1}
-
+    @currentBranch.commit()
 
 
   '''
     Travels to most recent in time commit.
   '''
   backToTheFuture: ->
-    console.log "BACK TO THE FUTURE"
-    latestCommit = @currentVersion.commits.length - 1
-    @travelToCommit({commitID: latestCommit, verID: @currentVersion.id})
-    @currentVersion.commits.pop()
+    @currentBranch.backToTheFuture()
 
 
   '''
@@ -177,107 +157,21 @@ class Variant
     Changes display to show the user's code as it was at the time of a specific commit
   '''
   travelToCommit: (commitId) ->
-    @commit() # SAVE the latest version, not ideal to make a commit every time for this though
-    @sourceBuffer.setTextInRange(@marker.getBufferRange(), "", undo: 'skip')
-    @travel(commitId)
+    @currentBranch.saveUncomittedState() # SAVE the latest version, not ideal to make a commit every time for this though
 
-
-  '''
-    Changes display to show the user's code as it was at the time of a specific commit.
-    Recursively loads in commits from chunked text.
-  '''
-  travel: (commitId, insertPoint) ->
     versionID = commitId.verID
     commitID = commitId.commitID
 
-    version = @findVersion(versionID)
-    commit = version.commits[commitID]
-    console.log "Reverting to commit "+commitID
-    console.log commit
+    brach = @findBranch(versionID)
+    if versionID != @currentBranch.getID()
+      #console.log "Need to switch versions from "+@currentVersion.title+" to "+version.title
+      @currentBranch = brach
+      @view.switchHeaderToVersion(brach)
 
-    if versionID != @currentVersion.id
-      console.log "Need to switch versions from "+@currentVersion.title+" to "+version.title
-      @currentVersion = version
-      @view.switchHeaderToVersion(version)
-
-    version.active = true
-    text = commit.text
-
-    #@setCurrentVersionText_Close()
-    #@sourceBuffer.setTextInRange(@marker.getBufferRange(), "", undo: 'skip')
-    return @unravelCommitText(version, text, insertPoint)
-    #@currentVersion = version
-    #@clearHighlights()
+    @currentBranch.setActive(true)
+    @currentBranch.travelToCommit(commitID)
 
 
-  '''
-    Given a chunked formatted text of a commit, parses this back into code that
-    goes outside variant boxes, variant boxes and their nested boxes.
-  '''
-  unravelCommitText: (version, text, insertPoint) ->
-    if not insertPoint?
-      insertPoint = @marker.getBufferRange().start
-      console.log "Beginning insert at "+insertPoint
-
-    start = insertPoint
-
-    subCommits = []
-
-    for item in text
-      if item.commitID?
-        # then this item is a nested variant
-        for nest in version.nested
-          nestID = item.varID
-          if nest.getModel().getVariantID() == nestID
-            insertPoint = nest.getModel().travel(item, insertPoint)
-            break
-      else
-        range = @sourceBuffer.insert(insertPoint, item.text, undo: 'skip')
-        insertPoint = range.end
-
-    after = @sourceBuffer.insert(insertPoint, " ", undo: 'skip')
-    newRange = [start, new Point(insertPoint.row, insertPoint.column)]
-    newRange = @sourceBuffer.clipRange(newRange)
-    #console.log "New range for "+@currentVersion.title+" is "
-    #console.log newRange
-    @marker.setBufferRange(newRange)
-    if  @headerMarker?
-      @headerMarker.setBufferRange([newRange.start, new Point(newRange.end.row - 1, newRange.end.column)])
-
-    insertPoint = after.end
-    #@sourceEditor.decorateMarker(@marker, type: 'highlight', class: 'highlight-pink')
-
-    # for nest in version.nested
-    #   active = false
-    #   for sub in subCommits
-    #     nestID = sub.item.varID
-    #     if nest.getModel().getVariantID() == nestID
-    #       nest.getModel().travel(sub.item, sub.point)
-    #       active = true
-    #       break
-    #   if active == false
-    #     console.log "This variant should not be showing"
-    return insertPoint
-
-
-  '''
-    Sort variants by their marker location. This is helpful for dealing with things
-    like offset at save time.
-  '''
-  sortVariants: ->
-    if @currentVersion.nested.length > 0
-      nestList = @currentVersion.nested
-      nestList = nestList.sort (a, b) ->
-        rangeA = a.getModel().getMarker().getBufferRange()
-        startA = rangeA.start.row
-        rangeB = b.getModel().getMarker().getBufferRange()
-        startB = rangeB.start.row
-        #console.log "sorting "+startA+", "+startB
-        if startA < startB
-          return -1
-        if startA > startB
-          return 1
-        return 0
 
 
   '''
@@ -322,10 +216,10 @@ class Variant
     ??? Who calls this?
   '''
   getActiveVersionIDs: ->
-    current = [@currentVersion.id]
-    if @currentVersion.nested.length > 0
+    current = [@currentBranch.getID()]
+    if @currentBranch.getNested().length > 0
       nCur = []
-      for n in @currentVersion.nested
+      for n in @currentBranch.getNested()
         # assume all nested variants are instantiated
         nCur.push n.getActiveVersionIDs()
 
@@ -356,7 +250,7 @@ class Variant
     tool is closed and opened.
   '''
   serialize: ->
-    # we don't want a variant to be saved unless we plan to keep it
+    '''# we don't want a variant to be saved unless we plan to keep it
     if @pendingDestruction == false
       if @marker?
         text = @sourceEditor.getTextInBufferRange(@marker.getBufferRange())
@@ -365,13 +259,14 @@ class Variant
         # Now, since we can have nested variants that are not in
         # JSON form, put everything in JSON form
         rootVersion: if @rootVersion? then @serializeWalk(@rootVersion) else null
-        currentVersion:  @currentVersion.id
+        currentVersion:  @currentVersion.id'''
 
 
   '''
     Recursive helper for @serialize
   '''
   serializeWalk: (version) ->
+    '''
     branches = []
     if version.branches.length > 0
       (branches.push @serializeWalk(c)) for c in version.branches
@@ -383,7 +278,7 @@ class Variant
         else
           nested.push n.serialize()
     copy = {active: version.active, id: version.id, title: version.title, subtitle: version.subtitle, text: version.text, date: version.date, branches: branches, commits: version.commits, latestCommit: version.latestCommit, nested: nested}
-    copy
+    copy'''
 
 
   '''
@@ -391,17 +286,20 @@ class Variant
     saved data.
   '''
   deserialize: (state) ->
+    '''
     currentID = state.currentVersion
     @rootVersion = state.rootVersion
     @deserializeWalk(@rootVersion, currentID)
     #console.log "loaded in variant "
     #console.log @rootVersion
+    '''
 
 
   '''
     Recursive helper for @deserialize
   '''
   deserializeWalk: (version, currentVerID) ->
+    '''
     # If this is the current version, initialize all of it's nested
     if version.id == currentVerID
       #console.log "Already current version?"
@@ -416,6 +314,7 @@ class Variant
     # Continue to deserialize all the branches of version
     for branch in version.branches
       @deserializeWalk(branch, currentVerID)
+    '''
 
 
   '''
@@ -458,7 +357,7 @@ class Variant
     ??? Not used?
   '''
   archiveCurrentVerion: ->
-    @currentVersion.active = false
+    @currentBranch.setActive(false)
 
 
   '''
@@ -500,49 +399,37 @@ class Variant
     @headerMarker
 
 
-  '''
-    Recurse a given function over all versions of a given variant
-  '''
-  # walkVersions: (version, fun) ->
-  #   flag = fun(version)
-  #   if version.branches? and flag
-  #     for branch in version.branches
-  #       @walkVersions(branch, fun)
-  #   else
-  #     version
-
 
   '''
     Returns the root version of this variant box. The root version is simply the first
     version that existed in the commit tree.
   '''
   getRootVersion: ->
-    #@versions
-    @rootVersion
+    @branches[0]
 
 
   '''
     Returns this variant box's ID. The variant box ID is simple the root version's ID
   '''
   getVariantID: ->
-    @rootVersion.id
+    @variantID
 
 
   '''
     Given an ID, find the version in this variant box's commit tree that matches.
   '''
-  findVersion: (id, node) ->
+  findBranch: (id, node) ->
     if not node?
-      node = @rootVersion
-    if node.id == id
+      node = @branches[0]
+    if node.getID() == id
       return node
 
-    for child in node.branches
-      if child.id == id
+    for child in node.getBranches()
+      if child.getID() == id
         return child
 
-    for child in node.branches
-        c = @findVersion(id, child)
+    for child in node.getBranches()
+        c = @findBranch(id, child)
         if c?
           return c
 
@@ -551,14 +438,14 @@ class Variant
     Return whatever version is currently showing in the editor.
   '''
   getCurrentVersion: ->
-    @currentVersion
+    @currentBranch
 
 
   '''
     For display versions, return if this variant box has more than 1 version.
   '''
   hasVersions: ->
-    @rootVersion.branches.length > 0
+    @branches.length > 0
 
 
   '''
@@ -607,13 +494,10 @@ class Variant
   '''
   isCurrent: (v) ->
     #console.log "current version is "+@currentVersion.title+", compared to "+v.title
-    if v.id == @currentVersion.id
+    if v.getID() == @currentBranch.getID()
       return true
     else
       return false
-
-  # getPrevs: ->
-  #   @prevVers
 
 
   '''
@@ -621,38 +505,38 @@ class Variant
   '''
   newVersion: ->
     # new text has clean text before we add marker placeholders
-    newText = @sourceEditor.getTextInBufferRange(@marker.getBufferRange())
-    @setCurrentVersionText_Close()
+    newText = @getTextInVariantRange()
+    @currentBranch.close()
     # currentVersion has text after we add marker placeholders
-    @currentVersion.text = @sourceEditor.getTextInBufferRange(@marker.getBufferRange())
+    @currentBranch.setText(@getTextInVariantRange())
 
     # now, set the text for the new version we're switching to
-    @sourceBuffer.setTextInRange(@marker.getBufferRange(), newText, undo: 'skip')
+    @setTextInVariantRange(newText, 'skip')
 
-    subtitle = if @currentVersion.subtitle? then @currentVersion.subtitle else 0
-    index = @currentVersion.title + "-" + (subtitle + 1)
-    id = crypto.randomBytes(20).toString('hex')
-    newVersion = {active: true, id: id, title: index, text: newText, date: @dateNow(), branches: [], commits: [], nested: []}
-    #@versions.push newVersion
-    @currentVersion.branches.push newVersion
-    @currentVersion = newVersion
+    subtitle = @currentBranch.getSubtitle()
+    index = @currentBranch.getTitle() + "-" + (subtitle + 1)
+    newBranch = new VariantBranch(@,{title: index, text: newText, date: @dateNow()})
+
+    @currentBranch.addBranch newBranch
+    @currentBranch = newBranch
     @clearHighlights()
-    @currentVersion
+    @currentBranch
 
 
   '''
     Switches to a new version. Instantiates that version if it has nested variant boxes
     that have never been opened and built before in this session.
   '''
-  switchToVersion: (v, params) =>
-    v.active = true
-    @prevVers.push(@currentVersion)
-    text = v.text
-    @setCurrentVersionText_Close()
-    @currentVersion.text = @sourceBuffer.getTextInRange(@marker.getBufferRange())
-    @sourceBuffer.setTextInRange(@marker.getBufferRange(), v.text, undo: 'skip')
-    @setVersionText_Open(v, @marker.getBufferRange().start.row)
-    @currentVersion = v
+  switchToVersion: (newBranch, params) =>
+    newBranch.setActive(true)
+    @prevVers.push(@currentBranch)
+    text = newBranch.getText()
+    @currentBranch.close()
+    @currentBranch.setText(@getTextInVariantRange())
+    @setTextInVariantRange(newBranch.getText(), 'skip')
+    newBranch.open()
+
+    @currentBranch = newBranch
     @clearHighlights()
     if params?.undoSkip? == false
       @undoAgent.pushChange({data: {undoSkip: true}, callback: @getPrevVersion})
@@ -666,136 +550,17 @@ class Variant
     @.getView().switchToVersion(v)
 
 
-  '''
-    TODO
-  '''
-  setCurrentVersionText_Close: ->
-    trueEnd = @marker.getBufferRange().end
 
-    for n in @currentVersion.nested
-      mark = n.getMarker()
-      range = mark.getBufferRange()
-      startSymbol = "#%%^%%\n"
-      if @sourceBuffer.getTextInRange([new Point(range.start.row, 0), range.start]).trim() != ""
-        startSymbol = "\n"+startSymbol
-      @sourceBuffer.insert(range.start, startSymbol, undo: 'skip')
-
-      endSymbol = "#^^%^^"
-      #if (range.end.row != trueEnd.row)
-      #  endSymbol = endSymbol+"\n"
-      if @sourceBuffer.getTextInRange([new Point(range.end.row, 0), range.end]).trim() != ""
-        endSymbol = "\n"+endSymbol
-      @sourceBuffer.insert(new Point(range.end.row + 1, range.end.column), endSymbol, undo: 'skip')
-      n.destroyHeaderMarkerDecoration()
-      n.destroyFooterMarkerDecoration()
-      n.getModel().setCurrentVersionText_Close()
-
-
-  setVersionText_Open: (v, offsetRow, lines, lineno) ->
-    n_index = 0
-    queue = []
-
-    # not super efficient, but first split text into lines
-    if lines? == false
-      text = v.text
-      lines = text.split("\n")
-      lineno = 0
-
-    while lineno < lines.length
-      line = lines[lineno]
-
-      # look for marker start token
-      if line.startsWith("#%%^%%")
-        # get rid of this annotation, since it was temporary
-        @sourceBuffer.deleteRow(offsetRow + lineno, undo: 'skip')
-        # now store this start beacon so that we can add the marker later
-        v.nested[n_index] = @testConvertJSONVariant(v.nested[n_index], v)
-        n = v.nested[n_index]
-        #@view.getExplorerElement().refresh()
-
-        queue.push {n: n, row: lineno + offsetRow}
-        n_index += 1
-        # now, decrement the offsetRow since we've deleted a row from the buffer
-        offsetRow -= 1
-        # now, recurse on any nested markers within with nested marker!
-        nested_model = n.getModel()
-        nested_current = nested_model.getCurrentVersion()
-        if nested_current.nested.length > 0
-          [offsetRow, lineno] = nested_model.setVersionText_Open(nested_current, offsetRow, lines, lineno + 1)
-
-      # okay, next search for an end marker
-      else if line.startsWith("#^^%^^")
-
-        # If this end symbol doesn't have a start pair, it belongs to a parent
-        # variant. We've gone too far, so back up a line and return up the recursion.
-        if queue.length == 0
-          return [offsetRow, lineno - 1]
-
-        # get rid of this annotation, since it was temporary
-
-        pair = queue.pop()
-        n = pair.n
-        #console.log "found start point "+n.getModel().getCurrentVersion().title
-        start = pair.row
-        end = lineno + offsetRow
-
-        # set range to correct end column in the final row!
-        range = [new Point(start, 0), new Point(end - 1, 1000000)]
-        range = @sourceBuffer.clipRange(range)
-
-        # re-setup marker ranges
-        marker = n.getMarker()
-        headerMarker = n.getHeaderMarker()
-        if marker? and headerMarker?
-          marker.setBufferRange(range)
-          headerMarker.setBufferRange([new Point(start, 0), new Point(end - 1, 0)], reversed: true)
-        else
-          marker = @sourceEditor.markBufferRange(range, invalidate: 'never')
-          marker.setProperties(myVariant: n)
-          n.getModel().setMarker(marker)
-          headerMarker = @sourceEditor.markBufferRange([new Point(start, 0), new Point(end - 1, 0)], reversed: true)
-          headerMarker.setProperties(myVariant: n)
-          n.getModel().setHeaderMarker(headerMarker)
-
-        # re-set up decorations
-        hdec = @sourceEditor.decorateMarker(headerMarker, {type: 'block', position: 'before', item: n.getHeader()})
-        n.setHeaderMarkerDecoration(hdec)
-        fdec = @sourceEditor.decorateMarker(marker, {type: 'block', position: 'after', item: n.getFooter()})
-        n.setFooterMarkerDecoration(fdec)
-
-        # now, decrement the offsetRow since we've deleted a row from the buffer
-        # this delete is special to deal with our eternal offset issues.
-        @sourceBuffer.delete([new Point(offsetRow + lineno - 1, 1000000000), new Point(offsetRow + lineno, 100000)],  undo: 'skip')
-        offsetRow -= 1
-
-      # don't forget to increment the line number
-      lineno += 1
-
-
-    #return the offset row for recursion purposes
-    [offsetRow, lineno]
-
-
-
-  testConvertJSONVariant: (v, nestParent) ->
-    variantView = v
-    root = v.rootVersion
-    if root?
-      variantView = @view.makeNewFromJson(v)
-      variantView.buildVariantDiv()
-      if nestParent?
-        variantView.getModel().setNestedParent([nestParent, @view])
-    variantView
 
 
 
   compareToVersion: (v) ->
     # first, switch to the new version
-    compareFrom = @currentVersion
+    compareFrom = @currentBranch
     text = v.text
-    @currentVersion.text = @sourceEditor.getTextInBufferRange(@marker.getBufferRange())
-    @sourceEditor.setTextInBufferRange(@marker.getBufferRange(), v.text, undo: false)
-    @currentVersion = v
+    @currentBranch.setText(@getTextInVariantRange())
+    @setTextInBufferRange(v.text, false)
+    @currentBranch = v
 
     # next, add
     @highlighted.push compareFrom
@@ -834,49 +599,38 @@ class Variant
 
 
   getNested: ->
-    @currentVersion.nested
+    @currentBranch.getNested()
 
 
   addNested: (n) ->
-    @currentVersion.nested.push n
-    @currentVersion.nested = @currentVersion.nested.sort (a, b) ->
-      rangeA = a.getModel().getMarker().getBufferRange()
-      startA = rangeA.start.row
-      rangeB = b.getModel().getMarker().getBufferRange()
-      startB = rangeB.start.row
-      #console.log "sorting "+startA+", "+startB
-      if startA < startB
-        return -1
-      if startA > startB
-        return 1
-      return 0
+    @currentBranch.addNested(n)
 
 
   getTitle: ->
-    @currentVersion.title
+    @currentBranch.getTitle()
 
 
   setTitle: (title, version, params) ->
-    @prevTitles.push(version.title)
-    version.title = title
+    @prevTitles.push(version.getTitle())
+    version.setTitle(title)
     if params?.undoSkip? == false
       @undoAgent.pushChange({data: {undoSkip: true}, callback: @getPrevTitle})
 
   getPrevTitle: =>
     prevTitle = @prevTitles.pop()
-    @view.setTitle(prevTitle, @currentVersion)
+    @view.setTitle(prevTitle, @currentBranch)
 
   getDate: ->
-    @currentVersion.date
+    @currentBranch.getDate()
 
 
   getText: ->
-    @currentVersion.text
+    @currentBranch.getText()
 
 
 
   setText: (text) ->
-    @currentVersion.text = text
+    @currentBranch.setText(text)
 
 
   collapse: ->
@@ -895,14 +649,14 @@ class Variant
 
 
   hideInsides: ->
-    for n in @currentVersion.nested
+    for n in @currentBranch.getNested()
       n.destroyHeaderMarkerDecoration()
       n.destroyFooterMarkerDecoration()
       n.getModel().hideInsides()
 
 
   showInsides: ->
-    for n in @currentVersion.nested
+    for n in @currentBranch.getNested()
       hdec = @sourceEditor.decorateMarker(n.getModel().getHeaderMarker(), {type: 'block', position: 'before', item: n.getHeader()})
       n.setHeaderMarkerDecoration(hdec)
       fdec = @sourceEditor.decorateMarker(n.getMarker(), {type: 'block', position: 'after', item: n.getFooter()})

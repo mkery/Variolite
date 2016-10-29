@@ -57,9 +57,8 @@ class CommitLine
     else
       $(@commitLineElem).width($(@commitLineElem).parent().width())
       $(@commitTraveler).width($(@commitLineElem).width()*.90)
-      commitNum = @getModel().getCurrentVersion().commits.length
-      console.log commitNum
-      console.log @getModel().getCurrentVersion()
+      commitNum = @getModel().getCurrentVersion().getNumberOfCommits()
+      #console.log @getModel().getCurrentVersion()
 
       if commitNum > 0
         if $(@commitSlider).children('.atomic-taro_commit-ticks').length != commitNum
@@ -70,13 +69,13 @@ class CommitLine
               min: 0,
               value: commitNum,
               slide: (event, ui) =>
-                if ui.value == ui.max
+                if ui.value == @getModel().getCurrentVersion().getNumberOfCommits()
                   @getVariantView().backToTheFuture()
                 else
                   @getVariantView().travelToCommit({commitID: ui.value, verID: @getModel().getCurrentVersion().id})
             })
-            console.log "commit num: "+commitNum+" ticks: "+$(@commitSlider).children('.atomic-taro_commit-ticks').length
-            console.log "WIDTH "+$(@commitTraveler).width()
+            #console.log "commit num: "+commitNum+" ticks: "+$(@commitSlider).children('.atomic-taro_commit-ticks').length
+            #console.log "WIDTH "+$(@commitTraveler).width()
             # Add ticks to label the timeline
             offset = 0
             for i in [0 .. commitNum - 1]

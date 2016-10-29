@@ -588,7 +588,7 @@ class VariantView
 
 
   addVersionBookmark: (v, current, versionBookmarkBar, singleton) ->
-    if v.active == true # don't show a version that is archived
+    if v.getActive() == true # don't show a version that is archived
       @visibleVersions.push v
       versionTitle = document.createElement("span")
       versionTitle.classList.add('atomic-taro_editor-header_version-title')
