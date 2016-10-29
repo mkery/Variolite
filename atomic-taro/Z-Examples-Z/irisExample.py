@@ -10,7 +10,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from sklearn import datasets
 from sklearn.decomposition import PCA
 
-#%%^%%v0-1-1-1-1
+
 # import some data to play with
 iris = datasets.load_iris()
 X = iris.data[:, :2]  # we only take the first two features.
@@ -48,4 +48,3 @@ ax.set_zlabel("3rd eigenvector")
 ax.w_zaxis.set_ticklabels([])
 
 plt.show()
-#^^%^^

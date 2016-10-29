@@ -1,6 +1,6 @@
 
 {Point, Range, TextBuffer} = require 'atom'
-Variant = require './segment-objects/variant'
+Variant = require './segment-objects/variant-model'
 VariantView = require './segment-objects/variant-view'
 '''
 This class is essentially the model behind the atomic-taro-view, as it
@@ -147,7 +147,7 @@ class VariantsManager
 
       $(document).on 'click', '.atomic-taro_commit-history-button', (ev) ->
         $(this).addClass('clicked')
-        v = $(this).data("variant")
+        v = $(this).data("commitLine")
         v.toggleCommitTimeline()
 
     addHeaderListeners: (element) ->

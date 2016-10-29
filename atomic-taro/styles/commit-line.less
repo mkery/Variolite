@@ -5,15 +5,26 @@
 @import "ui-variables";
 @import "syntax-variables";
 
+
+.atomic-taro_commit-element{
+  // float: left;
+  // display: block;
+  z-index: 5;
+}
+
 .atomic-taro_commit-traveler{
+  //float: left;
+  display: inline-block;
   padding: 5px;
-  padding-bottom: 10px;
-  padding-top: 10px;
+  padding-bottom: 2px;
+  padding-top: 3px;
   background-color: white;
   border: 1px solid @text-color;//@tool-panel-border-color;
+  border-right: 1px solid @tool-panel-border-color;
   font-family: Inconsolata, Monaco, Consolas, 'Courier New', Courier;
   z-index: 5;
   color: @text-color;
+
 }
 .atomic-taro_commit-traveler.textOnly{
   padding-top: 2px;
@@ -22,6 +33,48 @@
   border-bottom: 1px solid @text-color;//@tool-panel-border-color;
 }
 
+.atomic-taro_commit-nowBracket{
+  float: right;
+  border: 1px solid @tool-panel-border-color;
+  border-left: 0px;
+  height: 20px;
+  min-width: 10px;
+}
+.atomic-taro_commit-nowBracket:hover{
+  border: 1px solid @text-color;
+  border-left: 1px solid @tool-panel-border-color;
+}
+
+.atomic-taro_commit-nowMarker{
+  //float: left;
+  display: inline-block;
+  //border: 1px solid @text-color-warning;
+  padding: 2px;
+  z-index: 5;
+}
+
+.atomic-taro_commit-ticks{
+  position: relative;
+  //z-index: 5;
+  background-color: white;
+  float: left;
+  display: inline-block;
+  width: 4px;
+  top: -0.7em;
+  min-height: 15px;
+  border: 1px solid @tool-panel-border-color;
+}
+.atomic-taro_commit-ticks:hover{
+  background-color: @text-color-warning;
+}
+
+.commit-slider label {
+    position: absolute;
+    //width: 20px;
+    margin-left: -5px;
+    text-align: center;
+    //margin-top: 20px;
+}
 
 .atomic-taro_commit-history-button{
   margin-right: 5px;

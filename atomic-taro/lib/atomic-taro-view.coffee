@@ -10,12 +10,13 @@ fs = require 'fs'
 {TextEditor} = require 'atom'
 {Point, Range} = require 'atom'
 VariantsManager = require './variants-manager'
-Variant = require './segment-objects/variant'
+Variant = require './segment-objects/variant-model'
 VariantView = require './segment-objects/variant-view'
 AnnotationProcessorBuffer = require './annotation-processor-buffer'
 VariantExplorerPane = require './right-panel/variant-explorer-pane'
 AtomicTaroToolPane = require './right-panel/atomic-taro-tool-pane'
 UndoAgent = require './undo-agent'
+ProvUtils = require './provenance-utils'
 ProgramProcessor = require './program-processor'
 MainHeaderMenu = require './main-header-menu'
 
@@ -41,6 +42,7 @@ class AtomicTaroView
 
     @undoAgent = new UndoAgent(50) #max undo entries
     @programProcessor = null # object to run code and record output
+    @provenanceAgent = new ProvUtils()
 
     #divs
     @element = null
@@ -153,6 +155,12 @@ class AtomicTaroView
     if not @explorer_panel.isVisible()
       @explorer_panel.show()
     @variantListeners.updateExplorerPanelShowing(@isShowingExplorer(), @getWidth())
+    @masterVariant.updateVariantWidth(@getWidth())
+
+
+  closeExplorerView: ->
+    @explorer_panel.hide()
+    @variantListeners.updateExplorerPanelShowing(@explorer_panel.isVisible(), @getWidth())
     @masterVariant.updateVariantWidth(@getWidth())
 
 
@@ -345,7 +353,7 @@ class AtomicTaroView
       #@exploratoryEditor.decorateMarker(marker, {type: 'highlight', class: 'highlight-green'})
 
       #finally, make the new variant!
-      variant = new VariantView(@exploratoryEditor, marker, "v0", @, @undoAgent)
+      variant = new VariantView(@exploratoryEditor, marker, "v0", @, @undoAgent, @provenanceAgent)
       marker.setProperties(myVariant: variant)
       headerElement = variant.getHeader()
       #console.log headerElement
@@ -393,7 +401,7 @@ class AtomicTaroView
     wholeFile = [new Point(0,0), new Point(10000000, 10000000)]
     range = @exploratoryEditor.getBuffer().clipRange(wholeFile)
     marker = editor.markBufferRange(range, invalidate: 'never')
-    @masterVariant = new VariantView(@exploratoryEditor, marker, @fileName, @, @undoAgent)
+    @masterVariant = new VariantView(@exploratoryEditor, marker, @fileName, @, @undoAgent, @provenanceAgent)
 
     # Build all variant boxes indicated by annotations
     list_offset = @addAllVariants(editor, beacons, 0, [])
@@ -513,7 +521,7 @@ class AtomicTaroView
 
 
     #finally, make the new variant!
-    variant = new VariantView(editor, marker, title, @, @undoAgent)
+    variant = new VariantView(editor, marker, title, @, @undoAgent, @provenanceAgent)
     marker.setProperties(myVariant: variant)
     #editor.decorateMarker(marker, type: 'highlight', class: 'highlight-pink')
 

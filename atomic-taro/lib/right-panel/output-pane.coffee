@@ -1,6 +1,6 @@
 {Point, Range, TextBuffer} = require 'atom'
 VariantsManager = require '../variants-manager'
-Variant = require '../segment-objects/variant'
+Variant = require '../segment-objects/variant-model'
 VariantView = require '../segment-objects/variant-view'
 
 
@@ -41,7 +41,8 @@ class OutputPane
     xIcon.classList.add('atomic-taro_explore')
     xIcon.classList.add('text-smaller')
     $ => $(document).on 'click', '.icon-x.atomic-taro_explore', (ev) =>
-      @atomicTaroView.toggleExplorerView()
+      console.log "clicked exit!!!"
+      @atomicTaroView.closeExplorerView()
 
     # playButton = document.createElement('span')
     # playButton.classList.add('icon-playback-play')

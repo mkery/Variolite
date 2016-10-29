@@ -1,5 +1,6 @@
 {Point, Range, TextBuffer} = require 'atom'
-Variant = require './variant'
+Variant = require './variant-model'
+CommitLine = require './commit-line'
 
 '''
 variant view represents the visual appearance of a variant, and contains a
@@ -9,6 +10,7 @@ variant object.
   TODO
     - a way to archive variants
     - ditching the variant explorer?
+    - Commit line, duplicating ticks?
     - deactivate
     - serialize UI state?
     - date appearing correctly
@@ -18,9 +20,9 @@ module.exports =
 class VariantView
 
 
-  constructor: (@sourceEditor, marker, variantTitle, @root, @undoAgent) ->
+  constructor: (@sourceEditor, marker, variantTitle, @root, @undoAgent, @provenanceAgent) ->
     # the variant
-    @model = new Variant(@, sourceEditor, marker, variantTitle, @undoAgent)
+    @model = new Variant(@, sourceEditor, marker, variantTitle, @undoAgent, @provenanceAgent)
     @initialize()
 
 
@@ -69,6 +71,8 @@ class VariantView
     @activeButton = null
     @outputButton = null
     @variantsButton = null
+
+    @commitLine = null
 
     @focused = false
 
@@ -230,7 +234,7 @@ class VariantView
   '''
   travelToCommit: (commitId) ->
     $(@headerBar).addClass('historical')
-    $(@commitTraveler).addClass('historical')
+    @commitLine.addClass('historical')
     $(@footerBar).addClass('historical')
     @hover()
     commit = @model.travelToCommit(commitId)
@@ -242,7 +246,7 @@ class VariantView
   '''
   backToTheFuture: ->
     $(@headerBar).removeClass('historical')
-    $(@commitTraveler).removeClass('historical')
+    @commitLine.removeClass('historical')
     $(@footerBar).removeClass('historical')
     @model.backToTheFuture()
 
@@ -413,32 +417,6 @@ class VariantView
     @model.toggleActive(v)
 
 
-  '''
-    Show the commit timeline to view and travel between commits.
-  '''
-  toggleCommitTimeline: () ->
-    if $(@commitTraveler).is(":visible")
-      $(@commitTraveler).hide()
-    else
-      commitNum = @model.getCurrentVersion().commits.length
-      if commitNum > 0
-        $(@commitTraveler).removeClass("textOnly")
-        $(@commitSlider).html("")
-        $(@commitSlider).slider({
-          max: commitNum,
-          min: 0,
-          value: commitNum,
-          slide: (event, ui) =>
-            if ui.value == ui.max
-              @backToTheFuture()
-            else
-              @travelToCommit({commitID: ui.value, verID: @model.getCurrentVersion().id})
-        })
-      else
-        $(@commitTraveler).addClass("textOnly")
-        $(@commitSlider).html("No commits to show yet!")
-      $(@commitTraveler).show()
-
 
   '''
     Switch between versions. ???
@@ -526,7 +504,8 @@ class VariantView
     $(@headerBar).width(width)
     @addHeaderDiv(@headerBar)
     @headerWrapper.appendChild(@headerBar)
-    @headerWrapper.appendChild(@addCommitLine())
+    @commitLine = new CommitLine(@, @model, width)
+    @headerWrapper.appendChild(@commitLine.getElement())
     #add placeholders for versions and output
     @addVariantButtons(@headerBar)
     #@addOutputButton(@headerBar)
@@ -594,15 +573,6 @@ class VariantView
     $(varIcons).html("<span class='icon-primitive-square'></span><span class='icon-primitive-square active'></span>")
     headerContainer.appendChild(varIcons)'''
 
-
-  addCommitLine: ->
-    @commitTraveler = document.createElement('div')
-    @commitTraveler.classList.add('atomic-taro_commit-traveler')
-    @commitSlider = document.createElement('div')
-    @commitSlider.classList.add('commit-slider')
-    @commitTraveler.appendChild(@commitSlider)
-    $(@commitTraveler).hide()
-    @commitTraveler
 
 
   addNameBookmarkBar: (versionBookmarkBar) ->
@@ -683,7 +653,7 @@ class VariantView
     @historyButton = document.createElement("span")
     @historyButton.classList.add('atomic-taro_commit-history-button')
     @historyButton.classList.add('icon-history')
-    $(@historyButton).data("variant", @)
+    $(@historyButton).data("commit-line", @commitLine)
     $(@historyButton).hide()
     headerContainer.appendChild(@historyButton)
 

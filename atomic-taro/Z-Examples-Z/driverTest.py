@@ -11,7 +11,7 @@ def distance(x0, y0, x1, y1):
 def computeAngle (p1, p2):
 	dot = 0 # dogffffffff
 	dot = (p2[0]*p1[0]+p2[1]*p1[1])/float(computeNorm(p1[0], p1[1])*computeNorm(p2[0], p2[1]))
-	return math.acos(dot)*180/math.pi        
+	return math.acos(dot)*180/math.pi
 #^^%^^
 
 

@@ -1,13 +1,15 @@
 {Point, Range, TextBuffer} = require 'atom'
 JsDiff = require 'diff'
 crypto = require 'crypto'
+GitUtils = require './git-utils'
 
 '''
 Represents a single variant of exploratory code.
 '''
 
 '''
-  TODO: - compare multiple
+  TODO: - commit only when the code has changed (track change sets)
+        - compare multiple
         - travel to different versions and commits
         - output data is not recorded with commits
         - can make a commit even when nothing has changed D:
@@ -18,7 +20,7 @@ Represents a single variant of exploratory code.
 module.exports =
 class Variant
 
-  constructor: (@view, @sourceEditor, @marker, title, @undoAgent) ->
+  constructor: (@view, @sourceEditor, @marker, title, @undoAgent, @provenanceAgent) ->
     @sourceBuffer = @sourceEditor.getBuffer()  # really Variolite's buffer
     @headerMarker = null # the header div has it's own marker
     @range = null # to hold the last range of markers, in case the markers are destroyed
@@ -61,11 +63,46 @@ class Variant
 
 
   '''
+    Records an output and a commit that generated it
+  '''
+  registerOutput: (data) ->
+    commit = @commit()
+    # store provenance information
+    @provenanceAgent.store(data, commit)
+    commit
+
+
+  '''
+    Returns if the variant box has changed since the last run
+  '''
+  isChanged: ->
+    @currentVersion.text = @sourceEditor.getTextInBufferRange(@marker.getBufferRange())
+    if ( @currentVersion.latestCommit? )
+      return @currentVersion.text != @currentVersion.latestCommit.text
+    return true
+
+
+  '''
     Starts the process of creating a new commit
   '''
-  commit: (params) ->
-    start = @marker.getBufferRange().start.row
-    @commitChunk(@dateNow(), start)
+  commit: ->
+    #console.log "Commit called"
+    # check if anything has changed first
+    diff = @isChanged()
+
+    # if it changed create a new commit
+    if diff
+      @currentVersion.latestCommit = {text: "", id: ""}
+      @currentVersion.latestCommit.text = @sourceEditor.getTextInBufferRange(@marker.getBufferRange())
+      @currentVersion.latestCommit.id = @commitChunk(@dateNow()) # chunks the current state so that it can be quickly reloaded
+      commit = @currentVersion.latestCommit.id
+    # if nothing has changed, point to the latest commit
+    else
+      #console.log "UNCHANGED"
+      commit = @currentVersion.latestCommit.id
+
+    #@git-utils -- commit
+    commit
 
 
   '''
@@ -73,6 +110,8 @@ class Variant
     variant, it records a commit.
   '''
   commitChunk: (date, textPointer) ->
+    #console.log "commit Chunk called! "+@currentVersion.title
+    textPointer = @marker.getBufferRange().start.row
     commit = {date: date}
     chunks = []
     @sortVariants() # necissary to make sure nested variants are in order
@@ -94,7 +133,7 @@ class Variant
           chunks.push {text: freeText}
 
         textPointer = range.start.row
-        commitReference = model.commitChunk(date,textPointer)
+        commitReference = model.commit()
         chunks.push commitReference
 
         textPointer = range.end.row + 1
@@ -113,17 +152,14 @@ class Variant
       chunks.push {text: @sourceEditor.getTextInBufferRange(@marker.getBufferRange())}
 
     commit.text = chunks
+    #console.log @currentVersion.commits
     @currentVersion.commits.push commit
+    #console.log "commited a version "
+    #console.log @currentVersion.commits
+    #@git-utils commit
     # return a reference, so that others can find this commit
     return {varID: @getVariantID(), verID: @currentVersion.id, commitID: @currentVersion.commits.length - 1}
 
-
-  '''
-    Records an output and a commit that generated it
-  '''
-  registerOutput: (data) ->
-    commit = @commit()
-    commit
 
 
   '''
@@ -346,7 +382,7 @@ class Variant
           nested.push n #already in JSON form
         else
           nested.push n.serialize()
-    copy = {active: version.active, id: version.id, title: version.title, subtitle: version.subtitle, text: version.text, date: version.date, branches: branches, commits: version.commits, nested: nested}
+    copy = {active: version.active, id: version.id, title: version.title, subtitle: version.subtitle, text: version.text, date: version.date, branches: branches, commits: version.commits, latestCommit: version.latestCommit, nested: nested}
     copy
 
 
