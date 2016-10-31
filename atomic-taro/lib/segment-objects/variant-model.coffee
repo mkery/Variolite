@@ -513,7 +513,7 @@ class VariantModel
     # now, set the text for the new version we're switching to
     @setTextInVariantRange(newText, 'skip')
 
-    subtitle = @currentBranch.getSubtitle()
+    subtitle = @currentBranch.getBranches().length
     index = @currentBranch.getTitle() + "-" + (subtitle + 1)
     newBranch = new VariantBranch(@,{title: index, text: newText, date: @dateNow()})
 

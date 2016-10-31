@@ -23,10 +23,10 @@ class VariantBranch
   # {active: true, id: id, title: title, subtitle: 0, text: text, date: date, branches: [], commits: [], nested: []}
   constructor: (@model, params) ->
     @id = crypto.randomBytes(20).toString('hex')
-    @title = params?.title?
+    @title = params?.title
     @subtitle = 0
-    @text = params?.text?
-    @date = params?.date?
+    @text = params?.text
+    @date = params?.date
     @commits = []
     @branches = []
     @nested = []
@@ -85,6 +85,10 @@ class VariantBranch
     @active
 
 
+  isCurrent: ->
+    @model.getCurrentVersion().getID() == @id
+
+
   getText: ->
     @text
 
@@ -115,7 +119,6 @@ class VariantBranch
   '''
   close: ->
     @recordCurrentState()
-
 
 
   '''

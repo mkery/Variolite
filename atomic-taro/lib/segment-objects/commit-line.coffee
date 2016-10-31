@@ -5,8 +5,8 @@
 module.exports =
 class CommitLine
 
-  constructor: (@variantView, @variantModel, width) ->
-    @addCommitLine(width) # initialize commit line
+  constructor: (@variantView, @variantModel) ->
+    @addCommitLine() # initialize commit line
 
   getVariantView: ->
     @variantView
@@ -14,13 +14,15 @@ class CommitLine
   getModel: ->
     @variantModel
 
-  addCommitLine: (width) ->
+  addCommitLine: () ->
     @commitLineElem = document.createElement('div')
     @commitLineElem.classList.add('atomic-taro_commit-element')
     @commitTraveler = document.createElement('div')
     @commitTraveler.classList.add('atomic-taro_commit-traveler')
     @commitSlider = document.createElement('div')
     @commitSlider.classList.add('commit-slider')
+    @tickMarkers = document.createElement('div')
+    @commitSlider.appendChild(@tickMarkers)
     @commitTraveler.appendChild(@commitSlider)
     @noCommits = document.createElement('div')
     @commitTraveler.appendChild(@noCommits)
@@ -51,7 +53,7 @@ class CommitLine
   '''
     Show the commit timeline to view and travel between commits.
   '''
-  toggleCommitTimeline: () ->
+  toggleCommitTimeline: ->
     if $(@commitLineElem).is(":visible")
       $(@commitLineElem).hide()
     else
@@ -61,7 +63,8 @@ class CommitLine
       #console.log @getModel().getCurrentVersion()
 
       if commitNum > 0
-        if $(@commitSlider).children('.atomic-taro_commit-ticks').length != commitNum
+        if $(@tickMarkers).children('.atomic-taro_commit-ticks').length != commitNum
+            $(@tickMarkers).html("")
             $(@commitTraveler).removeClass("textOnly")
             $(@noCommits).html("")
             $(@commitSlider).slider({
@@ -83,7 +86,7 @@ class CommitLine
               label = document.createElement('div')
               label.classList.add('atomic-taro_commit-ticks')
               $(label).css('left',(i/commitNum*$(@commitTraveler).width() + offset))
-              $(@commitSlider).append(label)
+              $(@tickMarkers).append(label)
 
       else
         $(@commitTraveler).addClass("textOnly")

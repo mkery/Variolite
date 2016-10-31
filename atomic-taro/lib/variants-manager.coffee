@@ -150,6 +150,24 @@ class VariantsManager
         v = $(this).data("commitLine")
         v.toggleCommitTimeline()
 
+      $(document).on 'click', '.atomic-taro_commit-branch-button', (ev) ->
+        ev.stopPropagation()
+        $(this).addClass('clicked')
+        v = $(this).data("branchMap")
+        v.toggleBranchMap()
+
+      $(document).on 'click', '.atomic-taro_branch-map-square', (ev) ->
+        console.log "BLOCK CLICKED!"
+        console.log $(this)
+        ev.stopPropagation()
+        if $(this).hasClass('current')
+          $(this).removeClass('current')
+          $(this).removeClass('active')
+        else if $(this).hasClass('active')
+          $(this).addClass('current')
+        else
+          $(this).addClass('active')
+
     addHeaderListeners: (element) ->
       $(document).on 'mouseenter', '.atomic-taro_editor-header-wrapper', (ev) ->
         view = $(this).data('view')

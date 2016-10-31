@@ -1,6 +1,7 @@
 {Point, Range, TextBuffer} = require 'atom'
 Variant = require './variant-model'
 CommitLine = require './commit-line'
+BranchMap = require './branch-map'
 
 '''
 variant view represents the visual appearance of a variant, and contains a
@@ -73,6 +74,7 @@ class VariantView
     @variantsButton = null
 
     @commitLine = null
+    @branchMap = null
 
     @focused = false
 
@@ -235,6 +237,7 @@ class VariantView
   travelToCommit: (commitId) ->
     $(@headerBar).addClass('historical')
     @commitLine.addClass('historical')
+    @branchMap.addClass('historical')
     $(@footerBar).addClass('historical')
     @hover()
     commit = @model.travelToCommit(commitId)
@@ -247,6 +250,7 @@ class VariantView
   backToTheFuture: ->
     $(@headerBar).removeClass('historical')
     @commitLine.removeClass('historical')
+    @branchMap.removeClass('historical')
     $(@footerBar).removeClass('historical')
     @model.backToTheFuture()
 
@@ -504,8 +508,12 @@ class VariantView
     $(@headerBar).width(width)
     @addHeaderDiv(@headerBar)
     @headerWrapper.appendChild(@headerBar)
-    @commitLine = new CommitLine(@, @model, width)
+    # commit line
+    @commitLine = new CommitLine(@, @model)
     @headerWrapper.appendChild(@commitLine.getElement())
+    # branch map
+    @branchMap = new BranchMap(@, @model)
+    @headerWrapper.appendChild(@branchMap.getElement())
     #add placeholders for versions and output
     @addVariantButtons(@headerBar)
     #@addOutputButton(@headerBar)
@@ -653,15 +661,15 @@ class VariantView
     @historyButton = document.createElement("span")
     @historyButton.classList.add('atomic-taro_commit-history-button')
     @historyButton.classList.add('icon-history')
-    $(@historyButton).data("commit-line", @commitLine)
+    $(@historyButton).data("commitLine", @commitLine)
     $(@historyButton).hide()
     headerContainer.appendChild(@historyButton)
 
   addBranchButton: (headerContainer) ->
     @branchButton = document.createElement("span")
-    @branchButton.classList.add('atomic-taro_commit-history-button')
+    @branchButton.classList.add('atomic-taro_commit-branch-button')
     @branchButton.classList.add('icon-git-branch')
-    $(@branchButton).data("variant", @)
+    $(@branchButton).data("branchMap", @branchMap)
     $(@branchButton).hide()
     headerContainer.appendChild(@branchButton)
 
