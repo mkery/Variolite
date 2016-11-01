@@ -88,7 +88,7 @@ atom-text-editor, /* 1 */
 .atomic-taro_editor-header-box:hover, .atomic-taro_editor-header-box.active{
   border: 1px solid @syntax-text-color;//@hue-1;
   color: @syntax-color-function;
-  background-color: @tree-view-background-color;
+  //background-color: @tree-view-background-color;
   //background-color: @inset-panel-background-color;
 }
 .atomic-taro_editor-header-box.pinned{
@@ -198,9 +198,14 @@ atom-text-editor, /* 1 */
 
 .atomic-taro_editor-header_version-title{
   cursor: pointer;
-  margin-right: 10px;
+  margin-right: 3px;
   color: @mono-3;
   z-index: 5;
+  padding-right: 30px;
+  border-right: 1px solid @tool-panel-border-color;
+}
+.atomic-taro_editor-header_version-title:hover{
+  padding-right: 2px;
 }
 .atomic-taro_editor-header_version-title.focused.active{
   color: @hue-2;
@@ -209,6 +214,12 @@ atom-text-editor, /* 1 */
 .atomic-taro_editor-header_version-title.highlighted{
   color: @syntax-color-constant;
   z-index: 5;
+}
+
+.atomic-taro_editor-header_x
+{
+  padding-left: 15px;
+  color: @text-color-subtle;
 }
 
 
@@ -252,7 +263,7 @@ atom-text-editor, /* 1 */
 
 .variants-hoverMenu{
   //background-color: pink;
-  z-index: 3;
+  z-index: 7;
   position: absolute;
   padding-top: 5px;
   padding-bottom: 10px;

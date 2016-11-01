@@ -113,6 +113,15 @@ class VariantBranch
     @backToTheFuture()
 
 
+  switchToVersion: ->
+    @model.getView().switchToVersion(@)
+
+  archive: ->
+    @model.getView().archive()
+
+  activateVersion: ->
+    @active = true
+    @model.getView().addVersionBookmark(@, false, null)
 
   '''
     Closes this branch and stores its contents for easy access in the future

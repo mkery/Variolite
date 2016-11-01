@@ -262,7 +262,7 @@ class VariantView
   setTitle: (title, version) ->
     @model.setTitle(title, version)
     $(@versionBookmarkBar).empty()
-    @addNameBookmarkBar(@versionBookmarkBar)
+    @addNameBookmarkBar()
     #@explorerGroupElement.updateTitle()
 
 
@@ -409,7 +409,7 @@ class VariantView
   newVersion: ->
     v = @model.newVersion()
     $(@versionBookmarkBar).empty()
-    @addNameBookmarkBar(@versionBookmarkBar)
+    @addNameBookmarkBar()
     $(@dateHeader).text(@model.getDate())
     @addVersiontoExplorer(v)
 
@@ -451,7 +451,7 @@ class VariantView
   switchHeaderToVersion: (v) ->
     $(@versionBookmarkBar).empty()
     $(@activeButton).data("version", v)
-    @addNameBookmarkBar(@versionBookmarkBar)
+    @addNameBookmarkBar()
     $(@dateHeader).text(@model.getDate())
     @switchExplorerToVersion(v)
 
@@ -489,7 +489,7 @@ class VariantView
     @model.compareToVersion(v)
     $(@versionBookmarkBar).empty()
     $(@activeButton).data("version", v)
-    @addNameBookmarkBar(@versionBookmarkBar)
+    @addNameBookmarkBar()
     $(@dateHeader).text(@model.getDate())
     @switchExplorerToVersion(v)
 
@@ -567,7 +567,7 @@ class VariantView
     @versionBookmarkBar = document.createElement("div")
     @versionBookmarkBar.classList.add('atomic-taro_editor-header-name')
     $(@versionBookmarkBar).data("variant", @model)
-    @addNameBookmarkBar(@versionBookmarkBar)
+    @addNameBookmarkBar()
     nameContainer.appendChild(@versionBookmarkBar)
     #add placeholder for data
     @dateHeader = document.createElement("div")
@@ -583,19 +583,19 @@ class VariantView
 
 
 
-  addNameBookmarkBar: (versionBookmarkBar) ->
+  addNameBookmarkBar: ->
     current = @model.getCurrentVersion()
     root = @model.getRootVersion()
     singleton = !@model.hasVersions()
     @visibleVersions = [] # reset
-    @addVersionBookmark(root, current, versionBookmarkBar, singleton)
+    @addVersionBookmark(root, current, singleton)
     if @visibleVersions.length > 1
       $(@buttonArchive).show()
     else
       $(@buttonArchive).hide()
 
 
-  addVersionBookmark: (v, current, versionBookmarkBar, singleton) ->
+  addVersionBookmark: (v, current, singleton) ->
     if v.getActive() == true # don't show a version that is archived
       @visibleVersions.push v
       versionTitle = document.createElement("span")
@@ -611,15 +611,21 @@ class VariantView
         squareIcon.classList.add('icon-primitive-square')
         versionTitle.appendChild(squareIcon)
       title = document.createElement("span")
-      $(title).text(v.title)
+      $(title).text(v.getTitle())
       title.classList.add('version-title')
       title.classList.add('native-key-bindings')
       $(title).data("variant", @)
       $(title).data("version", v)
       versionTitle.appendChild(title)
-      versionBookmarkBar.appendChild(versionTitle)
+      xIcon = document.createElement("span")
+      xIcon.classList.add('icon-x')
+      xIcon.classList.add('atomic-taro_editor-header_x')
+      $(xIcon).data("variant", @)
+      versionTitle.appendChild(xIcon)
+      $(xIcon).hide()
+      @versionBookmarkBar.appendChild(versionTitle)
 
-      if(v.id == current.id)
+      if(v.getID() == current?.id)
         if @focused
           versionTitle.classList.add('focused')
         squareIcon.classList.add('active')
@@ -634,7 +640,7 @@ class VariantView
 
     #regarless if this verison is active, check branches
     for branch in v.branches
-      @addVersionBookmark(branch, current, versionBookmarkBar, false)
+      @addVersionBookmark(branch, current, false)
 
 
 

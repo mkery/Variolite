@@ -29,10 +29,12 @@ class CommitLine
     @nowBracket = document.createElement('div')
     @nowBracket.classList.add('atomic-taro_commit-nowBracket')
     @commitTraveler.appendChild(@nowBracket)
+    $(@nowBracket).hide()
 
     @nowMarker = document.createElement('div')
     @nowMarker.classList.add('atomic-taro_commit-nowMarker')
     $(@nowMarker).html("now")
+    $(@nowMarker).hide()
     @commitLineElem.appendChild(@commitTraveler)
     @commitLineElem.appendChild(@nowMarker)
     $(@commitLineElem).hide()
@@ -64,6 +66,8 @@ class CommitLine
 
       if commitNum > 0
         if $(@tickMarkers).children('.atomic-taro_commit-ticks').length != commitNum
+            $(@nowMarker).show()
+            $(@nowBracket).show()
             $(@tickMarkers).html("")
             $(@commitTraveler).removeClass("textOnly")
             $(@noCommits).html("")

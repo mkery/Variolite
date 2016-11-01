@@ -139,6 +139,16 @@ class VariantsManager
          variant = $(this).data("variant")
          variant.switchToVersion(v)
 
+      $(document).on 'mouseenter', '.atomic-taro_editor-header_version-title', (ev) ->
+        $(this).children('.atomic-taro_editor-header_x').show()
+      $(document).on 'mouseleave', '.atomic-taro_editor-header_version-title', (ev) ->
+        $(this).children('.atomic-taro_editor-header_x').hide()
+
+
+      $(document).on 'click', '.atomic-taro_editor-header_x', (ev) ->
+          ev.stopPropagation()
+          variant = $(this).data("variant")
+          variant.archive()
 
       $(document).on 'click', '.atomic-taro_editor-active-button', (ev) ->
         $(this).addClass('clicked')
@@ -157,16 +167,21 @@ class VariantsManager
         v.toggleBranchMap()
 
       $(document).on 'click', '.atomic-taro_branch-map-square', (ev) ->
-        console.log "BLOCK CLICKED!"
-        console.log $(this)
         ev.stopPropagation()
         if $(this).hasClass('current')
           $(this).removeClass('current')
           $(this).removeClass('active')
+          branch = $(this).data("branch")
+          branch.archive()
         else if $(this).hasClass('active')
+          $('.atomic-taro_branch-map-square').removeClass('current')
           $(this).addClass('current')
+          branch = $(this).data("branch")
+          branch.switchToVersion()
         else
           $(this).addClass('active')
+          branch = $(this).data("branch")
+          branch.activateVersion()
 
     addHeaderListeners: (element) ->
       $(document).on 'mouseenter', '.atomic-taro_editor-header-wrapper', (ev) ->

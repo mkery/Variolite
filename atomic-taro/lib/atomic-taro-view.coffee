@@ -225,12 +225,12 @@ class AtomicTaroView
     @element = document.createElement('div')
     @element.classList.add('atomic-taro_pane')#, 'scroll-view')
 
-    # menu at the top of the code
-    mainHeaderMenu = new MainHeaderMenu(@)
-    @element.appendChild(mainHeaderMenu.getElement())
-
     #@variantWidth = $(@element).width() - 20 #@sourceEditor.getElement().getWidth() - 20
     @initVariants(@exploratoryEditor, @element)
+
+    # menu at the top of the code
+    mainHeaderMenu = new MainHeaderMenu(@masterVariant)
+    @element.appendChild(mainHeaderMenu.getElement())
 
     # create a variant manager
     @variantListeners = new VariantsManager(@masterVariant, @)

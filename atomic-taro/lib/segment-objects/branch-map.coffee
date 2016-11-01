@@ -45,7 +45,7 @@ class BranchMap
       $(@branchMapElem).width($(@branchMapElem).parent().width())
       $(@branchMapElem).html("")
       $(@branchMapElem).show()
-      squareWidth = 16
+      squareWidth = 10
       height = @maxSquaresInView(@getModel().getRootVersion(), 4)
       $(@branchMapElem).height(height*(squareWidth + 20))
       @placeSquares(null, 0, 0, squareWidth)
@@ -75,6 +75,7 @@ class BranchMap
       square = document.createElement('div')
       square.classList.add('atomic-taro_branch-map-square')
       @subscriptions.add atom.tooltips.add(square, {title: root.getTitle(), placement: "bottom"})
+      $(square).data("branch", root)
       if root.getActive()
         square.classList.add('active')
       if root.isCurrent()
@@ -97,6 +98,7 @@ class BranchMap
       squareB = document.createElement('div')
       squareB.classList.add('atomic-taro_branch-map-square')
       @subscriptions.add atom.tooltips.add(squareB, {title: branch.getTitle(), placement: "bottom"})
+      $(squareB).data("branch", branch)
       if branch.getActive()
         squareB.classList.add('active')
       if branch.isCurrent()

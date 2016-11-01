@@ -1,11 +1,14 @@
 {Pane} = require 'atom'
 {TextEditor} = require 'atom'
 {Point, Range} = require 'atom'
+CommitLine = require './segment-objects/commit-line'
+BranchMap = require './segment-objects/branch-map'
 
 module.exports =
 class MainHeaderMenu
 
   constructor: (@view) ->
+    @model = @view.getModel()
     @buildHeader()
 
 
@@ -18,14 +21,22 @@ class MainHeaderMenu
     @menuContainer = document.createElement('div')
     @mainMenu = document.createElement('div')
     @mainMenu.classList.add('atomic-taro_main-menu')
+    @commitLine = new CommitLine(@view, @model)
+
     branchIcon = document.createElement('span')
     branchIcon.classList.add('icon-git-branch')
     branchIcon.classList.add('atomic-taro_main-menu_branchIcon')
+    branchIcon.classList.add('atomic-taro_commit-branch-button')
+    @branchMap = new BranchMap(@view, @model)
+    $(branchIcon).data("branchMap", @branchMap)
+
     @runIcon = document.createElement('span')
     @runIcon.classList.add('icon-playback-play')
     @runIcon.classList.add('atomic-taro_main-menu_runIcon')
     @historyButton = document.createElement("span")
     @historyButton.classList.add('icon-history')
+    @historyButton.classList.add('atomic-taro_commit-history-button')
+    $(@historyButton).data("commitLine", @commitLine)
     @mainMenu.appendChild(@historyButton)
     @mainMenu.appendChild(branchIcon)
     @mainMenu.appendChild(@runIcon)
@@ -67,6 +78,8 @@ class MainHeaderMenu
 
     @menuContainer.appendChild(@mainMenu)
     @menuContainer.appendChild(@alertPane)
+    @menuContainer.appendChild(@commitLine.getElement())
+    @menuContainer.appendChild(@branchMap.getElement())
 
 
   addVariantButtons: () ->
