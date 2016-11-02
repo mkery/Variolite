@@ -156,15 +156,19 @@ class VariantsManager
         v.toggleActive()
 
       $(document).on 'click', '.atomic-taro_commit-history-button', (ev) ->
-        $(this).addClass('clicked')
         v = $(this).data("commitLine")
-        v.toggleCommitTimeline()
+        if v.toggleCommitTimeline()
+          $(this).addClass('clicked')
+        else
+          $(this).removeClass('clicked')
 
       $(document).on 'click', '.atomic-taro_commit-branch-button', (ev) ->
         ev.stopPropagation()
-        $(this).addClass('clicked')
         v = $(this).data("branchMap")
-        v.toggleBranchMap()
+        if v.toggleBranchMap()
+          $(this).addClass('clicked')
+        else
+          $(this).removeClass('clicked')
 
       $(document).on 'click', '.atomic-taro_branch-map-square', (ev) ->
         ev.stopPropagation()

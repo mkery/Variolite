@@ -48,6 +48,7 @@ class AtomicTaroView
     @element = null
     @explorer = null
     @explorer_panel = null # the Panel object of @explorer
+    @mainHeaderMenu = null
 
     # try to get saved meta data for this file, if there is any
     @initializeView()
@@ -128,7 +129,7 @@ class AtomicTaroView
     is resized.
   '''
   getWidth: ->
-    @exploratoryEditor.getElement().getWidth() - 20
+    @exploratoryEditor.getElement().getWidth()# - 20
 
 
   '''
@@ -154,14 +155,18 @@ class AtomicTaroView
       @explorer_panel = atom.workspace.addRightPanel({item: @explorer})
     if not @explorer_panel.isVisible()
       @explorer_panel.show()
-    @variantListeners.updateExplorerPanelShowing(@isShowingExplorer(), @getWidth())
-    @masterVariant.updateVariantWidth(@getWidth())
+    width = @getWidth()
+    @variantListeners.updateExplorerPanelShowing(@isShowingExplorer(), width)
+    @masterVariant.updateVariantWidth(width)
+    @mainHeaderMenu.updateWidth(width)
 
 
   closeExplorerView: ->
     @explorer_panel.hide()
-    @variantListeners.updateExplorerPanelShowing(@explorer_panel.isVisible(), @getWidth())
-    @masterVariant.updateVariantWidth(@getWidth())
+    width = @getWidth()
+    @variantListeners.updateExplorerPanelShowing(@explorer_panel.isVisible(), width)
+    @masterVariant.updateVariantWidth(width)
+    @mainHeaderMenu.updateWidth(width)
 
 
   toggleExplorerView: ->
@@ -173,8 +178,10 @@ class AtomicTaroView
 
     else
       @explorer_panel = atom.workspace.addRightPanel({item: @explorer})
-    @variantListeners.updateExplorerPanelShowing(@explorer_panel.isVisible(), @getWidth())
-    @masterVariant.updateVariantWidth(@getWidth())
+    width = @getWidth()
+    @variantListeners.updateExplorerPanelShowing(@isShowingExplorer(), width)
+    @masterVariant.updateVariantWidth(width)
+    @mainHeaderMenu.updateWidth(width)
     @explorer_panel.isVisible()
 
 
@@ -229,8 +236,8 @@ class AtomicTaroView
     @initVariants(@exploratoryEditor, @element)
 
     # menu at the top of the code
-    mainHeaderMenu = new MainHeaderMenu(@masterVariant, @)
-    @element.appendChild(mainHeaderMenu.getElement())
+    @mainHeaderMenu = new MainHeaderMenu(@masterVariant, @)
+    @element.appendChild(@mainHeaderMenu.getElement())
 
     # create a variant manager
     @variantListeners = new VariantsManager(@masterVariant, @)

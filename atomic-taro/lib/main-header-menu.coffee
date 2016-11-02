@@ -16,6 +16,11 @@ class MainHeaderMenu
     @menuContainer
 
 
+  updateWidth: (width) ->
+    @commitLine.updateWidth($(@menuContainer).width())
+    @branchMap.updateWidth($(@menuContainer).width())
+
+
   buildHeader: ->
     # alert element
     @menuContainer = document.createElement('div')

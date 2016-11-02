@@ -391,6 +391,8 @@ class VariantView
       $(@headerBar).width(width - $(@nestLabelContainer).width() - 20 - $(@collapseIcon).width())
     else
       $(@headerBar).width(width - $(@collapseIcon).width() - 5)
+    @branchMap.updateWidth(width)
+    @commitLine.updateWidth(width)
     for n in @model.getNested()
       n.updateVariantWidth(width)
 

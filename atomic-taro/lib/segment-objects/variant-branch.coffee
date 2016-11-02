@@ -8,11 +8,9 @@ Represents a single variant of exploratory code.
 '''
 
 '''
-  TODO: - commit only when the code has changed (track change sets)
-        - compare multiple
+  TODO: - compare multiple
         - travel to different versions and commits
         - output data is not recorded with commits
-        - can make a commit even when nothing has changed D:
         - Is currentVersion maintained when traveling in commits?
         - How to deal with variant boxes that were dissolved but existed in the past?
 '''

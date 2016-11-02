@@ -52,15 +52,23 @@ class CommitLine
     $(@commitTraveler).removeClass('historical')
 
 
+  updateWidth: (width) ->
+    $(@commitLineElem).width(width)
+    paddT = $(@commitTraveler).innerWidth() - $(@commitTraveler).width()
+    $(@commitTraveler).width(width - paddT)
+
+
   '''
     Show the commit timeline to view and travel between commits.
   '''
   toggleCommitTimeline: ->
     if $(@commitLineElem).is(":visible")
       $(@commitLineElem).hide()
+      return false
     else
       $(@commitLineElem).width($(@commitLineElem).parent().width())
-      $(@commitTraveler).width($(@commitLineElem).width())
+      paddT = $(@commitTraveler).innerWidth() - $(@commitTraveler).width()
+      $(@commitTraveler).width($(@commitLineElem).width() - paddT)
       commitNum = @getModel().getCurrentVersion().getNumberOfCommits()
       #console.log @getModel().getCurrentVersion()
 
@@ -96,3 +104,4 @@ class CommitLine
         $(@commitTraveler).addClass("textOnly")
         $(@noCommits).html("No commits to show yet!")
       $(@commitLineElem).show()
+      return true
