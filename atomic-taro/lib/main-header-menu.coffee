@@ -7,7 +7,7 @@ BranchMap = require './segment-objects/branch-map'
 module.exports =
 class MainHeaderMenu
 
-  constructor: (@view) ->
+  constructor: (@view, @atomicTaroView) ->
     @model = @view.getModel()
     @buildHeader()
 
@@ -43,8 +43,8 @@ class MainHeaderMenu
     @addVariantButtons(@mainMenu)
     $ => $(document).on 'mousedown', '.atomic-taro_main-menu_runIcon', (ev) =>
       $(@runIcon).addClass('click')
-      @view.runProgram()
-      @view.showExplorerView()
+      @atomicTaroView.runProgram()
+      @atomicTaroView.showExplorerView()
     $ => $(document).on 'mouseup', '.atomic-taro_main-menu_runIcon', (ev) =>
       $(@runIcon).removeClass('click')
 
@@ -100,7 +100,7 @@ class MainHeaderMenu
     $(buttonShow).data("variant", @)
     $(buttonShow).click (ev) =>
       ev.stopPropagation()
-      @view.toggleExplorerView()
+      @atomicTaroView.toggleExplorerView()
       $(variantsMenu).hide()
     variantsMenu.appendChild(buttonShow)
 

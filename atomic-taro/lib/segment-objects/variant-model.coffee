@@ -156,20 +156,20 @@ class VariantModel
     Starts process of travel to a commit.
     Changes display to show the user's code as it was at the time of a specific commit
   '''
-  travelToCommit: (commitId) ->
+  travelToCommit: (commitId, insertPoint) ->
     @currentBranch.recordCurrentState() # SAVE the latest version, not ideal to make a commit every time for this though
 
     versionID = commitId.verID
     commitID = commitId.commitID
 
-    brach = @findBranch(versionID)
+    branch = @findBranch(versionID)
     if versionID != @currentBranch.getID()
       #console.log "Need to switch versions from "+@currentVersion.title+" to "+version.title
       @currentBranch = brach
-      @view.switchHeaderToVersion(brach)
+      @view.switchHeaderToVersion(branch)
 
     @currentBranch.setActive(true)
-    @currentBranch.travelToCommit(commitID)
+    @currentBranch.travelToCommit(commitID, insertPoint)
 
 
 

@@ -5,5 +5,11 @@ print "Apple"
 
 #%%^%%Pear
 def doPear(s):
-    print "Pear!!!"      
+    print "Pear!!!"
+    #%%^%%Orange
+    orange = True
+    if orange:
+        print "Also orange!"
+    #^^%^^
+    # Pear ends
 #^^%^^

@@ -31,12 +31,12 @@ class CommitLine
     @commitTraveler.appendChild(@nowBracket)
     $(@nowBracket).hide()
 
-    @nowMarker = document.createElement('div')
-    @nowMarker.classList.add('atomic-taro_commit-nowMarker')
-    $(@nowMarker).html("now")
-    $(@nowMarker).hide()
+    # @nowMarker = document.createElement('div')
+    # @nowMarker.classList.add('atomic-taro_commit-nowMarker')
+    # $(@nowMarker).html("now")
+    # $(@nowMarker).hide()
     @commitLineElem.appendChild(@commitTraveler)
-    @commitLineElem.appendChild(@nowMarker)
+    #@commitLineElem.appendChild(@nowMarker)
     $(@commitLineElem).hide()
 
 
@@ -60,13 +60,13 @@ class CommitLine
       $(@commitLineElem).hide()
     else
       $(@commitLineElem).width($(@commitLineElem).parent().width())
-      $(@commitTraveler).width($(@commitLineElem).width()*.90)
+      $(@commitTraveler).width($(@commitLineElem).width())
       commitNum = @getModel().getCurrentVersion().getNumberOfCommits()
       #console.log @getModel().getCurrentVersion()
 
       if commitNum > 0
         if $(@tickMarkers).children('.atomic-taro_commit-ticks').length != commitNum
-            $(@nowMarker).show()
+            #$(@nowMarker).show()
             $(@nowBracket).show()
             $(@tickMarkers).html("")
             $(@commitTraveler).removeClass("textOnly")

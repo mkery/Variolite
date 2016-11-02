@@ -143,10 +143,13 @@ class VariantBranch
   '''
     Travels to most recent in time commit.
   '''
-  backToTheFuture: ->
-    @model.clearTextInRange()
+  backToTheFuture: (insertPoint) ->
+    console.log "Back to the future "+@title
+    if not insertPoint? # meaning the first outermost variant
+      @model.clearTextInRange()
     if @currentState?
-      @unravelCommitText(@currentState)
+      console.log "Unraveling "+@title
+      @unravelCommitText(@currentState.text, insertPoint, false)
     else
       @travelToCommit(@commits.length - 1)
 
@@ -156,9 +159,9 @@ class VariantBranch
     Starts process of travel to a commit.
     Changes display to show the user's code as it was at the time of a specific commit
   '''
-  travelToCommit: (commitId) ->
+  travelToCommit: (commitId, insertPoint) ->
     @model.clearTextInRange()
-    @travel(commitId)
+    @travel(commitId, insertPoint)
 
 
   '''
@@ -166,9 +169,14 @@ class VariantBranch
     Recursively loads in commits from chunked text.
   '''
   travel: (commitId, insertPoint) ->
+    #console.log "Commits of "+@title+":  "+@commits.length
+    #console.log commitId
     commit = @commits[commitId]
+    #console.log "commit is:"
+    #console.log commit
+    #console.log @commits
     text = commit.text
-    return @unravelCommitText(text, insertPoint)
+    return @unravelCommitText(text, insertPoint, true)
 
 
   '''
@@ -176,7 +184,7 @@ class VariantBranch
   '''
   recordCurrentState: ->
     @currentState = null # erase what current state was there previosly
-    @currentState = @chunk(false)
+    @currentState = {varID: @model.getVariantID(), text: @chunk(false)}
 
 
 
@@ -184,7 +192,7 @@ class VariantBranch
     Given a chunked formatted text of a commit, parses this back into code that
     goes outside variant boxes, variant boxes and their nested boxes.
   '''
-  unravelCommitText: (text, insertPoint) ->
+  unravelCommitText: (text, insertPoint, commitTravel) ->
     if not insertPoint?
       insertPoint = @model.getVariantRange().start
       #console.log "Beginning insert at "+insertPoint
@@ -194,12 +202,15 @@ class VariantBranch
     subCommits = []
 
     for item in text
-      if item.commitID?
+      if item.varID? #commitID?
         # then this item is a nested variant
         for nest in @nested
           nestID = item.varID
           if nest.getModel().getVariantID() == nestID
-            insertPoint = nest.getModel().travel(item, insertPoint)
+            if commitTravel == true
+              insertPoint = nest.getModel().getCurrentVersion().travel(item.commitID, insertPoint)
+            else
+              insertPoint = nest.getModel().getCurrentVersion().backToTheFuture(insertPoint)
             break
       else
         range = @model.insertTextInRange(insertPoint, item.text, 'skip')
@@ -242,12 +253,12 @@ class VariantBranch
 
 
   commitChunk: (date) ->
-    console.log "Starting commit chunk"
+    #console.log "Starting commit chunk "+@title
     commit = {date: date}
-    console.log @
     chunks = @chunk(true)
     commit.text = chunks
-    #console.log @currentVersion.commits
+    #console.log "Chunked "+@title+":"
+    #console.log chunks
     @commits.push commit
     #console.log "commited a version "
     #console.log @currentVersion.commits
@@ -288,7 +299,7 @@ class VariantBranch
         if doCommit
           chunkReference = model.commit(params)
         else
-          chunkReference = model.recordCurrentState(params)
+          chunkReference = model.getCurrentVersion().recordCurrentState(params)
         chunks.push chunkReference
 
         textPointer = range.end.row + 1

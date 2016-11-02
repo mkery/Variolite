@@ -229,7 +229,7 @@ class AtomicTaroView
     @initVariants(@exploratoryEditor, @element)
 
     # menu at the top of the code
-    mainHeaderMenu = new MainHeaderMenu(@masterVariant)
+    mainHeaderMenu = new MainHeaderMenu(@masterVariant, @)
     @element.appendChild(mainHeaderMenu.getElement())
 
     # create a variant manager
