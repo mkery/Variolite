@@ -148,27 +148,44 @@ class VariantModel
   '''
     Travels to most recent in time commit.
   '''
-  backToTheFuture: ->
-    @currentBranch.backToTheFuture()
+  backToTheFuture: (insertPoint, branchID) ->
+    if branchID? and branchID != @currentBranch.getID()
+      branch = @findBranch(branchID)
+      branch.setActive(true)
+      @currentBranch.setActive(false)
+      @currentBranch = branch
+      @getView().switchHeaderToVersion(branch)
+      branch.backToTheFuture(insertPoint)
+    else
+      @currentBranch.backToTheFuture(insertPoint)
+
+
+  travelFromThePresent: (commitData) ->
+    console.log "FROM PRESENT"
+    @currentBranch.recordCurrentState() # SAVE the latest version, not ideal to make a commit every time for this though
+    @travelToCommit(commitData)
 
 
   '''
     Starts process of travel to a commit.
     Changes display to show the user's code as it was at the time of a specific commit
   '''
-  travelToCommit: (commitId, insertPoint) ->
-    @currentBranch.recordCurrentState() # SAVE the latest version, not ideal to make a commit every time for this though
+  travelToCommit: (commitData, insertPoint) ->
+    #console.log "commitId is "+@currentBranch.getTitle()
+    #console.log commitData
+    branchID = commitData.branchID
+    commitID = commitData.commitID
 
-    versionID = commitId.verID
-    commitID = commitId.commitID
-
-    branch = @findBranch(versionID)
-    if versionID != @currentBranch.getID()
-      #console.log "Need to switch versions from "+@currentVersion.title+" to "+version.title
-      @currentBranch = brach
+    branch = @findBranch(branchID)
+    if branchID != @currentBranch.getID()
+      #console.log "Switching to version "+branchID
+      #console.log branch
+      branch.setActive(true)
+      @currentBranch.setActive(false)
+      @currentBranch = branch
       @view.switchHeaderToVersion(branch)
+      @currentBranch.setActive(true)
 
-    @currentBranch.setActive(true)
     @currentBranch.travelToCommit(commitID, insertPoint)
 
 
@@ -530,13 +547,15 @@ class VariantModel
   switchToVersion: (newBranch, params) =>
     newBranch.setActive(true)
     @prevVers.push(@currentBranch)
-    text = newBranch.getText()
+    #text = newBranch.getText()
+    #console.log "closing currently open "+@currentBranch.getTitle()
+    #console.log "current text is: "+@getTextInVariantRange()
     @currentBranch.close()
-    @currentBranch.setText(@getTextInVariantRange())
-    @setTextInVariantRange(newBranch.getText(), 'skip')
+    #@currentBranch.setText(@getTextInVariantRange())
+    #@setTextInVariantRange(newBranch.getText(), 'skip')
+    @currentBranch = newBranch
     newBranch.open()
 
-    @currentBranch = newBranch
     @clearHighlights()
     if params?.undoSkip? == false
       @undoAgent.pushChange({data: {undoSkip: true}, callback: @getPrevVersion})
@@ -650,6 +669,7 @@ class VariantModel
 
   hideInsides: ->
     for n in @currentBranch.getNested()
+      #console.log "Closing insides "+n
       n.destroyHeaderMarkerDecoration()
       n.destroyFooterMarkerDecoration()
       n.getModel().hideInsides()
@@ -657,6 +677,7 @@ class VariantModel
 
   showInsides: ->
     for n in @currentBranch.getNested()
+      #console.log "Showing insides "+n
       hdec = @sourceEditor.decorateMarker(n.getModel().getHeaderMarker(), {type: 'block', position: 'before', item: n.getHeader()})
       n.setHeaderMarkerDecoration(hdec)
       fdec = @sourceEditor.decorateMarker(n.getMarker(), {type: 'block', position: 'after', item: n.getFooter()})

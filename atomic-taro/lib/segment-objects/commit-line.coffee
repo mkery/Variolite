@@ -7,6 +7,7 @@ class CommitLine
 
   constructor: (@variantView, @variantModel) ->
     @addCommitLine() # initialize commit line
+    @prevCommit = -1 #meaning the current/no commit
 
   getVariantView: ->
     @variantView
@@ -56,6 +57,8 @@ class CommitLine
     $(@commitLineElem).width(width)
     paddT = $(@commitTraveler).innerWidth() - $(@commitTraveler).width()
     $(@commitTraveler).width(width - paddT)
+    if $(@commitLineElem).is(":visible")
+      @addTickMarks(@getModel().getCurrentVersion().getNumberOfCommits())
 
 
   '''
@@ -76,7 +79,6 @@ class CommitLine
         if $(@tickMarkers).children('.atomic-taro_commit-ticks').length != commitNum
             #$(@nowMarker).show()
             $(@nowBracket).show()
-            $(@tickMarkers).html("")
             $(@commitTraveler).removeClass("textOnly")
             $(@noCommits).html("")
             $(@commitSlider).slider({
@@ -86,22 +88,32 @@ class CommitLine
               slide: (event, ui) =>
                 if ui.value == @getModel().getCurrentVersion().getNumberOfCommits()
                   @getVariantView().backToTheFuture()
+                  @prevCommit = -1
                 else
-                  @getVariantView().travelToCommit({commitID: ui.value, verID: @getModel().getCurrentVersion().id})
+                  if @prevCommit == -1
+                    @getVariantView().travelFromThePresent({commitID: ui.value, branchID: @getModel().getCurrentVersion().id})
+                  else
+                    @getVariantView().travelToCommit({commitID: ui.value, branchID: @getModel().getCurrentVersion().id})
+                  @prevCommit = ui.value
             })
             #console.log "commit num: "+commitNum+" ticks: "+$(@commitSlider).children('.atomic-taro_commit-ticks').length
             #console.log "WIDTH "+$(@commitTraveler).width()
             # Add ticks to label the timeline
-            offset = 0
-            for i in [0 .. commitNum - 1]
-              offset -= 4
-              label = document.createElement('div')
-              label.classList.add('atomic-taro_commit-ticks')
-              $(label).css('left',(i/commitNum*$(@commitTraveler).width() + offset))
-              $(@tickMarkers).append(label)
+            @addTickMarks(commitNum)
 
       else
         $(@commitTraveler).addClass("textOnly")
         $(@noCommits).html("No commits to show yet!")
       $(@commitLineElem).show()
       return true
+
+
+  addTickMarks: (commitNum) ->
+    $(@tickMarkers).html("")
+    offset = 0
+    for i in [0 .. commitNum - 1]
+      offset -= 4
+      label = document.createElement('div')
+      label.classList.add('atomic-taro_commit-ticks')
+      $(label).css('left',(i/commitNum*$(@commitTraveler).width() + offset))
+      $(@tickMarkers).append(label)

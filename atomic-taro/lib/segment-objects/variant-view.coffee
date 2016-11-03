@@ -243,6 +243,14 @@ class VariantView
     commit = @model.travelToCommit(commitId)
 
 
+  travelFromThePresent: (commitId) ->
+    $(@headerBar).addClass('historical')
+    @commitLine.addClass('historical')
+    @branchMap.addClass('historical')
+    $(@footerBar).addClass('historical')
+    @hover()
+    commit = @model.travelFromThePresent(commitId)
+
   '''
     Changes the appearance of the header to reflect returning to the most contemporary
     commit. Starts the model actually returning back to this commit.
@@ -430,18 +438,18 @@ class VariantView
   switchToVersion: (v, same) ->
     #if same? then same else same = true
     same = @model.isCurrent(v) #and same
-    console.log "same: "+same
+    #console.log "same: "+same
 
     np = @model.getNestedParent()
     # switch the highest level first
     if np?
       [p_version, p_variant] = np
-      console.log "look up parent "
-      console.log p_variant
+      #console.log "look up parent "
+      #console.log p_variant
       p_variant.switchToVersion(p_version, same)
     if same == true
       return # don't switch, this version is current
-    console.log "switching version! "+v.title
+    #console.log "switching version! "+v.getTitle()
 
     @model.switchToVersion(v)
     @switchHeaderToVersion(v)
@@ -454,8 +462,8 @@ class VariantView
     $(@versionBookmarkBar).empty()
     $(@activeButton).data("version", v)
     @addNameBookmarkBar()
-    $(@dateHeader).text(@model.getDate())
-    @switchExplorerToVersion(v)
+    $(@dateHeader).text(v.getDate())
+    #@switchExplorerToVersion(v)
 
 
   '''
