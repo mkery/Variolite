@@ -142,7 +142,9 @@ class VariantModel
 
 
   commit: ->
-    @currentBranch.commit()
+    commit = @currentBranch.commit()
+    @view.getCommitLine().redraw()
+    commit
 
 
   '''
@@ -550,7 +552,10 @@ class VariantModel
     #text = newBranch.getText()
     #console.log "closing currently open "+@currentBranch.getTitle()
     #console.log "current text is: "+@getTextInVariantRange()
-    @currentBranch.close()
+    if not @view.getDiffPanels().isShowing()
+      @currentBranch.close()
+    else
+      @view.getDiffPanels().close()
     #@currentBranch.setText(@getTextInVariantRange())
     #@setTextInVariantRange(newBranch.getText(), 'skip')
     @currentBranch = newBranch
@@ -570,10 +575,11 @@ class VariantModel
 
 
 
-
-
-
   compareToVersion: (v) ->
+    # d
+
+
+  showOverlapLines: (v) ->
     # first, switch to the new version
     compareFrom = @currentBranch
     text = v.text

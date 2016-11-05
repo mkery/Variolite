@@ -1,0 +1,32 @@
+// The ui-variables file is provided by base themes provided by Atom.
+//
+// See https://github.com/atom/atom-dark-ui/blob/master/styles/ui-variables.less
+// for a full listing of what's available.
+@import "ui-variables";
+@import "syntax-variables";
+
+
+.atomic-taro_diff-panel{
+  display: inline-block;
+  margin: 0px;
+  border: 1px solid @text-color;
+  font-family: Inconsolata, Monaco, Consolas, 'Courier New', Courier;
+  z-index: 5;
+  color: @text-color;
+  min-height: 100px;
+  position: relative;
+}
+
+.atomic-taro_diff-side-panel{
+  vertical-align: text-top;
+  display: inline-block;
+  margin: 0px;
+  border: 1px solid @tool-panel-border-color;
+}
+
+.atomic-taro_diff-label{
+  display: inline-block;
+  text-align: center;
+  border-bottom: 1px solid @tool-panel-border-color;
+  width: 100%;
+}

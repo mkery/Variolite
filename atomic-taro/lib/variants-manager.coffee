@@ -127,6 +127,9 @@ class VariantsManager
         hoverMenu = $(this).children('.variants-hoverMenu')
         hoverMenu.slideUp('fast')
 
+      #$(document).on 'mouseup', '.atomic-taro_editor-header_version-title', (ev) ->
+      #  $(this).children('.atomic-taro_editor-header_x').show()
+
       $(document).on 'click', '.atomic-taro_editor-header_version-title', (ev) ->
         v = $(this).data("version")
         ev.stopPropagation()
@@ -170,15 +173,22 @@ class VariantsManager
         else
           $(this).removeClass('clicked')
 
+
+      $(document).on 'click', '.atomic-taro_commit-nowBracket', (ev) ->
+          ev.stopPropagation()
+          c = $(this).data("commitLine")
+          c.slideToPresent()
+
+
       $(document).on 'click', '.atomic-taro_branch-map-square', (ev) ->
         ev.stopPropagation()
-        if $(this).hasClass('current')
-          $(this).removeClass('current')
-          $(this).removeClass('active')
-          branch = $(this).data("branch")
-          branch.archive()
-        else if $(this).hasClass('active')
-          $('.atomic-taro_branch-map-square').removeClass('current')
+        # if $(this).hasClass('current')
+        #   branch = $(this).data("branch")
+        #   if branch.archive()
+        #     $(this).removeClass('current')
+        #     $(this).removeClass('active')
+        if $(this).hasClass('active')
+          $(this).parent().children('.atomic-taro_branch-map-square').removeClass('current')
           $(this).addClass('current')
           branch = $(this).data("branch")
           branch.switchToVersion()
@@ -194,6 +204,10 @@ class VariantsManager
       $(document).on 'mouseleave', '.atomic-taro_editor-header-wrapper', (ev) ->
         view = $(this).data('view')
         view.unHover()
+
+      $(document).on 'click', '.atomic-taro_diff-side-panel', (ev) ->
+        ev.stopPropagation()
+        $(this).children().focus()
 
 
       #------sets header buttons to the full height of the header

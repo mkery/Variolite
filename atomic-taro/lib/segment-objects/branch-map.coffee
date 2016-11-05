@@ -7,7 +7,7 @@ class BranchMap
 
   constructor: (@variantView, @variantModel) ->
     @addBranchMap() # initialize commit line
-    @subscriptions = new CompositeDisposable
+    @subscriptions = new CompositeDisposable()
 
 
   getVariantView: ->
@@ -45,16 +45,30 @@ class BranchMap
     if $(@branchMapElem).is(":visible")
       $(@branchMapElem).hide()
       @subscriptions.dispose()
+      #console.log @subscriptions
       return false
     else
       $(@branchMapElem).width($(@branchMapElem).parent().width())
       $(@branchMapElem).html("")
       $(@branchMapElem).show()
-      squareWidth = 10
-      height = @maxSquaresInView(@getModel().getRootVersion(), 4)
-      $(@branchMapElem).height(height*(squareWidth + 20))
-      @placeSquares(null, 0, 0, squareWidth)
+      @drawBranchMap()
       return true
+
+
+  drawBranchMap: ->
+    squareWidth = 10
+    height = @maxSquaresInView(@getModel().getRootVersion(), 4)
+    $(@branchMapElem).height(height*(squareWidth + 20))
+    @placeSquares(null, 0, 0, squareWidth)
+
+
+  redraw: ->
+    if $(@branchMapElem).is(":visible")
+      @subscriptions.dispose()
+      @subscriptions = new CompositeDisposable()
+      #console.log @subscriptions
+      $(@branchMapElem).html("")
+      @drawBranchMap()
 
 
   maxSquaresInView: (root, absoluteMax) ->
@@ -80,7 +94,10 @@ class BranchMap
       y = (mapHeight*.50) - squareWidth/4
       square = document.createElement('div')
       square.classList.add('atomic-taro_branch-map-square')
-      @subscriptions.add atom.tooltips.add(square, {title: root.getTitle(), placement: "bottom"})
+      disposable = atom.tooltips.add(square, {title: root.getTitle(), placement: "bottom"})
+      @subscriptions.add disposable
+      #console.log "disposable added"
+      #console.log @subscriptions
       $(square).data("branch", root)
       if root.getActive()
         square.classList.add('active')

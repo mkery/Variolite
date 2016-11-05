@@ -29,6 +29,7 @@ class CommitLine
     @commitTraveler.appendChild(@noCommits)
     @nowBracket = document.createElement('div')
     @nowBracket.classList.add('atomic-taro_commit-nowBracket')
+    $(@nowBracket).data("commitLine", @)
     @commitTraveler.appendChild(@nowBracket)
     $(@nowBracket).hide()
 
@@ -61,6 +62,11 @@ class CommitLine
       @addTickMarks(@getModel().getCurrentVersion().getNumberOfCommits())
 
 
+  redraw: ->
+    if $(@commitLineElem).is(":visible")
+      @drawTimeline()
+
+
   '''
     Show the commit timeline to view and travel between commits.
   '''
@@ -69,6 +75,11 @@ class CommitLine
       $(@commitLineElem).hide()
       return false
     else
+      @drawTimeline()
+      return true
+
+
+  drawTimeline: ->
       $(@commitLineElem).width($(@commitLineElem).parent().width())
       paddT = $(@commitTraveler).innerWidth() - $(@commitTraveler).width()
       $(@commitTraveler).width($(@commitLineElem).width() - paddT)
@@ -100,12 +111,19 @@ class CommitLine
             #console.log "WIDTH "+$(@commitTraveler).width()
             # Add ticks to label the timeline
             @addTickMarks(commitNum)
-
       else
         $(@commitTraveler).addClass("textOnly")
         $(@noCommits).html("No commits to show yet!")
       $(@commitLineElem).show()
-      return true
+
+
+
+  slideToPresent: ->
+    max = @getModel().getCurrentVersion().getNumberOfCommits()
+    $(@commitSlider).slider('option', 'value',max)
+    $(@commitSlider).slider('option','slide')
+       .call($(@commitSlider),null,{ handle: $('.ui-slider-handle', $(@commitSlider)), value: max })
+
 
 
   addTickMarks: (commitNum) ->

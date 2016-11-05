@@ -2,6 +2,7 @@
 Variant = require './variant-model'
 CommitLine = require './commit-line'
 BranchMap = require './branch-map'
+DiffPanels = require './diff-panels'
 
 '''
 variant view represents the visual appearance of a variant, and contains a
@@ -75,12 +76,16 @@ class VariantView
 
     @commitLine = null
     @branchMap = null
+    @diffPanels = null
 
     @focused = false
 
     # wrapper div to browse other versions
     @explorerGroupElement = null #TODO not used
 
+
+  getCommitLine: ->
+    @commitLine
 
   '''
     TODO used?
@@ -122,7 +127,7 @@ class VariantView
     # No versions showing to archive
     # If just 1 don't bother switching to a another verison
     if @visibleVersions.length < 2
-      return
+      return false
 
     # make the current version inactive so it's not
     # re-drawn on the version bookmark bar
@@ -140,6 +145,8 @@ class VariantView
 
     if @visibleVersions.length < 2
       $(@buttonArchive).hide()
+
+    return true
 
 
   '''
@@ -453,6 +460,7 @@ class VariantView
 
     @model.switchToVersion(v)
     @switchHeaderToVersion(v)
+    @branchMap.redraw()
 
 
   '''
@@ -496,13 +504,21 @@ class VariantView
   '''
   highlightMultipleVersions: (v) ->
     console.log "highlight!"
-    @model.compareToVersion(v)
+    @compareTwoVersions(v, @model.getCurrentVersion())
     $(@versionBookmarkBar).empty()
     $(@activeButton).data("version", v)
     @addNameBookmarkBar()
     $(@dateHeader).text(@model.getDate())
-    @switchExplorerToVersion(v)
+    #@switchExplorerToVersion(v)
 
+
+  compareTwoVersions: (v1, v2) ->
+    @model.compareToVersion(v1)
+    @diffPanels.diffVersions(v1, v2)
+
+
+  getDiffPanels: ->
+    @diffPanels
 
   '''
     On initialization, once all saved data in loaded into the model, finally build the
@@ -524,6 +540,10 @@ class VariantView
     # branch map
     @branchMap = new BranchMap(@, @model)
     @headerWrapper.appendChild(@branchMap.getElement())
+    # variants panel
+    @diffPanels = new DiffPanels(@, @model)
+    @headerWrapper.appendChild(@diffPanels.getElement())
+    @diffPanels.updateWidth(width)
     #add placeholders for versions and output
     @addVariantButtons(@headerBar)
     #@addOutputButton(@headerBar)
@@ -640,6 +660,7 @@ class VariantView
           versionTitle.classList.add('focused')
         squareIcon.classList.add('active')
         versionTitle.classList.add('active')
+        #$(versionTitle).children('.atomic-taro_editor-header_x').show()
         @currentVersionName = versionTitle
 
       if(@model.isHighlighted(v))
@@ -704,17 +725,17 @@ class VariantView
     variantsMenu.appendChild(buttonSnapshot)'''
     @variantsButton.appendChild(variantsMenu)
 
-    buttonShow = document.createElement("div")
-    buttonShow.classList.add('variants-hoverMenu-buttons')
-    buttonShow.classList.add('showVariantsButton')
-    $(buttonShow).text("show variant panel")
-    $(buttonShow).data("variant", @)
-    $(buttonShow).click (ev) =>
-      ev.stopPropagation()
-      $(@headerBar).toggleClass('activeVariant')
-      @root.toggleExplorerView()
-      $(variantsMenu).hide()
-    variantsMenu.appendChild(buttonShow)
+    # buttonShow = document.createElement("div")
+    # buttonShow.classList.add('variants-hoverMenu-buttons')
+    # buttonShow.classList.add('showVariantsButton')
+    # $(buttonShow).text("show variant panel")
+    # $(buttonShow).data("variant", @)
+    # $(buttonShow).click (ev) =>
+    #   ev.stopPropagation()
+    #   $(@headerBar).toggleClass('activeVariant')
+    #   @root.toggleExplorerView()
+    #   $(variantsMenu).hide()
+    # variantsMenu.appendChild(buttonShow)
 
     buttonAdd = document.createElement("div")
     buttonAdd.classList.add('variants-hoverMenu-buttons')
@@ -723,6 +744,7 @@ class VariantView
     $(buttonAdd).click =>
       @newVersion()
       $(variantsMenu).hide()
+      @branchMap.redraw()
     variantsMenu.appendChild(buttonAdd)
 
     @buttonArchive = document.createElement("div")
@@ -732,6 +754,7 @@ class VariantView
     $(@buttonArchive).click =>
       @archive()
       $(variantsMenu).hide()
+      @branchMap.redraw()
     variantsMenu.appendChild(@buttonArchive)
 
     buttonDissolve = document.createElement("div")

@@ -52,6 +52,10 @@ class VariantBranch
     @date = d
 
 
+  getText: ->
+    @text
+
+
   getSubtitle: ->
     @subtitle
 
@@ -116,7 +120,7 @@ class VariantBranch
     @model.getView().switchToVersion(@)
 
   archive: ->
-    @model.getView().archive()
+    return @model.getView().archive()
 
   activateVersion: ->
     @active = true
@@ -164,7 +168,7 @@ class VariantBranch
   travelToCommit: (commitData, insertPoint) ->
     if not insertPoint?
       @model.clearTextInRange()
-      console.log "CLEARED TEXT"
+      #console.log "CLEARED TEXT"
     @travel(commitData, insertPoint)
 
 
@@ -241,7 +245,7 @@ class VariantBranch
     Starts the process of creating a new commit
   '''
   commit: ->
-    #console.log "Commit called"
+    # console.log "Commit called"
     # check if anything has changed first
     diff = @isChanged()
 
@@ -255,8 +259,10 @@ class VariantBranch
       #console.log "UNCHANGED"
       commit = @commits[@commits.length - 1]
 
+    #console.log "Returning commit!"
+    #console.log commit
     #@git-utils -- commit
-    commit
+    return commit
 
 
 
@@ -271,6 +277,8 @@ class VariantBranch
     # return a reference, so that others can find this commit
     commit = {date: date, text: chunks, varID: @model.getVariantID(), branchID: @id, commitID: @commits.length}
     @commits.push commit
+    #console.log "Done commit:"
+    #console.log commit
     return commit
 
 
@@ -304,7 +312,10 @@ class VariantBranch
         textPointer = range.start.row
         # Hacky, but the only thing I can get to work now
         if doCommit
+          #console.log "Doing a commit of "+model.getCurrentVersion().getTitle()
           chunkReference = model.commit(params)
+          #console.log "Chunk reference returned"
+          #console.log chunkReference
         else
           chunkReference = model.getCurrentVersion().recordCurrentState(params)
         chunks.push chunkReference
