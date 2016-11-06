@@ -67,6 +67,10 @@ class VariantModel
     @view
 
 
+  getEditor: ->
+    @sourceEditor
+
+
   '''
     Returns the text currently in range of this Variant
   '''

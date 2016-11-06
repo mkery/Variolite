@@ -195,6 +195,7 @@ class VariantBranch
     #console.log @model.getTextInVariantRange()
     @currentState = null # erase what current state was there previosly
     @currentState = {varID: @model.getVariantID(), branchID: @id, text: @chunk(false)}
+    @text = @currentState.text[0].text
     #console.log "Recorded state for "+@title
     #console.log @currentState
     @currentState
