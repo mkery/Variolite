@@ -67,8 +67,8 @@ class VariantModel
     @view
 
 
-  getEditor: ->
-    @sourceEditor
+  #getEditor: ->
+  #  @sourceEditor
 
 
   '''
@@ -85,7 +85,7 @@ class VariantModel
     Removes the text currently in range of this Variant
   '''
   clearTextInRange: ->
-     @sourceBuffer.setTextInRange(@marker.getBufferRange(), "", undo: 'skip')
+    @sourceBuffer.setTextInRange(@marker.getBufferRange(), "", undo: 'skip')
 
 
   '''
@@ -464,6 +464,10 @@ class VariantModel
     @currentBranch
 
 
+  deselectCurrentVersion: ->
+    @currentBranch = null
+
+
   '''
     For display versions, return if this variant box has more than 1 version.
   '''
@@ -496,11 +500,8 @@ class VariantModel
     TODO rename. What is this?? I think it's for selecting multiple versions
     to compare or linked edit them.
   '''
-  isHighlighted: (v) ->
-    for h in @highlighted
-      if h.id == v.id
-        return true
-    false
+  isMultiSelected: (v) ->
+    v.isMultiSelected()
 
   '''
     TODO rename. What is this?? I think it's for selecting multiple versions
@@ -517,7 +518,7 @@ class VariantModel
   '''
   isCurrent: (v) ->
     #console.log "current version is "+@currentVersion.title+", compared to "+v.title
-    if v.getID() == @currentBranch.getID()
+    if @currentBranch != null and (v.getID() == @currentBranch.getID())
       return true
     else
       return false
@@ -531,7 +532,7 @@ class VariantModel
     newText = @getTextInVariantRange()
     @currentBranch.close()
     # currentVersion has text after we add marker placeholders
-    @currentBranch.setText(@getTextInVariantRange())
+    #@currentBranch.setText(@getTextInVariantRange())
 
     # now, set the text for the new version we're switching to
     @setTextInVariantRange(newText, 'skip')
@@ -556,10 +557,10 @@ class VariantModel
     #text = newBranch.getText()
     #console.log "closing currently open "+@currentBranch.getTitle()
     #console.log "current text is: "+@getTextInVariantRange()
-    if not @view.getDiffPanels().isShowing()
-      @currentBranch.close()
-    else
-      @view.getDiffPanels().close()
+    # if not @view.getDiffPanels().isShowing()
+    @currentBranch?.close()
+    # else
+    #   @view.getDiffPanels().close()
     #@currentBranch.setText(@getTextInVariantRange())
     #@setTextInVariantRange(newBranch.getText(), 'skip')
     @currentBranch = newBranch
@@ -579,56 +580,11 @@ class VariantModel
 
 
 
-  compareToVersion: (v) ->
-    # d
-
-
-  showOverlapLines: (v) ->
-    # first, switch to the new version
-    compareFrom = @currentBranch
-    text = v.text
-    @currentBranch.setText(@getTextInVariantRange())
-    @setTextInBufferRange(v.text, false)
-    @currentBranch = v
-
-    # next, add
-    @highlighted.push compareFrom
-    textA = compareFrom.text
-    if @overlapText != ""
-      textA = @overlapText
-    textB = v.text
-
-    diff = JsDiff.diffLines(textA, textB)
-    range = @marker.getBufferRange()
-    start = range.start
-
-
-    for line in diff
-      if line.removed
-        continue
-
-      text = line.value
-      lines = text.split("\n")
-      rows = lines.length - 2
-      cols = lines[lines.length - 2].length
-      #console.log text + "has r " +rows + " c " + cols
-      #console.log "start " + start
-      end = new Point(start.row + rows, start.column + cols)
-      #console.log text + ", start: " + start + ", end: " + end
-
-      if !line.removed and !line.added
-        # then text is in both versions
-        #console.log "marker adding"
-        mark = @sourceEditor.markBufferRange([start, end])
-        dec = @sourceEditor.decorateMarker(mark, type: 'highlight', class: 'highlight-pink')
-        @highlightMarkers.push mark
-        @overlapText += text
-
-      start = new Point(end.row + 1, 0)
-
-
   getNested: ->
-    @currentBranch.getNested()
+    if @currentBranch?
+      @currentBranch.getNested()
+    else
+      []
 
 
   addNested: (n) ->

@@ -24,7 +24,7 @@ class VariantView
 
   constructor: (@sourceEditor, marker, variantTitle, @root, @undoAgent, @provenanceAgent) ->
     # the variant
-    @model = new Variant(@, sourceEditor, marker, variantTitle, @undoAgent, @provenanceAgent)
+    @model = new Variant(@, @sourceEditor, marker, variantTitle, @undoAgent, @provenanceAgent)
     @initialize()
 
 
@@ -424,6 +424,8 @@ class VariantView
     Adds a new version to this variant box.
   '''
   newVersion: ->
+    if @diffPanels.isShowing()
+      @switchToVersion(@diffPanels.getV1())
     v = @model.newVersion()
     $(@versionBookmarkBar).empty()
     @addNameBookmarkBar()
@@ -443,6 +445,10 @@ class VariantView
     Switch between versions. ???
   '''
   switchToVersion: (v, same) ->
+    # if not @view.getDiffPanels().isShowing()
+    #    @currentBranch.close()
+    # else
+    @diffPanels.close()
     #if same? then same else same = true
     same = @model.isCurrent(v) #and same
     #console.log "same: "+same
@@ -469,6 +475,7 @@ class VariantView
   switchHeaderToVersion: (v) ->
     $(@versionBookmarkBar).empty()
     $(@activeButton).data("version", v)
+    #$(@headerBar).removeClass('highlighted')
     @addNameBookmarkBar()
     $(@dateHeader).text(v.getDate())
     #@switchExplorerToVersion(v)
@@ -504,16 +511,17 @@ class VariantView
   '''
   highlightMultipleVersions: (v) ->
     console.log "highlight!"
-    @compareTwoVersions(v, @model.getCurrentVersion())
-    $(@versionBookmarkBar).empty()
-    $(@activeButton).data("version", v)
-    @addNameBookmarkBar()
-    $(@dateHeader).text(@model.getDate())
-    #@switchExplorerToVersion(v)
+    if v.getID() != @model.getCurrentVersion().getID()
+      @compareTwoVersions(v, @model.getCurrentVersion())
+      @model.deselectCurrentVersion()
+      $(@versionBookmarkBar).empty()
+      #$(@activeButton).data("version", v)
+      @addNameBookmarkBar()
+      #$(@dateHeader).text(@model.getDate())
+      #@switchExplorerToVersion(v)
 
 
   compareTwoVersions: (v1, v2) ->
-    @model.compareToVersion(v1)
     @diffPanels.diffVersions(v1, v2)
 
 
@@ -600,10 +608,10 @@ class VariantView
     @addNameBookmarkBar()
     nameContainer.appendChild(@versionBookmarkBar)
     #add placeholder for data
-    @dateHeader = document.createElement("div")
-    @dateHeader.classList.add('atomic-taro_editor-header-date')
-    $(@dateHeader).text(@model.getDate())
-    headerContainer.appendChild(@dateHeader)
+    # @dateHeader = document.createElement("div")
+    # @dateHeader.classList.add('atomic-taro_editor-header-date')
+    # $(@dateHeader).text(@model.getDate())
+    # headerContainer.appendChild(@dateHeader)
     headerContainer.appendChild(nameContainer)
     #@addActiveButton(headerContainer)
     '''varIcons = document.createElement("span")
@@ -663,7 +671,9 @@ class VariantView
         #$(versionTitle).children('.atomic-taro_editor-header_x').show()
         @currentVersionName = versionTitle
 
-      if(@model.isHighlighted(v))
+      $(squareIcon).removeClass('highlighted')
+      $(versionTitle).removeClass('highlighted')
+      if(@model.isMultiSelected(v))
         if @focused
           versionTitle.classList.add('focused')
         squareIcon.classList.add('highlighted')
@@ -750,7 +760,7 @@ class VariantView
     @buttonArchive = document.createElement("div")
     @buttonArchive.classList.add('variants-hoverMenu-buttons')
     @buttonArchive.classList.add('archiveVariantButton')
-    $(@buttonArchive).html("<span class='icon icon-dash'>archive brach</span>")
+    $(@buttonArchive).html("<span class='icon icon-dash'>archive branch</span>")
     $(@buttonArchive).click =>
       @archive()
       $(variantsMenu).hide()

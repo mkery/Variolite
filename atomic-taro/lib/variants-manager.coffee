@@ -136,11 +136,11 @@ class VariantsManager
         ev.preventDefault()
         variant = $(this).data("variant")
         if (ev.shiftKey)
-         variant.highlightMultipleVersions(v)
+          variant.highlightMultipleVersions(v)
         else
-         v = $(this).data("version")
-         variant = $(this).data("variant")
-         variant.switchToVersion(v)
+          v = $(this).data("version")
+          variant = $(this).data("variant")
+          variant.switchToVersion(v)
 
       $(document).on 'mouseenter', '.atomic-taro_editor-header_version-title', (ev) ->
         $(this).children('.atomic-taro_editor-header_x').show()

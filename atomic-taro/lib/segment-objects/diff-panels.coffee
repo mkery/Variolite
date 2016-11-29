@@ -9,14 +9,32 @@ class DiffPanels
   constructor: (@variantView, @variantModel) ->
     @addDiffPanels() # initialize commit line
     @highlightMarkers = []
+    @diffVers = []
 
 
   isShowing: ->
     $(@diffPanelElem).is(":visible")
 
 
+  isActive: ->
+    @currentBuffer != null
+
+
+  getV1: ->
+    @diffVers[0]
+
+
   close: ->
-    $(@diffPanelElem).hide()
+    if $(@diffPanelElem).is(":visible")
+        for v in @diffVers
+          v.setMultiSelected(false)
+
+        $(@diffPanelElem).hide()
+
+        for marker in @highlightMarkers
+          marker.destroy()
+        @rightEditor.getBuffer().setText("")
+        @leftEditor.getBuffer().setText("")
 
 
   getVariantView: ->
@@ -46,6 +64,7 @@ class DiffPanels
     $(@rightPanel).width(width/2 - borderWidth)
 
 
+
   addDiffPanels: () ->
     @diffPanelElem = document.createElement('table')
     @diffPanelElem.classList.add('atomic-taro_diff-panel')
@@ -59,7 +78,7 @@ class DiffPanels
     $(@leftLabel).html("Left")
     @leftPanel.appendChild(@leftLabel)
 
-    sourceCode = "I am the text of the left side!"
+    sourceCode = ""
     @leftEditor = atom.workspace.buildTextEditor(buffer: new TextBuffer({text: sourceCode}), grammar: atom.grammars.selectGrammar("file.py"))
     atom.textEditors.add(@leftEditor)
     @leftPanel.appendChild(@leftEditor.getElement())
@@ -71,7 +90,7 @@ class DiffPanels
     $(@rightLabel).html("Right")
     @rightPanel.appendChild(@rightLabel)
 
-    sourceCode = "I am the text of the right side!"
+    sourceCode = ""
     @rightEditor = atom.workspace.buildTextEditor(buffer: new TextBuffer({text: sourceCode}), grammar: atom.grammars.selectGrammar("file.py"))
     atom.textEditors.add(@rightEditor)
     @rightPanel.appendChild(@rightEditor.getElement())
@@ -84,6 +103,10 @@ class DiffPanels
 
 
   diffVersions: (v1, v2) ->
+    @diffVers.push v1
+    @diffVers.push v2
+    v1.setMultiSelected(true)
+    v2.setMultiSelected(true)
     $(@diffPanelElem).show()
     #console.log "diffing "
     #console.log v1
@@ -92,66 +115,73 @@ class DiffPanels
     $(@leftLabel).html(v2.getTitle())
 
     v2.close()
-    textA = v1.getText()
-    console.log "v1 text"
-    console.log textA
-    textB = v2.getText()
-    console.log "v2 text"
-    console.log textB
-    @rightEditor.getBuffer().setText(v1.getText())
-    @leftEditor.getBuffer().setText(v2.getText())
+
+    @setText(v1, @rightEditor, @rightEditor.getBuffer())
+    @setText(v2, @leftEditor, @leftEditor.getBuffer())
+    textA = @rightEditor.getBuffer().getText()
+    textB = @leftEditor.getBuffer().getText()
     @getModel().hideInsides()
     @getModel().clearTextInRange()
-    @decorateDiffLines(v1, v2)
+    @decorateDiffLines(textA, textB)
 
 
+  setText: (v, editor, buffer) ->
+    textList = v.getText()
+    #console.log v.getCurrentState()
+    for item in textList
+      if not item.branchID?
+        buffer.append(item.text)
+      else
+        range = buffer.append(item.text[0].text)
+        # marker = buffer.markRange(range)
+        # headerElement = document.createElement("div")
+        # headerElement.classList.add('atomic-taro_diff-header-box')
+        # $(headerElement).html("nested")
+        # hRange = [range.start, new Point(range.end.row - 1, range.end.column)]
+        # hm = buffer.markRange(hRange, reversed: true)
+        # hdec = editor.decorateMarker(hm, {type: 'block', position: 'before', item: headerElement})
+        # @highlightMarkers.push hm
 
-  decorateDiffLines: (v1, v2) ->
-    textA = v1.getText()
-    #console.log "v1 text"
-    #console.log textA
-    textB = v2.getText()
-    #console.log "v2 text"
-    #console.log textB
 
+  decorateDiffLines: (textA, textB) ->
     diff = JsDiff.diffLines(textA, textB)
     range = @getModel().getVariantRange()
     startR = new Point(0,0)
     startL = new Point(0,0)
 
-    console.log diff
+    #console.log diff
 
     for line in diff
       text = line.value
       lines = text.split("\n")
-      console.log "Lines"
-      console.log lines
+      #console.log "Lines"
+      #console.log lines
       rows = lines.length - 1
       cols = lines[lines.length - 1].length
-      # console.log text + "has r " +rows + " c " + cols
+      #console.log text + "has r " +rows + " c " + cols
 
       if line.removed
         # then text is in both versions
-        console.log "marking remove"
+        #console.log "marking remove"
         end = new Point(startR.row + rows, startR.column + cols)
-        console.log "start: " + startR + ", end: " + end
+        #console.log "start: " + startR + ", end: " + end
         mark = @rightEditor.markBufferRange([startR, end])
         dec = @rightEditor.decorateMarker(mark, type: 'highlight', class: 'highlight-red')
         @highlightMarkers.push mark
-        startR = new Point(end.row + 1, end.col)
+        startR = new Point(end.row, end.col)
 
       else if line.added
         # then text is in both versions
-        console.log "marking add"
+        #console.log "marking add"
         end = new Point(startL.row + rows, startL.column + cols)
-        console.log "start: " + startL + ", end: " + end
+        #console.log "start: " + startL + ", end: " + end
         mark = @leftEditor.markBufferRange([startL, end])
         dec = @leftEditor.decorateMarker(mark, type: 'highlight', class: 'highlight-green')
         @highlightMarkers.push mark
-        startL = new Point(end.row + 1, end.col)
+        startL = new Point(end.row, end.col)
 
       else
         endL = new Point(startL.row + rows, startL.column + cols)
         endR = new Point(startR.row + rows, startR.column + cols)
-        startL = new Point(endL.row + 1, endL.col + 1)
-        startR = new Point(endR.row + 1, endR.col + 1)
+        startL = new Point(endL.row, endL.col)
+        startR = new Point(endR.row, endR.col)

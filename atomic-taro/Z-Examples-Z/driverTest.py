@@ -9,12 +9,13 @@ def distance(x0, y0, x1, y1):
 
 #%%^%%angle-1
 def computeAngle (p1, p2):
-	dot = 0 # dogffffffff
+	dot = 0
 	dot = (p2[0]*p1[0]+p2[1]*p1[1])/float(computeNorm(p1[0], p1[1])*computeNorm(p2[0], p2[1]))
 	return math.acos(dot)*180/math.pi
 #^^%^^
 
 
+#%%^%%all-angles
 def compute_AllAngles (trip):
 	dV =  np.diff(trip, axis = 0) #x1-x0 and y1-y0
 	angles = np.empty(shape = dV.shape[0])
@@ -22,8 +23,8 @@ def compute_AllAngles (trip):
 		ang = computeAngle(dV[i-1], dV[i])
 		np.append(angles, [ang, dV[i][2]]) #append angle with timepoint
 	return angles
+#^^%^^
 
-#%%^%%stops with smoothing
 def findStops(speeds):
 	stops = [] #stops are a start and end time pair
 	start = -1
@@ -41,7 +42,7 @@ def findStops(speeds):
 	if start > -1:
 		stops.append([start, len(speeds)])
 	return stops
-#^^%^^
+
 
 
 def printHist_Feature(hist):

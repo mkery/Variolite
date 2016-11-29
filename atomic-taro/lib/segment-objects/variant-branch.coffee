@@ -29,6 +29,7 @@ class VariantBranch
     @branches = []
     @nested = []
     @active = true
+    @multiSelected = false
 
     @currentState = null # a place to store the current state while traveling to past commits
 
@@ -62,6 +63,14 @@ class VariantBranch
 
   getNested: ->
     @nested
+
+
+  isMultiSelected: ->
+    @multiSelected
+
+
+  setMultiSelected: (b) ->
+    @multiSelected = b
 
 
   addNested: (n) ->
@@ -105,6 +114,10 @@ class VariantBranch
 
   addBranch: (newBranch) ->
     @branches.push newBranch
+
+
+  getCurrentState: ->
+    @currentState
 
 
   getNumberOfCommits: ->
@@ -195,7 +208,7 @@ class VariantBranch
     #console.log @model.getTextInVariantRange()
     @currentState = null # erase what current state was there previosly
     @currentState = {varID: @model.getVariantID(), branchID: @id, text: @chunk(false)}
-    @text = @currentState.text[0].text
+    @text = @currentState.text
     #console.log "Recorded state for "+@title
     #console.log @currentState
     @currentState
