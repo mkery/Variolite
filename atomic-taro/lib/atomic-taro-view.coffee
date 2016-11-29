@@ -19,6 +19,7 @@ UndoAgent = require './undo-agent'
 ProvUtils = require './provenance-utils'
 ProgramProcessor = require './program-processor'
 MainHeaderMenu = require './main-header-menu'
+LinkGutter = require './link-gutter'
 
 '''
   TODO - rethink annotation-processor-buffer
@@ -231,6 +232,9 @@ class AtomicTaroView
     #root element
     @element = document.createElement('div')
     @element.classList.add('atomic-taro_pane')#, 'scroll-view')
+
+    # gutter
+    @gutter = new LinkGutter(@exploratoryEditor)
 
     #@variantWidth = $(@element).width() - 20 #@sourceEditor.getElement().getWidth() - 20
     @initVariants(@exploratoryEditor, @element)
@@ -511,7 +515,8 @@ class AtomicTaroView
 
     '''below, useful for debug!!!'''
     #dec = editor.decorateMarker(marker, type: 'highlight', class: 'highlight-red')
-    dec = editor.decorateMarker(marker, type: 'line-number', class: 'taro-line-connect')
+    #dec = editor.decorateMarker(marker, type: 'line-number', class: 'taro-line-connect')
+    @gutter.decorateGutter(marker)
 
 
     # get title from start annnotation
