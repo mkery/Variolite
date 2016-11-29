@@ -13,3 +13,9 @@ def doPear(s):
     #^^%^^
     # Pear ends
 #^^%^^
+
+def alsoApple(s):
+    print "Apple"
+    print "Pear too!"
+    print "Pie"
+    print "\n"

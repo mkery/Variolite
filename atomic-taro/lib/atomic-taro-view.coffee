@@ -364,9 +364,9 @@ class AtomicTaroView
       marker.setProperties(myVariant: variant)
       headerElement = variant.getHeader()
       #console.log headerElement
-      hRange = [start, new Point(end.row - 1, end.column)]
+      hRange = [start, new Point(end.row, end.column)]
       hm = @exploratoryEditor.markBufferRange(hRange, invalidate: 'never', reversed: true)
-      #editor.decorateMarker(hm, type: 'highlight', class: 'highlight-pink')
+      @exploratoryEditor.decorateMarker(hm, type: 'highlight', class: 'highlight-pink')
       hm.setProperties(myVariant: variant)
       hdec = @exploratoryEditor.decorateMarker(hm, {type: 'block', position: 'before', item: headerElement})
       variant.setHeaderMarker(hm)
@@ -510,7 +510,8 @@ class AtomicTaroView
     marker = editor.markBufferRange(range, invalidate: 'never')
 
     '''below, useful for debug!!!'''
-    #dec = editor.decorateMarker(marker, type: 'highlight', class: 'highlight-pink')
+    #dec = editor.decorateMarker(marker, type: 'highlight', class: 'highlight-red')
+    dec = editor.decorateMarker(marker, type: 'line-number', class: 'taro-line-connect')
 
 
     # get title from start annnotation
@@ -530,7 +531,7 @@ class AtomicTaroView
     #finally, make the new variant!
     variant = new VariantView(editor, marker, title, @, @undoAgent, @provenanceAgent)
     marker.setProperties(myVariant: variant)
-    #editor.decorateMarker(marker, type: 'highlight', class: 'highlight-pink')
+    #editor.decorateMarker(marker, type: 'line-number', class: 'taro-line-connect')
 
     headerElement = variant.getHeader()
     #console.log headerElement

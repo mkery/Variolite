@@ -18,4 +18,33 @@ atom-text-editor::shadow {
   .highlight-pink .region {
     background-color: rgba(92,188,124,0.25);
   }
+
+  // .gutter .line-number {
+  //   &.taro-line-connect {
+  //     &::after {
+  //       border-left: 2px solid red;
+  //       padding-left: ~"calc(0.5em - 2px)";
+  //     }
+  //   }
+  // }
+}
+
+atom-text-editor, :host {
+  .line-number {
+    &.taro-line-connect {
+        &::after {
+         content: " ";
+         display: block;
+         width: 2px;
+         height: 100%;
+         background: red;
+         //border-radius: 3px;
+         position: absolute;
+         //vertical-align: middle;
+         top: 0%;
+         right: 9px;
+         //margin-top: -3px;
+       }
+    }
+  }
 }
