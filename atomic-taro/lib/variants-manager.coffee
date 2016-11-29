@@ -197,6 +197,8 @@ class VariantsManager
           branch = $(this).data("branch")
           branch.activateVersion()
 
+
+
     addHeaderListeners: (element) ->
       $(document).on 'mouseenter', '.atomic-taro_editor-header-wrapper', (ev) ->
         view = $(this).data('view')

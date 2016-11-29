@@ -82,6 +82,7 @@ class VariantView
 
     # wrapper div to browse other versions
     @explorerGroupElement = null #TODO not used
+    $(@headerBar).hide()
 
 
   getCommitLine: ->
@@ -336,6 +337,7 @@ class VariantView
   '''
   focus: () ->
     @focused = true
+    $(@headerBar).show()
     @hover()
 
 
@@ -345,6 +347,7 @@ class VariantView
   '''
   unFocus: ->
     @focused = false
+    $(@headerBar).hide()
     for n in @model.getNested()
       n.unFocus()
     @unHover()
@@ -775,6 +778,7 @@ class VariantView
       @dissolve()
       $(variantsMenu).hide()
     variantsMenu.appendChild(buttonDissolve)
+
 
 
   addOutputButton: (headerContainer) ->

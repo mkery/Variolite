@@ -217,6 +217,7 @@ class AtomicTaroView
   '''
   addJqueryListeners: ->
     @variantListeners.addJqueryListeners(@element)
+    @gutter.addJqueryListeners()
 
 
   '''
@@ -234,7 +235,7 @@ class AtomicTaroView
     @element.classList.add('atomic-taro_pane')#, 'scroll-view')
 
     # gutter
-    @gutter = new LinkGutter(@exploratoryEditor)
+    @gutter = new LinkGutter(@exploratoryEditor, @)
 
     #@variantWidth = $(@element).width() - 20 #@sourceEditor.getElement().getWidth() - 20
     @initVariants(@exploratoryEditor, @element)
@@ -261,7 +262,7 @@ class AtomicTaroView
       @element.appendChild(@exploratoryEditor.getElement())
 
       @masterVariant.buildVariantDiv()
-      @variantListeners.addJqueryListeners()
+      @addJqueryListeners()
 
       atom.views.addViewProvider AtomicTaroToolPane, (toolPane) ->
         toolPane.getElement()
@@ -361,16 +362,19 @@ class AtomicTaroView
 
       # now initialize everything
       marker = @exploratoryEditor.markBufferRange(range, invalidate: 'never')
+
       #@exploratoryEditor.decorateMarker(marker, {type: 'highlight', class: 'highlight-green'})
 
       #finally, make the new variant!
       variant = new VariantView(@exploratoryEditor, marker, "v0", @, @undoAgent, @provenanceAgent)
       marker.setProperties(myVariant: variant)
       headerElement = variant.getHeader()
+      @gutter.decorateGutter(marker, variant)
+
       #console.log headerElement
       hRange = [start, new Point(end.row, end.column)]
       hm = @exploratoryEditor.markBufferRange(hRange, invalidate: 'never', reversed: true)
-      @exploratoryEditor.decorateMarker(hm, type: 'highlight', class: 'highlight-pink')
+      #@exploratoryEditor.decorateMarker(hm, type: 'highlight', class: 'highlight-pink')
       hm.setProperties(myVariant: variant)
       hdec = @exploratoryEditor.decorateMarker(hm, {type: 'block', position: 'before', item: headerElement})
       variant.setHeaderMarker(hm)
@@ -516,7 +520,7 @@ class AtomicTaroView
     '''below, useful for debug!!!'''
     #dec = editor.decorateMarker(marker, type: 'highlight', class: 'highlight-red')
     #dec = editor.decorateMarker(marker, type: 'line-number', class: 'taro-line-connect')
-    @gutter.decorateGutter(marker)
+
 
 
     # get title from start annnotation
@@ -537,6 +541,7 @@ class AtomicTaroView
     variant = new VariantView(editor, marker, title, @, @undoAgent, @provenanceAgent)
     marker.setProperties(myVariant: variant)
     #editor.decorateMarker(marker, type: 'line-number', class: 'taro-line-connect')
+    @gutter.decorateGutter(marker, variant)
 
     headerElement = variant.getHeader()
     #console.log headerElement

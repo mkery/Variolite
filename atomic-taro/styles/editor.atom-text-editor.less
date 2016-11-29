@@ -25,6 +25,45 @@ atom-text-editor::shadow {
        //margin-top: -30px;
        border-right: 1px solid @mono-3;
   }
+  .gutter .taro-connect:hover {
+       background-color: @syntax-selection-color;
+  }
+
+  .gutter .taro-gutter-add-button{
+    background-color: @syntax-background-color;
+    overflow: visible;
+    //border: 1px solid @mono-3;
+    border-radius: 0.5em;
+    position: relative;
+    left: 0px;
+    top: 50%;
+    text-align: center;
+    height: 1.5em;
+    //z-index: 60;
+  }
+  .gutter .atomic-taro_output-rmenu{
+    cursor: default;
+    z-index: 6px;
+    position: absolute;
+    //right: 0px;
+    border: 1px solid @text-color-subtle;
+    background-color: white;
+    font-family: Inconsolata, Monaco, Consolas, 'Courier New', Courier;
+    color: @text-color;
+    width: 150px;
+  }
+
+  .gutter .output-rmemu_itemBox{
+    cursor: default;
+    padding: 2px;
+    border: 1px solid @tool-panel-border-color;
+  }
+  .gutter .output-rmemu_itemBox:hover{
+    color: @hue-1;
+    border: 1px solid @hue-1;
+    background-color: #E9EFF4;
+  }
+
 }
 
 atom-text-editor, :host {
