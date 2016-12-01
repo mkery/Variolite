@@ -595,6 +595,10 @@ class VariantModel
     @currentBranch.getTitle()
 
 
+  getID: ->
+    @getRootVersion().getID()
+
+
   setTitle: (title, version, params) ->
     @prevTitles.push(version.getTitle())
     version.setTitle(title)

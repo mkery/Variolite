@@ -2,6 +2,10 @@
 @import "syntax-variables";
 
 
+atom-overlay.atomic-taro_output-rmenu {
+  z-index: 5;
+}
+
 atom-text-editor::shadow {
   .highlight-green .region {
     background-color: rgba(0,255,0,0.1);
@@ -19,11 +23,20 @@ atom-text-editor::shadow {
     background-color: rgba(92,188,124,0.25);
   }
 
+  .gutter .taro-connect-link {
+      display: block;
+      width: 2px;
+      //margin-top: -30px;
+      //min-width: 0.5em;
+      border-right: 2px solid red;
+  }
+
   .gutter .taro-connect {
-       display: block;
-       width: ~"calc(100% - 1px)";
-       //margin-top: -30px;
-       border-right: 1px solid @mono-3;
+      display: block;
+      //width: 5px;//~"calc(100% - 1px)";
+      //margin-top: -30px;
+      min-width: 0.5em;
+      border-right: 1px solid @mono-3;
   }
   .gutter .taro-connect:hover {
        background-color: @syntax-selection-color;
@@ -33,36 +46,39 @@ atom-text-editor::shadow {
     background-color: @syntax-background-color;
     overflow: visible;
     //border: 1px solid @mono-3;
-    border-radius: 0.5em;
+    border-radius: 0.725em;
     position: relative;
     left: 0px;
-    top: 50%;
+    top: ~"calc(50% - 0.725em)";
     text-align: center;
     height: 1.5em;
+    z-index: 10;
     //z-index: 60;
   }
-  .gutter .atomic-taro_output-rmenu{
-    cursor: default;
-    z-index: 6px;
-    position: absolute;
-    //right: 0px;
-    border: 1px solid @text-color-subtle;
-    background-color: white;
-    font-family: Inconsolata, Monaco, Consolas, 'Courier New', Courier;
-    color: @text-color;
-    width: 150px;
-  }
-
-  .gutter .output-rmemu_itemBox{
-    cursor: default;
-    padding: 2px;
-    border: 1px solid @tool-panel-border-color;
-  }
-  .gutter .output-rmemu_itemBox:hover{
-    color: @hue-1;
-    border: 1px solid @hue-1;
-    background-color: #E9EFF4;
-  }
+  // .gutter .atomic-taro_output-rmenu{
+  //   cursor: default;
+  //   visibility: visible;
+  //   clear:both;
+  //   z-index: 64;
+  //   position:absolute;
+  //   //right: 0px;
+  //   border: 1px solid @text-color-subtle;
+  //   background-color: white;
+  //   font-family: Inconsolata, Monaco, Consolas, 'Courier New', Courier;
+  //   color: @text-color;
+  //   width: 150px;
+  // }
+  //
+  // .gutter .output-rmemu_itemBox{
+  //   cursor: default;
+  //   padding: 2px;
+  //   border: 1px solid @tool-panel-border-color;
+  // }
+  // .gutter .output-rmemu_itemBox:hover{
+  //   color: @hue-1;
+  //   border: 1px solid @hue-1;
+  //   background-color: #E9EFF4;
+  // }
 
 }
 

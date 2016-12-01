@@ -236,6 +236,7 @@ class VariantView
     @model.getActiveVersionIDs()
 
 
+
   '''
     Begins the process of traveling to a specific commit in this variant box.
     Changes the appearance of the header and footer to give some visual indication
@@ -441,6 +442,11 @@ class VariantView
   '''
   toggleActive: (v) ->
     @model.toggleActive(v)
+
+
+
+  getNestedChildren: ->
+    @model.getNested()
 
 
 
