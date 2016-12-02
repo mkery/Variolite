@@ -3,6 +3,7 @@ Variant = require './variant-model'
 CommitLine = require './commit-line'
 BranchMap = require './branch-map'
 DiffPanels = require './diff-panels'
+HeaderElement = require './header-element'
 
 '''
 variant view represents the visual appearance of a variant, and contains a
@@ -46,16 +47,6 @@ class VariantView
     components until later when the save data is loaded.
   '''
   initialize:  ->
-    # header bar that holds interactive components above text editor
-    @headerWrapper = document.createElement('div')
-    @headerWrapper.classList.add('atomic-taro_editor-header-wrapper')
-    @headerBar = document.createElement('div')
-    @headerBar.classList.add('atomic-taro_editor-header-box')
-    @nestLabelContainer = null
-    @collapseIcon = null
-    @visibleVersions = []
-    @buttonArchive = null
-
     #footer bar that simply marks the end
     @footerWrapper = document.createElement('div')
     @footerWrapper.classList.add('atomic-taro_editor-footer-wrapper')
@@ -63,29 +54,22 @@ class VariantView
     @footerBar.classList.add('atomic-taro_editor-footer-box')
     @footerWrapper.appendChild(@footerBar)
 
-    #must be built later
-    @versionBookmarkBar = null
-    @currentVersionName = null
-    @dateHeader = null
-
-    # extra buttons on the header bar
-    @pinButton = null
-    @activeButton = null
-    @outputButton = null
-    @variantsButton = null
-
+    @headerElement = new HeaderElement(@model, @)
     @commitLine = null
     @branchMap = null
     @diffPanels = null
 
-    @focused = false
+    # @focused = false
 
-    # wrapper div to browse other versions
-    @explorerGroupElement = null #TODO not used
 
 
   getCommitLine: ->
     @commitLine
+
+
+  getBranchMap: ->
+    @branchMap
+
 
   '''
     TODO used?
@@ -102,7 +86,6 @@ class VariantView
     @headerMarkDecoration.destroy()
     @footerMarkDecoration.destroy()
     @model.dissolve()
-    #@explorerGroupElement.dissolve() TODO
     for n in @model.getNested()
       n.dissolve()
 
@@ -114,7 +97,6 @@ class VariantView
   '''
   reinstate: =>
     @model.reinstate()
-    #@explorerGroupElement.reinstate()
     for n in @model.getNested()
       n.reinstate()
 
@@ -149,12 +131,6 @@ class VariantView
     return true
 
 
-  '''
-    Used ???
-  '''
-  sortVariants: ->
-    @model.sortVariants()
-
 
   '''
     Saves the state of the variant box into a json format so that it can be reactivated
@@ -172,11 +148,6 @@ class VariantView
     '''$(@versionBookmarkBar).empty()
     @addNameBookmarkBar(@versionBookmarkBar)
     $(@dateHeader).text(@model.getDate())'''
-
-
-  #???
-  # variantSerialize: ->
-  #   @model.variantSerialize()
 
 
   '''
@@ -208,23 +179,12 @@ class VariantView
   getFooter: ->
     @footerWrapper #TODO is the wrapper needed?
 
-
-  # ???
-  # getOutputsDiv: ->
-  #   @outputDiv
-
   '''
     Returns the div element that displays the header of this variant box
   '''
   getHeader: ->
-    @headerWrapper
+    @headerElement.getElement()
 
-
-  '''
-    TODO ???
-  '''
-  getExplorerElement: ->
-    @explorerGroupElement
 
 
   '''
@@ -242,7 +202,7 @@ class VariantView
     needed for traveling.
   '''
   travelToCommit: (commitId) ->
-    $(@headerBar).addClass('historical')
+    @headerElement.addClass('historical')
     @commitLine.addClass('historical')
     @branchMap.addClass('historical')
     $(@footerBar).addClass('historical')
@@ -251,7 +211,7 @@ class VariantView
 
 
   travelFromThePresent: (commitId) ->
-    $(@headerBar).addClass('historical')
+    @headerElement.addClass('historical')
     @commitLine.addClass('historical')
     @branchMap.addClass('historical')
     $(@footerBar).addClass('historical')
@@ -263,7 +223,7 @@ class VariantView
     commit. Starts the model actually returning back to this commit.
   '''
   backToTheFuture: ->
-    $(@headerBar).removeClass('historical')
+    @headerElement.removeClass('historical')
     @commitLine.removeClass('historical')
     @branchMap.removeClass('historical')
     $(@footerBar).removeClass('historical')
@@ -276,9 +236,7 @@ class VariantView
   '''
   setTitle: (title, version) ->
     @model.setTitle(title, version)
-    $(@versionBookmarkBar).empty()
-    @addNameBookmarkBar()
-    #@explorerGroupElement.updateTitle()
+    @headerElement.update()
 
 
   '''
@@ -364,14 +322,9 @@ class VariantView
     Set UI to highlighted active.
   '''
   hover: ->
-    $(@headerBar).addClass('active')
-    $(@dateHeader).addClass('active')
-    $(@currentVersionName).addClass('focused')
+    @headerElement.focus()
     $(@footerBar).addClass('active')
-    $(@variantsButton).addClass('active')
-    $(@activeButton).show()
-    $(@historyButton).show()
-    $(@branchButton).show()
+
 
 
   '''
@@ -380,14 +333,9 @@ class VariantView
   unHover: ->
     if @focused
       return
-    $(@headerBar).removeClass('active')
-    $(@dateHeader).removeClass('active')
-    $(@currentVersionName).removeClass('focused')
+    @headerElement.blur()
     $(@footerBar).removeClass('active')
-    $(@variantsButton).removeClass('active')
-    $(@activeButton).hide()
-    $(@historyButton).hide()
-    $(@branchButton).hide()
+
 
 
   '''
@@ -401,11 +349,7 @@ class VariantView
     Handle resize of the width.
   '''
   updateVariantWidth: (width) ->
-    $(@headerWrapper).width(width)
-    if @nestLabelContainer?
-      $(@headerBar).width(width - $(@nestLabelContainer).width() - 20 - $(@collapseIcon).width())
-    else
-      $(@headerBar).width(width - $(@collapseIcon).width() - 5)
+    @headerElement.updateWidth(width)
     @branchMap.updateWidth(width)
     @commitLine.updateWidth(width)
     for n in @model.getNested()
@@ -427,10 +371,7 @@ class VariantView
     if @diffPanels.isShowing()
       @switchToVersion(@diffPanels.getV1())
     v = @model.newVersion()
-    $(@versionBookmarkBar).empty()
-    @addNameBookmarkBar()
-    $(@dateHeader).text(@model.getDate())
-    @addVersiontoExplorer(v)
+    @headerElement.update()
 
 
   '''
@@ -465,45 +406,9 @@ class VariantView
     #console.log "switching version! "+v.getTitle()
 
     @model.switchToVersion(v)
-    @switchHeaderToVersion(v)
+    @headerElement.switchToVersion(v)
     @branchMap.redraw()
 
-
-  '''
-    Update the highlighting in the header to reflect the change in active version.
-  '''
-  switchHeaderToVersion: (v) ->
-    $(@versionBookmarkBar).empty()
-    $(@activeButton).data("version", v)
-    #$(@headerBar).removeClass('highlighted')
-    @addNameBookmarkBar()
-    $(@dateHeader).text(v.getDate())
-    #@switchExplorerToVersion(v)
-
-
-  '''
-    Update the highlighting to show that a version is no longer an active one.
-  '''
-  makeNonCurrentVariant: ->
-    $(@headerBar).removeClass('activeVariant')
-    $(@headerBar).addClass('inactiveVariant')
-    $(@pinButton).remove()
-    $(@variantsButton).remove()
-
-
-  # ???
-  setExplorerGroup: (elem) ->
-    @explorerGroupElement = elem
-
-
-  # ???
-  addVersiontoExplorer: (v) ->
-    #@explorerGroupElement.addVersion(v)
-
-
-  # ???
-  switchExplorerToVersion: (v) ->
-    #@explorerGroupElement.findSwitchVersion(v)
 
 
   '''
@@ -512,17 +417,9 @@ class VariantView
   highlightMultipleVersions: (v) ->
     console.log "highlight!"
     if v.getID() != @model.getCurrentVersion().getID()
-      @compareTwoVersions(v, @model.getCurrentVersion())
+      @diffPanels.diffVersions(v, @model.getCurrentVersion())
       @model.deselectCurrentVersion()
-      $(@versionBookmarkBar).empty()
-      #$(@activeButton).data("version", v)
-      @addNameBookmarkBar()
-      #$(@dateHeader).text(@model.getDate())
-      #@switchExplorerToVersion(v)
-
-
-  compareTwoVersions: (v1, v2) ->
-    @diffPanels.diffVersions(v1, v2)
+      @headerElement.update()
 
 
   getDiffPanels: ->
@@ -533,260 +430,23 @@ class VariantView
     UI for this variant box.
   '''
   buildVariantDiv: () ->
-    #console.log "Building variant "+@model.getCurrentVersion().title
-    #----------header-------------
     width = @root.getWidth()
-    $(@headerWrapper).width(width)
-    $(@headerWrapper).data('view', @)
-    width = @addHeaderWrapperLabel(@headerWrapper)
-    $(@headerBar).width(width)
-    @addHeaderDiv(@headerBar)
-    @headerWrapper.appendChild(@headerBar)
+    @headerElement.buildHeader(width)
     # commit line
     @commitLine = new CommitLine(@, @model)
-    @headerWrapper.appendChild(@commitLine.getElement())
+    @headerElement.appendDiv(@commitLine.getElement())
     # branch map
     @branchMap = new BranchMap(@, @model)
-    @headerWrapper.appendChild(@branchMap.getElement())
+    @headerElement.appendDiv(@branchMap.getElement())
     # variants panel
     @diffPanels = new DiffPanels(@, @model)
-    @headerWrapper.appendChild(@diffPanels.getElement())
+    @headerElement.appendDiv(@diffPanels.getElement())
     @diffPanels.updateWidth(width)
-    #add placeholders for versions and output
-    @addVariantButtons(@headerBar)
-    #@addOutputButton(@headerBar)
-    # add pinButton
-    @addActiveButton(@headerBar)
-    @addHistoryButton(@headerBar)
-    @addBranchButton(@headerBar)
-    #---------output region
-    #@addOutputDiv()
-    #@headerBar.appendChild(@outputDiv)
 
-    # wrapper div to browse other versions
-    #@versionExplorer.addVariantsDiv()
+    @headerElement.buildButtons()
     $(@footerBar).css('margin-left', $(@nestLabelContainer).width() + 20)
 
     if @model.getNested().length > 0
       for n in @model.getNested()
         if n.rootVersion? == false
           n.buildVariantDiv()
-
-
-  '''
-    The header wrapper contains the collapseIcon and also labels to indicate if a
-    variant box is nested within another one.
-  '''
-  addHeaderWrapperLabel: (headerContainer) ->
-    @collapseIcon = document.createElement("span")
-    @collapseIcon.classList.add("icon-chevron-down")
-    @collapseIcon.classList.add("taro-collapse-button")
-    $(@collapseIcon).click =>
-      @model.collapse()
-    headerContainer.appendChild(@collapseIcon)
-
-    width = @root.getWidth() - $(@collapseIcon).width()
-    nestLabel = @model.generateNestLabel()
-    if nestLabel?
-      @nestLabelContainer =  document.createElement("span")
-      $(@nestLabelContainer).text(nestLabel)
-      headerContainer.appendChild(@nestLabelContainer)
-      width = width - $(@nestLabelContainer).width() - 20
-    else
-      width -= 20
-    width
-
-
-
-  addHeaderDiv: (headerContainer) ->
-    nameContainer = document.createElement("div")
-    nameContainer.classList.add('atomic-taro_editor-header-name-container')
-
-    @versionBookmarkBar = document.createElement("div")
-    @versionBookmarkBar.classList.add('atomic-taro_editor-header-name')
-    $(@versionBookmarkBar).data("variant", @model)
-    @addNameBookmarkBar()
-    nameContainer.appendChild(@versionBookmarkBar)
-    #add placeholder for data
-    # @dateHeader = document.createElement("div")
-    # @dateHeader.classList.add('atomic-taro_editor-header-date')
-    # $(@dateHeader).text(@model.getDate())
-    # headerContainer.appendChild(@dateHeader)
-    headerContainer.appendChild(nameContainer)
-    #@addActiveButton(headerContainer)
-    '''varIcons = document.createElement("span")
-    varIcons.classList.add('atomic-taro_editor-header-varIcon')
-    $(varIcons).html("<span class='icon-primitive-square'></span><span class='icon-primitive-square active'></span>")
-    headerContainer.appendChild(varIcons)'''
-
-
-
-  addNameBookmarkBar: ->
-    current = @model.getCurrentVersion()
-    root = @model.getRootVersion()
-    singleton = !@model.hasVersions()
-    @visibleVersions = [] # reset
-    @addVersionBookmark(root, current, singleton)
-    if @visibleVersions.length > 1
-      $(@buttonArchive).show()
-    else
-      $(@buttonArchive).hide()
-
-
-  addVersionBookmark: (v, current, singleton) ->
-    if v.getActive() == true # don't show a version that is archived
-      @visibleVersions.push v
-      versionTitle = document.createElement("span")
-      versionTitle.classList.add('atomic-taro_editor-header_version-title')
-      $(versionTitle).data("version", v)
-      $(versionTitle).data("variant", @)
-
-      squareIcon = document.createElement("span")
-      #console.log "singleton? "+singleton
-      if !singleton
-        #$(squareIcon).data("version", v)
-        #$(squareIcon).data("variant", @)
-        squareIcon.classList.add('icon-primitive-square')
-        versionTitle.appendChild(squareIcon)
-      title = document.createElement("span")
-      $(title).text(v.getTitle())
-      title.classList.add('version-title')
-      title.classList.add('native-key-bindings')
-      $(title).data("variant", @)
-      $(title).data("version", v)
-      versionTitle.appendChild(title)
-      xIcon = document.createElement("span")
-      xIcon.classList.add('icon-x')
-      xIcon.classList.add('atomic-taro_editor-header_x')
-      $(xIcon).data("variant", @)
-      versionTitle.appendChild(xIcon)
-      $(xIcon).hide()
-      @versionBookmarkBar.appendChild(versionTitle)
-
-      if(v.getID() == current?.id)
-        if @focused
-          versionTitle.classList.add('focused')
-        squareIcon.classList.add('active')
-        versionTitle.classList.add('active')
-        #$(versionTitle).children('.atomic-taro_editor-header_x').show()
-        @currentVersionName = versionTitle
-
-      $(squareIcon).removeClass('highlighted')
-      $(versionTitle).removeClass('highlighted')
-      if(@model.isMultiSelected(v))
-        if @focused
-          versionTitle.classList.add('focused')
-        squareIcon.classList.add('highlighted')
-        versionTitle.classList.add('highlighted')
-
-    #regarless if this verison is active, check branches
-    for branch in v.branches
-      @addVersionBookmark(branch, current, false)
-
-
-
-
-  # add a way to pin headers to maintain visibility
-  addPinButton: (headerContainer) ->
-    @pinButton = document.createElement("span")
-    @pinButton.classList.add('icon-pin', 'pinButton')
-    $(@pinButton).data("variant", @)
-    headerContainer.appendChild(@pinButton)
-
-  addActiveButton: (headerContainer) ->
-    @activeButton = document.createElement("span")
-    @activeButton.classList.add('atomic-taro_editor-active-button')
-    $(@activeButton).html("<span>#</span>")
-    $(@activeButton).data("variant", @)
-    $(@activeButton).hide()
-
-    #@activeButton = document.createElement("div")
-    #@activeButton.classList.add('atomic-taro_editor-active-button')
-    headerContainer.appendChild(@activeButton)
-
-  addHistoryButton: (headerContainer) ->
-    @historyButton = document.createElement("span")
-    @historyButton.classList.add('atomic-taro_commit-history-button')
-    @historyButton.classList.add('icon-history')
-    $(@historyButton).data("commitLine", @commitLine)
-    $(@historyButton).hide()
-    headerContainer.appendChild(@historyButton)
-
-  addBranchButton: (headerContainer) ->
-    @branchButton = document.createElement("span")
-    @branchButton.classList.add('atomic-taro_commit-branch-button')
-    @branchButton.classList.add('icon-git-branch')
-    $(@branchButton).data("branchMap", @branchMap)
-    $(@branchButton).hide()
-    headerContainer.appendChild(@branchButton)
-
-  addVariantButtons: (headerContainer) ->
-    @variantsButton = document.createElement("div")
-    @variantsButton.classList.add('atomic-taro_editor-header-buttons')
-    @variantsButton.classList.add('variants-button')
-    $(@variantsButton).text("variants")
-    headerContainer.appendChild(@variantsButton)
-    variantsMenu = document.createElement("div")
-    variantsMenu.classList.add('variants-hoverMenu')
-    $(variantsMenu).hide()
-    '''buttonSnapshot = document.createElement("div")
-    buttonSnapshot.classList.add('variants-hoverMenu-buttons')
-    $(buttonSnapshot).html("<span class='icon icon-repo-create'></span><span class='icon icon-device-camera'></span>")
-    variantsMenu.appendChild(buttonSnapshot)'''
-    @variantsButton.appendChild(variantsMenu)
-
-    # buttonShow = document.createElement("div")
-    # buttonShow.classList.add('variants-hoverMenu-buttons')
-    # buttonShow.classList.add('showVariantsButton')
-    # $(buttonShow).text("show variant panel")
-    # $(buttonShow).data("variant", @)
-    # $(buttonShow).click (ev) =>
-    #   ev.stopPropagation()
-    #   $(@headerBar).toggleClass('activeVariant')
-    #   @root.toggleExplorerView()
-    #   $(variantsMenu).hide()
-    # variantsMenu.appendChild(buttonShow)
-
-    buttonAdd = document.createElement("div")
-    buttonAdd.classList.add('variants-hoverMenu-buttons')
-    buttonAdd.classList.add('createVariantButton')
-    $(buttonAdd).html("<span class='icon icon-repo-create'>new branch</span>")
-    $(buttonAdd).click =>
-      @newVersion()
-      $(variantsMenu).hide()
-      @branchMap.redraw()
-    variantsMenu.appendChild(buttonAdd)
-
-    @buttonArchive = document.createElement("div")
-    @buttonArchive.classList.add('variants-hoverMenu-buttons')
-    @buttonArchive.classList.add('archiveVariantButton')
-    $(@buttonArchive).html("<span class='icon icon-dash'>archive branch</span>")
-    $(@buttonArchive).click =>
-      @archive()
-      $(variantsMenu).hide()
-      @branchMap.redraw()
-    variantsMenu.appendChild(@buttonArchive)
-
-    buttonDissolve = document.createElement("div")
-    buttonDissolve.classList.add('variants-hoverMenu-buttons')
-    buttonDissolve.classList.add('dissolveVariantButton')
-    $(buttonDissolve).html("<span class='icon icon-dash'>dissolve variant</span>")
-    $(buttonDissolve).click =>
-      @dissolve()
-      $(variantsMenu).hide()
-    variantsMenu.appendChild(buttonDissolve)
-
-
-  addOutputButton: (headerContainer) ->
-    @outputButton = document.createElement("div")
-    @outputButton.classList.add('atomic-taro_editor-header-buttons')
-    @outputButton.classList.add('output-button')
-    $(@outputButton).text("in/output")
-    $(@outputButton).data("variant", @)
-    headerContainer.appendChild(@outputButton)
-
-  addOutputDiv: ->
-    @outputDiv = document.createElement("div")
-    @outputDiv.classList.add('output-container')
-    $(@outputDiv).text("output information")
-    $(@outputDiv).hide()

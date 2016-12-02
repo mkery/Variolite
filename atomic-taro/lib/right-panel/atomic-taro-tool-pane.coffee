@@ -2,7 +2,6 @@
 VariantsManager = require '../variants-manager'
 Variant = require '../segment-objects/variant-model'
 VariantView = require '../segment-objects/variant-view'
-VariantExplorerPane = require './variant-explorer-pane'
 OutputPane = require './output-pane'
 
 
@@ -13,7 +12,6 @@ class AtomicTaroToolPane
     @pane = document.createElement('div')
     @pane.classList.add('atomic-taro_tools-pane')
 
-    @variantExplorer = new VariantExplorerPane(@masterVariant, @root)
     @outputExplorer = new OutputPane(@masterVariant, @programProcessor, @root)
 
     @resizeRegion = document.createElement('div')
@@ -43,9 +41,6 @@ class AtomicTaroToolPane
   registerOutput: (data, commit) ->
     @outputExplorer.registerOutput(data, commit)
 
-
-  getVariantPanel: ->
-    @variantExplorer
 
   resizeStarted: =>
     $(document).on('mousemove', @resizeToolView)
