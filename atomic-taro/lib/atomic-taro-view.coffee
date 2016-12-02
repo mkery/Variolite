@@ -203,6 +203,7 @@ class AtomicTaroView
 
 
 
+
   '''
     Gets the root element
   '''
@@ -319,7 +320,7 @@ class AtomicTaroView
   '''
   travelToCommit: (commitId) ->
     $(@commitAlertLabel).text("viewing commit "+commitId.commitID)
-    $(@alertPane).show()
+    @mainHeaderMenu.showAlertPane()
     $('.atomic-taro_editor-header-box').addClass('historical')
     $('.atomic-taro_commit-traveler').addClass('historical')
     $('.atomic-taro_editor-footer-box').addClass('historical')

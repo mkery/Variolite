@@ -68,8 +68,8 @@ class MainHeaderMenu
     clockIcon = document.createElement('span')
     clockIcon.classList.add('icon-arrow-left')
     returnButton.appendChild(clockIcon)
-    $ => $(document).on 'click', '.atomic-taro_commitBackButton', (ev) =>
-      @view.getMasterVariant().backToTheFuture()
+    $(document).on 'click', '.atomic-taro_commitBackButton', (ev) =>
+      @view.backToTheFuture()
       $('.atomic-taro_output_box').removeClass('travel')
       $('.atomic-taro_editor-header-box').removeClass('historical')
       $('.atomic-taro_commit-traveler').removeClass('historical')
@@ -86,6 +86,9 @@ class MainHeaderMenu
     @menuContainer.appendChild(@commitLine.getElement())
     @menuContainer.appendChild(@branchMap.getElement())
 
+
+  showAlertPane: ->
+    $(@alertPane).show()
 
   addVariantButtons: () ->
     variantsButton = document.createElement("span")
