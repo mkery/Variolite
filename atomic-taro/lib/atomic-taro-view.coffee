@@ -9,13 +9,12 @@ fs = require 'fs'
 {Pane} = require 'atom'
 {TextEditor} = require 'atom'
 {Point, Range} = require 'atom'
-VariantsManager = require './variants-manager'
+Listeners = require './listeners'
 Variant = require './segment-objects/variant-model'
 VariantView = require './segment-objects/variant-view'
 AnnotationProcessorBuffer = require './annotation-processor-buffer'
 AtomicTaroToolPane = require './right-panel/atomic-taro-tool-pane'
 UndoAgent = require './undo-agent'
-ProvUtils = require './provenance-utils'
 ProgramProcessor = require './program-processor'
 MainHeaderMenu = require './main-header-menu'
 
@@ -240,14 +239,10 @@ class AtomicTaroView
     @element.appendChild(@mainHeaderMenu.getElement())
 
     # create a variant manager
-    @variantListeners = new VariantsManager(@masterVariant, @)
+    @variantListeners = new Listeners(@masterVariant, @)
     @programProcessor = new ProgramProcessor(@filePath, @)
 
-    # right click menu
-    atom.contextMenu.add {'atom-pane': [{label: 'Copy Segment', command: 'atomic-taro:tarocopy'}]}
-    atom.contextMenu.add {'atom-pane': [{label: 'Paste Segment', command: 'atomic-taro:taropaste'}]}
-    atom.contextMenu.add {'atom-text-editor': [{label: 'Paste Segment', command: 'atomic-taro:taropaste'}]}
-
+  
 
   '''
     Run after the variant's have loaded in their meta-data, so that we can finish

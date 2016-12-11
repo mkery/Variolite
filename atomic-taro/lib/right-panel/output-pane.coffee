@@ -1,16 +1,16 @@
 {Point, Range, TextBuffer} = require 'atom'
-VariantsManager = require '../variants-manager'
 Variant = require '../segment-objects/variant-model'
 VariantView = require '../segment-objects/variant-view'
 
 
 module.exports =
-class OutputPane
+class OutputPane 
 
 
   constructor: (@masterVariant, @programProcessor, @atomicTaroView) ->
     @pane = document.createElement('div')
     @pane.classList.add('atomic-taro_explore-pane')
+    @pane.classList.add('native-key-bindings');
     @outputList = document.createElement('div')
 
     @initialize()
@@ -64,6 +64,8 @@ class OutputPane
     outputContainer.classList.add('newest')
     $(outputContainer).text(data)
     $(outputContainer).data('commit', commit)
+    $(outputContainer).click (ev) ->
+      console.log 'clicked with ctrl?', ev.ctrlKey
 
 
     outDate = document.createElement('div')

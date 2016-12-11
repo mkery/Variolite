@@ -1,5 +1,4 @@
 {Point, Range, TextBuffer} = require 'atom'
-VariantsManager = require '../variants-manager'
 Variant = require '../segment-objects/variant-model'
 VariantView = require '../segment-objects/variant-view'
 OutputPane = require './output-pane'

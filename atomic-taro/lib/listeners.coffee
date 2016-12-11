@@ -7,7 +7,7 @@ This class is essentially the model behind the atomic-taro-view, as it
 manages all of the segments and all of their interactions.
 '''
 module.exports =
-class VariantsManager
+class Listeners
 
     constructor: (variants, @root, @undoAgent) ->
       # segments/header
@@ -272,8 +272,6 @@ class VariantsManager
           txtarea.focus();
 
 
-
-
       $(document).on 'keypress', '.txt_sectionname', (e) ->
         #e.stopPropagation()
         $(this).focus()
@@ -282,117 +280,3 @@ class VariantsManager
         $(this).focus().trigger(ev)
 
         e.preventDefault()
-
-
-
-
-    copySegment: (e) ->
-      if(e.target.outerHTML.includes("atomic-taro_editor-header-box"))
-        i = 0
-        for s in @segments
-          #console.log s
-          if(s instanceof ExploratorySegmentView)
-            i++
-            continue
-          else if(s.getModel().getCopied() == true)
-            s.getModel().setCopied(false)
-            break
-          else
-            i++
-        codeText = e.target.nextElementSibling.nextElementSibling.firstChild.model.buffer.lines
-        len = codeText.length
-        editorCopy = atom.workspace.buildTextEditor(grammar: atom.grammars.selectGrammar("file.py"))#filePath: @plainCodeEditor.getPath()))
-        fullCodeText = codeText.join("\n")
-        codeRange = new Range(new Point(0, 0), new Point(len, 0))
-        editorCopy.setTextInBufferRange(codeRange, fullCodeText)
-        titleCopy = e.target.innerText.split("\n")[0] + " - copy" #probably also want to add date or something else here in case they copy this block multiple times
-        #currently have "null" for marker as we don't know where this copied segment will be marked in the original .py file
-        copiedSegmentView = new SegmentView(null, editorCopy, null, titleCopy)
-        copiedSegmentView.getModel().setCopied(true)
-        @segments.push copiedSegmentView
-        console.log copiedSegmentView
-        '''for s in @segments
-          console.log s'''
-      else
-        return
-
-    pasteSegment: (e) ->
-      #find the segment that is to be pasted - in order to be pasted it's gotta be copied
-      i = 0
-      for s in @segments
-        #console.log s
-        if(s instanceof ExploratorySegmentView)
-          i++
-          continue
-        else if(s.getModel().getCopied() == true)
-          break
-        else
-          i++
-      console.log @segments[i] #this is the one!!!
-      #so we need to append this new segment to the bottom of the editor
-      #then we place a corresponding marker in the original .py file??
-      #ye
-      #console.log "made it to pasteSegment"
-      #@segments[i].addSegmentDiv()
-
-    getPinned: ->
-      @pinned
-
-    resetPinned: ->
-      for segment in @segments
-        if segment.isPinned()
-          segment.resetPinning()
-
-    resetPinnedRemove: ->
-      @pinned = []
-      for segment in @segments
-        if segment.isPinned()
-          @pinned.push segment
-          segment.resetPinning()
-
-    # :( scroll is a pain.
-    addScrollListeners: (element) ->
-      $ =>
-        element = $(element)
-        offset_bottom = element.height() + element.offset().top
-        $(@scrollBotDiv).css({top: offset_bottom+"px", width: element.width()+"px"})
-        offset_top = element.offset().top
-        $(@scrollTopDiv).css({ top: offset_top+"px", width: element.width()+"px"})
-        console.log "placed scroll divs!!! "+$(@scrollTopDiv).position().bottom+"   ofset "+offset_top
-        console.log "placed scroll divs!!! "+$(@scrollBotDiv).position().top+"   ofset "+offset_bottom
-
-      $(element).on 'scroll', {'element': element, 'manager': @, 'scrollBotDiv': @scrollBotDiv, 'scrollTopDiv': @scrollTopDiv}, (ev) ->
-        element = ev.data.element
-        # list of all currently pinned segments
-        segments = ev.data.manager.segments
-        # the root element
-        scrollTopDiv = ev.data.scrollTopDiv
-        scrollBotDiv = ev.data.scrollBotDiv
-
-        for segment in segments
-          if segment.isPinned()
-            header = $(segment.getHeader())
-            if segment.isPinnedToTop()
-              scrollPos = header.data("scrollPos")
-              if $(element).scrollTop() < scrollPos
-                segment.unPinFromTop()
-            else if segment.isPinnedToBottom()
-              scrollPos = header.data("scrollPos")
-              if $(element).scrollTop() > scrollPos
-                segment.unPinFromBottom()
-            if header.position().top < ($(scrollTopDiv).position().top + $(scrollTopDiv).height())
-                console.log "pinning to the top "+$(scrollTopDiv).position().bottom
-                segment.pinToTop(scrollTopDiv, $(element).scrollTop())
-            else if (header.position().top + header.height()) > ($(scrollBotDiv).position().top - $(scrollBotDiv).height())
-                console.log "pinning to the bottom "+$(scrollBotDiv).position()
-                segment.pinToBottom(scrollBotDiv, $(element).scrollTop())
-
-      #----click the pin button
-      $ => $('.icon-pin').on 'click', {'manager': @}, (ev) ->
-        $(this).toggleClass('clicked')
-        ev.stopPropagation()
-        segment = $(this).data("segment")
-        if $(this).hasClass('clicked')
-          segment.pin()
-        else
-          segment.unPin()

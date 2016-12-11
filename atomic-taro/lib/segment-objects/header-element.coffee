@@ -114,6 +114,8 @@ class HeaderElement
     $(@activeButton).hide()
     $(@historyButton).hide()
     $(@branchButton).hide()
+    $('.icon-primitive-square').removeClass('highlighted')
+    $('.atomic-taro_editor-header_version-title').removeClass('highlighted')
 
 
   '''
@@ -124,6 +126,22 @@ class HeaderElement
     $(@headerBar).removeClass('activeVariant')
     $(@headerBar).addClass('inactiveVariant')
     $(@variantsButton).remove()
+
+
+  getNextVisibleVersion: (current) ->
+    # If just 1 don't bother switching to a another verison
+    if @visibleVersions.length < 2
+      $(@buttonArchive).hide()
+      return current
+
+    # Switch to an adjacent version in the version bookmark bar
+    for v, index in @visibleVersions
+      if v.getID() == current.getID()
+        if index > 0
+          v = @visibleVersions[index - 1]
+        else
+          v = @visibleVersions[index + 1]
+    return v
 
 
   updateWidth: (width) ->
@@ -256,9 +274,9 @@ class HeaderElement
     buttonAdd.classList.add('createVariantButton')
     $(buttonAdd).html("<span class='icon icon-repo-create'>new branch</span>")
     $(buttonAdd).click =>
-      @newVersion()
+      @view.newVersion()
       $(variantsMenu).hide()
-      @branchMap.redraw()
+      @view.getBranchMap().redraw()
     variantsMenu.appendChild(buttonAdd)
 
     @buttonArchive = document.createElement("div")
@@ -266,9 +284,9 @@ class HeaderElement
     @buttonArchive.classList.add('archiveVariantButton')
     $(@buttonArchive).html("<span class='icon icon-dash'>archive branch</span>")
     $(@buttonArchive).click =>
-      @archive()
+      @view.archive()
       $(variantsMenu).hide()
-      @branchMap.redraw()
+      @view.getBranchMap().redraw()
     variantsMenu.appendChild(@buttonArchive)
 
     buttonDissolve = document.createElement("div")
@@ -276,6 +294,6 @@ class HeaderElement
     buttonDissolve.classList.add('dissolveVariantButton')
     $(buttonDissolve).html("<span class='icon icon-dash'>dissolve variant</span>")
     $(buttonDissolve).click =>
-      @dissolve()
+      @view.dissolve()
       $(variantsMenu).hide()
     variantsMenu.appendChild(buttonDissolve)

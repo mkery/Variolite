@@ -12,7 +12,6 @@ Represents a single variant of exploratory code.
   TODO: - commit only when the code has changed (track change sets)
         - compare multiple
         - travel to different versions and commits
-        - output data is not recorded with commits
         - can make a commit even when nothing has changed D:
         - Is currentVersion maintained when traveling in commits?
         - How to deal with variant boxes that were dissolved but existed in the past?
@@ -28,7 +27,6 @@ class VariantModel
 
     @nestedParent = null
     @collapsed = false
-
 
     # pendingDestruction is a way to keep variants around (in case the user clicks
     # dissolve then later undo) but prevents this variant from being counted in a
@@ -51,13 +49,8 @@ class VariantModel
     @currentBranch = new VariantBranch(@, params)
     @branches.push @currentBranch
 
-    # Global variables to do with comparing multiple versions.
-    # ??? TODO Rename to clarify!
-    @highlighted = []
-    @highlightMarkers = []
-    @overlapText = ""
-    @prevTitles = []
-    @prevVers = []
+    @prevTitles = [] # TODO for help with undo?
+    @prevVers = [] # TODO for help with undo?
 
 
   '''
@@ -65,10 +58,6 @@ class VariantModel
   '''
   getView: ->
     @view
-
-
-  #getEditor: ->
-  #  @sourceEditor
 
 
   '''
@@ -120,6 +109,7 @@ class VariantModel
   getVariantRange: ->
     @marker.getBufferRange()
 
+
   '''
     Sets the range of this variant
   '''
@@ -131,7 +121,7 @@ class VariantModel
     Sets the range of the header marker of this variant
   '''
   setHeaderRange: (newRange) ->
-    if  @headerMarker?
+    if @headerMarker?
       @headerMarker.setBufferRange([newRange.start, new Point(newRange.end.row - 1, newRange.end.column)])
 
 
@@ -195,8 +185,6 @@ class VariantModel
     @currentBranch.travelToCommit(commitID, insertPoint)
 
 
-
-
   '''
     Returns the variant box that this variant box is a nested child of.
   '''
@@ -233,21 +221,6 @@ class VariantModel
     if grandParent? and grandParent[1]?.getModel().getNestedParent()?
       text = @recurseNestLabel(grandParent, text)
     text
-
-
-  '''
-    ??? Who calls this?
-  '''
-  getActiveVersionIDs: ->
-    current = [@currentBranch.getID()]
-    if @currentBranch.getNested().length > 0
-      nCur = []
-      for n in @currentBranch.getNested()
-        # assume all nested variants are instantiated
-        nCur.push n.getActiveVersionIDs()
-
-      current.push nCur
-    current
 
 
   '''
@@ -475,12 +448,6 @@ class VariantModel
     @branches.length > 0
 
 
-  '''
-    Return if this version is focused on by the user's cursor.
-  '''
-  highlighted: ->
-    @highlighted
-
 
   '''
     Toggles whether the contents of the variant are commented out or not.
@@ -491,7 +458,6 @@ class VariantModel
     #console.log selections
     selections[0].setBufferRange(textSelection)
     selections[0].toggleLineComments()
-    @clearHighlights()
     if params?.undoSkip? == false
       @undoAgent.pushChange({data: {undoSkip: true}, callback: @toggleActive})
 
@@ -503,15 +469,7 @@ class VariantModel
   isMultiSelected: (v) ->
     v.isMultiSelected()
 
-  '''
-    TODO rename. What is this?? I think it's for selecting multiple versions
-    to compare or linked edit them.
-  '''
-  clearHighlights: ->
-    @highlighted = []
-    @overlapText = ""
-    for h in @highlightMarkers
-      h.destroy()
+
 
   '''
     Returns true if the given version has the same ID as @currentVersion, false otherwise.
@@ -543,7 +501,6 @@ class VariantModel
 
     @currentBranch.addBranch newBranch
     @currentBranch = newBranch
-    @clearHighlights()
     @currentBranch
 
 
@@ -554,19 +511,10 @@ class VariantModel
   switchToVersion: (newBranch, params) =>
     newBranch.setActive(true)
     @prevVers.push(@currentBranch)
-    #text = newBranch.getText()
-    #console.log "closing currently open "+@currentBranch.getTitle()
-    #console.log "current text is: "+@getTextInVariantRange()
-    # if not @view.getDiffPanels().isShowing()
     @currentBranch?.close()
-    # else
-    #   @view.getDiffPanels().close()
-    #@currentBranch.setText(@getTextInVariantRange())
-    #@setTextInVariantRange(newBranch.getText(), 'skip')
     @currentBranch = newBranch
     newBranch.open()
 
-    @clearHighlights()
     if params?.undoSkip? == false
       @undoAgent.pushChange({data: {undoSkip: true}, callback: @getPrevVersion})
 

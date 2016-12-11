@@ -43,11 +43,14 @@ class VariantBranch
   getTitle: ->
     @title
 
+
   setTitle: (t) ->
     @title = t
 
+
   getDate: ->
     @date
+
 
   setDate: (d) ->
     @date = d
@@ -80,7 +83,6 @@ class VariantBranch
       startA = rangeA.start.row
       rangeB = b.getModel().getMarker().getBufferRange()
       startB = rangeB.start.row
-      #console.log "sorting "+startA+", "+startB
       if startA < startB
         return -1
       if startA > startB
@@ -137,7 +139,7 @@ class VariantBranch
 
   activateVersion: ->
     @active = true
-    @model.getView().addVersionBookmark(@, false, null)
+    @model.getView().switchToVersion(@, false)
 
   '''
     Closes this branch and stores its contents for easy access in the future

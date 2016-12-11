@@ -1,6 +1,5 @@
 {TextBuffer} = require 'atom'
 {Point, Range} = require 'atom'
-VariantsManager = require './variants-manager'
 Variant = require './segment-objects/variant-model'
 VariantView = require './segment-objects/variant-view'
 AnnotationProcessorBuffer = require './annotation-processor-buffer'

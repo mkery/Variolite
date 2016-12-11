@@ -11,13 +11,8 @@ variant object.
 '''
 '''
   TODO
-    - a way to archive variants
-    - ditching the variant explorer?
-    - Commit line, duplicating ticks?
     - deactivate
     - serialize UI state?
-    - date appearing correctly
-    - should output be shown locally?
 '''
 module.exports =
 class VariantView
@@ -48,19 +43,13 @@ class VariantView
   '''
   initialize:  ->
     #footer bar that simply marks the end
-    @footerWrapper = document.createElement('div')
-    @footerWrapper.classList.add('atomic-taro_editor-footer-wrapper')
     @footerBar = document.createElement('div')
     @footerBar.classList.add('atomic-taro_editor-footer-box')
-    @footerWrapper.appendChild(@footerBar)
 
     @headerElement = new HeaderElement(@model, @)
     @commitLine = null
     @branchMap = null
     @diffPanels = null
-
-    # @focused = false
-
 
 
   getCommitLine: ->
@@ -106,28 +95,16 @@ class VariantView
     This means that version still exists in the commit tree but cannot be interacted with.
   '''
   archive: ->
-    # No versions showing to archive
+    c = @model.getCurrentVersion()
+    v = @headerElement.getNextVisibleVersion(c)
     # If just 1 don't bother switching to a another verison
-    if @visibleVersions.length < 2
+    if v.getID() == c.getID()
       return false
 
     # make the current version inactive so it's not
     # re-drawn on the version bookmark bar
-    c = @model.getCurrentVersion()
     @model.archiveCurrentVerion()
-
-    # Switch to an adjacent version in the version bookmark bar
-    for v, index in @visibleVersions
-      if v.id == c.id
-        if index > 0
-          v = @visibleVersions[index - 1]
-        else
-          v = @visibleVersions[index + 1]
     @switchToVersion(v)
-
-    if @visibleVersions.length < 2
-      $(@buttonArchive).hide()
-
     return true
 
 
@@ -140,14 +117,13 @@ class VariantView
     #TODO add ui
     @model.serialize()
 
+
   '''
     Takes JSON formatted save data and updates the variant box to reflect that saved state
   '''
   deserialize: (state) ->
     @model.deserialize(state)
-    '''$(@versionBookmarkBar).empty()
-    @addNameBookmarkBar(@versionBookmarkBar)
-    $(@dateHeader).text(@model.getDate())'''
+    #TODO
 
 
   '''
@@ -177,7 +153,8 @@ class VariantView
     Returns the div element for the footer
   '''
   getFooter: ->
-    @footerWrapper #TODO is the wrapper needed?
+    @footerBar
+
 
   '''
     Returns the div element that displays the header of this variant box
@@ -185,14 +162,6 @@ class VariantView
   getHeader: ->
     @headerElement.getElement()
 
-
-
-  '''
-    Gets the IDs of all versions actively selected in this variant box.
-    ??? Presumably for linked editing.
-  '''
-  getActiveVersionIDs: ->
-    @model.getActiveVersionIDs()
 
 
   '''
@@ -217,6 +186,7 @@ class VariantView
     $(@footerBar).addClass('historical')
     @hover()
     commit = @model.travelFromThePresent(commitId)
+
 
   '''
     Changes the appearance of the header to reflect returning to the most contemporary
@@ -306,9 +276,6 @@ class VariantView
     for n in @model.getNested()
       n.unFocus()
     @unHover()
-    @model.clearHighlights()
-    $('.icon-primitive-square').removeClass('highlighted')
-    $('.atomic-taro_editor-header_version-title').removeClass('highlighted')
 
 
   '''
@@ -381,18 +348,12 @@ class VariantView
     @model.toggleActive(v)
 
 
-
   '''
-    Switch between versions. ???
+    Switch between versions.
   '''
   switchToVersion: (v, same) ->
-    # if not @view.getDiffPanels().isShowing()
-    #    @currentBranch.close()
-    # else
     @diffPanels.close()
-    #if same? then same else same = true
     same = @model.isCurrent(v) #and same
-    #console.log "same: "+same
 
     np = @model.getNestedParent()
     # switch the highest level first
@@ -401,9 +362,9 @@ class VariantView
       #console.log "look up parent "
       #console.log p_variant
       p_variant.switchToVersion(p_version, same)
+
     if same == true
-      return # don't switch, this version is current
-    #console.log "switching version! "+v.getTitle()
+      return
 
     @model.switchToVersion(v)
     @headerElement.switchToVersion(v)
@@ -412,10 +373,9 @@ class VariantView
 
 
   '''
-    TODO for selecting multiple versions.
+    Selecting multiple versions.
   '''
   highlightMultipleVersions: (v) ->
-    console.log "highlight!"
     if v.getID() != @model.getCurrentVersion().getID()
       @diffPanels.diffVersions(v, @model.getCurrentVersion())
       @model.deselectCurrentVersion()
@@ -424,6 +384,7 @@ class VariantView
 
   getDiffPanels: ->
     @diffPanels
+
 
   '''
     On initialization, once all saved data in loaded into the model, finally build the
