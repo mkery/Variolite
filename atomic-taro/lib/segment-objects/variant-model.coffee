@@ -20,7 +20,15 @@ Represents a single variant of exploratory code.
 module.exports =
 class VariantModel
 
-  constructor: (@view, @sourceEditor, @marker, title, @undoAgent, @provenanceAgent) ->
+  constructor: (params) ->
+    @view = params.taroView
+    @sourceEditor = params.sourceEditor
+    @marker = params.marker
+    @undoAgent = params.undoAgent
+    @provenanceAgent = params.provAgent
+    title = params.title
+    title ?= "v0"
+
     @sourceBuffer = @sourceEditor.getBuffer()  # really Variolite's buffer
     @headerMarker = null # the header div has it's own marker
     @range = null # to hold the last range of markers, in case the markers are destroyed

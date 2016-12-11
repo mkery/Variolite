@@ -18,9 +18,12 @@ module.exports =
 class VariantView
 
 
-  constructor: (@sourceEditor, marker, variantTitle, @root, @undoAgent, @provenanceAgent) ->
-    # the variant
-    @model = new Variant(@, @sourceEditor, marker, variantTitle, @undoAgent, @provenanceAgent)
+  constructor: (params) ->
+    @sourceEditor = params.sourceEditor
+    @root = params.taroView
+    @undoAgent = params.undoAgent
+    @provenanceAgent = params.provAgent
+    @model = new Variant(params)
     @initialize()
 
 
@@ -32,7 +35,7 @@ class VariantView
     parent variant box view @.
   '''
   makeNewFromJson: (json) ->
-    variantView = new VariantView(@sourceEditor, null, "", @root, @undoAgent)
+    variantView = new VariantView({sourceEditor: @sourceEditor, taroView: @root, undoAgent: @undoAgent})
     variantView.getModel().deserialize(json)
     variantView
 

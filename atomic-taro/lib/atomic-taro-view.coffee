@@ -16,7 +16,7 @@ AnnotationProcessorBuffer = require './annotation-processor-buffer'
 AtomicTaroToolPane = require './right-panel/atomic-taro-tool-pane'
 UndoAgent = require './undo-agent'
 ProgramProcessor = require './program-processor'
-MainHeaderMenu = require './main-header-menu'
+VariantFactory = require './variant-factory'
 
 '''
   TODO - rethink annotation-processor-buffer
@@ -38,15 +38,16 @@ class AtomicTaroView
     # The master variant is a top level variant that wraps the entire file
     @masterVariant = null
 
+    @variantFactory = null
     @undoAgent = new UndoAgent(50) #max undo entries
     @programProcessor = null # object to run code and record output
-    @provenanceAgent = new ProvUtils()
+    @provenanceAgent = null #new ProvUtils()
 
     #divs
     @element = null
     @explorer = null
     @explorer_panel = null # the Panel object of @explorer
-    @mainHeaderMenu = null
+    #@mainHeaderMenu = null
 
     # try to get saved meta data for this file, if there is any
     @initializeView()
@@ -156,7 +157,7 @@ class AtomicTaroView
     width = @getWidth()
     @variantListeners.updateExplorerPanelShowing(@isShowingExplorer(), width)
     @masterVariant.updateVariantWidth(width)
-    @mainHeaderMenu.updateWidth(width)
+    #@mainHeaderMenu.updateWidth(width)
 
 
   closeExplorerView: ->
@@ -164,7 +165,7 @@ class AtomicTaroView
     width = @getWidth()
     @variantListeners.updateExplorerPanelShowing(@explorer_panel.isVisible(), width)
     @masterVariant.updateVariantWidth(width)
-    @mainHeaderMenu.updateWidth(width)
+    #@mainHeaderMenu.updateWidth(width)
 
 
   toggleExplorerView: ->
@@ -179,7 +180,7 @@ class AtomicTaroView
     width = @getWidth()
     @variantListeners.updateExplorerPanelShowing(@isShowingExplorer(), width)
     @masterVariant.updateVariantWidth(width)
-    @mainHeaderMenu.updateWidth(width)
+    #@mainHeaderMenu.updateWidth(width)
     @explorer_panel.isVisible()
 
 
@@ -232,17 +233,18 @@ class AtomicTaroView
     @element.classList.add('atomic-taro_pane')#, 'scroll-view')
 
     #@variantWidth = $(@element).width() - 20 #@sourceEditor.getElement().getWidth() - 20
-    @initVariants(@exploratoryEditor, @element)
+    @variantFactory = new VariantFactory(@filePath, @, @undoAgent, @provenanceAgent)
+    @masterVariant = @variantFactory.buildMasterVariant(@exploratoryEditor, @masterVariant)
+    @variantFactory.initVariants(@exploratoryEditor, @masterVariant)
 
     # menu at the top of the code
-    @mainHeaderMenu = new MainHeaderMenu(@masterVariant, @)
-    @element.appendChild(@mainHeaderMenu.getElement())
+    #@mainHeaderMenu = new MainHeaderMenu(@masterVariant, @)
+    #@element.appendChild(@mainHeaderMenu.getElement())
 
     # create a variant manager
     @variantListeners = new Listeners(@masterVariant, @)
     @programProcessor = new ProgramProcessor(@filePath, @)
 
-  
 
   '''
     Run after the variant's have loaded in their meta-data, so that we can finish
@@ -301,245 +303,3 @@ class AtomicTaroView
   '''
   saveVariants: (e) ->
     @exploratoryEditor.save()
-
-
-
-  #sortVariants: ->
-  #  @variantListeners.sortVariants()
-
-
-
-  '''
-    When the user selects to 'travel' to an earlier commit, this starts the process
-    of adjusting the whole UI to reflect that past or future state of the code.
-  '''
-  travelToCommit: (commitId) ->
-    $(@commitAlertLabel).text("viewing commit "+commitId.commitID)
-    @mainHeaderMenu.showAlertPane()
-    $('.atomic-taro_editor-header-box').addClass('historical')
-    $('.atomic-taro_commit-traveler').addClass('historical')
-    $('.atomic-taro_editor-footer-box').addClass('historical')
-    @masterVariant.travelToCommit(commitId)
-
-
-  '''
-    When the user selects to 'travel' to an earlier commit, this starts the process
-    of adjusting the whole UI to reflect that past or future state of the code.
-  '''
-  wrapNewVariant: (e, params) ->
-    # first, get range
-    clickRange = @exploratoryEditor.getSelectedBufferRange()
-    start = clickRange.start
-    end = clickRange.end
-    range = [new Point(start.row, 0), new Point(end.row, 100000000000)]
-    range = @exploratoryEditor.getBuffer().clipRange(range)
-    start = range.start
-    end = range.end
-
-    # now, see if there are any preexisting variants that overlap
-    overlap_start = @exploratoryEditor.findMarkers(containsBufferPosition: range.start)
-    overlap_end = @exploratoryEditor.findMarkers(containsBufferPosition: range.end)
-    selected = @exploratoryEditor.findMarkers(containsBufferRange: range)
-    #console.log "found N markers: start "+overlap_start.length+", end: "+overlap_end.length+", "+selected.length
-
-    # cannot allow new variants that partially intersect other variants
-    if overlap_start.length == overlap_end.length == selected.length
-      nest_Parent = null
-      for marker in selected
-        p = marker.getProperties().myVariant
-        if p?
-          nest_Parent = [p.getModel().getCurrentVersion(),p]
-
-      # now initialize everything
-      marker = @exploratoryEditor.markBufferRange(range, invalidate: 'never')
-      #@exploratoryEditor.decorateMarker(marker, {type: 'highlight', class: 'highlight-green'})
-
-      #finally, make the new variant!
-      variant = new VariantView(@exploratoryEditor, marker, "v0", @, @undoAgent, @provenanceAgent)
-      marker.setProperties(myVariant: variant)
-      headerElement = variant.getHeader()
-      #console.log headerElement
-      hRange = [start, new Point(end.row - 1, end.column)]
-      hm = @exploratoryEditor.markBufferRange(hRange, invalidate: 'never', reversed: true)
-      #editor.decorateMarker(hm, type: 'highlight', class: 'highlight-pink')
-      hm.setProperties(myVariant: variant)
-      hdec = @exploratoryEditor.decorateMarker(hm, {type: 'block', position: 'before', item: headerElement})
-      variant.setHeaderMarker(hm)
-      variant.setHeaderMarkerDecoration(hdec)
-
-      footerElement = variant.getFooter()
-      fdec = @exploratoryEditor.decorateMarker(marker, {type: 'block', position: 'after', item: footerElement})
-      variant.setFooterMarkerDecoration(fdec)
-
-      variant.buildVariantDiv()
-
-      @explorer.getVariantPanel().newVariant(variant)
-
-      # Either add as a neted variant to a parent, or add as a top-level variant
-      if nest_Parent != null
-        nest_Parent[1].addedNestedVariant(variant, nest_Parent[0])  #nest_Parent is an array - second item is the VariantView
-      else
-        console.log "adding variant to manager"
-        @masterVariant.addedNestedVariant(variant, @masterVariant.getModel().getCurrentVersion())
-
-
-      # if params?.undoSkip? == false
-      #   varList = @variantListeners.getVariants()
-      #   variant = varList[varList.length - 1]
-      #   @undoAgent.pushChange({data: {undoSkip: true}, callback: variant.dissolve})
-
-
-
-
-  '''
-    Starting with a plain code file, adds existing variant boxes to display.
-    Existing variant boxes are indicated by annotations in the code.
-  '''
-  initVariants: (editor) ->
-    # Get the location of all variant annotaions in the file.
-    beacons = @findMarkers(editor)
-
-    # First, wrap the entire file in a variant by default
-    wholeFile = [new Point(0,0), new Point(10000000, 10000000)]
-    range = @exploratoryEditor.getBuffer().clipRange(wholeFile)
-    marker = editor.markBufferRange(range, invalidate: 'never')
-    @masterVariant = new VariantView(@exploratoryEditor, marker, @fileName, @, @undoAgent, @provenanceAgent)
-
-    # Build all variant boxes indicated by annotations
-    list_offset = @addAllVariants(editor, beacons, 0, [])
-
-    # Fix range for the master variant. Since we've just deleted a bunch of
-    # rows that only contained variant annotations, the length of the file
-    # has changed.
-    range = @exploratoryEditor.getBuffer().clipRange(range)
-    @masterVariant.getModel().getMarker().setBufferRange(range)
-
-    # Now, make all variant boxes in the file nested children of the master
-    # file-level variant.
-    curr = @masterVariant.getModel().getCurrentVersion()
-    @masterVariant.addedNestedVariant(v, curr) for v in list_offset.list
-
-
-
-  '''
-    Search file for variant box annotations and match nested pairs of annotations to
-    get the boundaries of each variant box, even if they are nested.
-  '''
-  findMarkers: (editor) ->
-    beacons = []
-    sourceBuffer = editor.buffer
-    lineArray = sourceBuffer.getLines()
-    prevStart = null
-    endStack = []
-    for line, index in lineArray
-      if line.includes("#%%^%%")
-
-        if ((prevStart != null) and (prevStart.end == null))
-          b = {start: new Point(index, 0), end: null, nested: []}
-          prevStart.nested.push(b)
-          endStack.push(b)
-          prevStart = b
-        else
-          beacons.push({start: new Point(index, 0), end: null, nested: []})
-          prevStart = beacons[beacons.length - 1]
-          endStack.push(prevStart)
-
-      else if line.includes("#^^%^^")
-        endStack.pop().end = new Point(index , 0)
-    #return beacons
-    beacons
-
-
-
-  '''
-    For each start/end pair of annotaions in 'beacons', replace them with a variant box in the
-    code. As we delete the annotations to replace them with GUI, keep the rowDeletedOffset
-    updated.
-  '''
-  addAllVariants: (editor, beacons, rowDeletedOffset) ->
-    variantList = []
-    for b in beacons
-      priorRow = rowDeletedOffset
-
-      # First, recursively add any nested variant boxes of this variant box
-      nested = b.nested
-      grandchildren = []
-      if nested.length > 0
-        #cancel out end marker offset, since we are inside the range of that marker
-        nestedOffset = rowDeletedOffset
-        list_offset = @addAllVariants(editor, nested, nestedOffset)
-        grandchildren = list_offset.list # list of new VariantViews
-        rowDeletedOffset = list_offset.offset
-
-      # Now, create this variant box
-      v_offset = @addVariant(editor, b, priorRow, rowDeletedOffset)
-      variant = v_offset.variant
-      variantList.push variant
-      rowDeletedOffset = v_offset.offset # update rowDeletedOffset
-      for g in grandchildren # If there where nested, now add these to the current Variant
-        variant.addedNestedVariant(g, variant.getModel().getCurrentVersion())
-
-    #return
-    {list: variantList, offset: rowDeletedOffset}
-
-
-
-  '''
-    Build a single Variant.
-  '''
-  addVariant: (editor, b, rowDeletedOffset, endDeleteOffset, title) ->
-    if endDeleteOffset? == false
-      endDeleteOffset = rowDeletedOffset
-
-    # Get start and end annotation Point of beacon
-    sb = b.start
-    eb = b.end
-    editorBuffer = editor.getBuffer()
-
-    # create a marker for this range so that we can keep track
-    range = [sb, eb]
-    start = new Point(range[0].row - rowDeletedOffset, 0) # substract rowDeletedOffset
-    end = new Point(range[1].row - endDeleteOffset - 1, range[1].column)
-    range = [start, new Point(end.row, 100000000000)]
-    range = editorBuffer.clipRange(range) # This is important! To end at the end of the last line.
-    marker = editor.markBufferRange(range, invalidate: 'never')
-
-    '''below, useful for debug!!!'''
-    #dec = editor.decorateMarker(marker, type: 'highlight', class: 'highlight-pink')
-
-
-    # get title from start annnotation
-    rowStart = sb.row
-    if not title?
-      title = editorBuffer.lineForRow(rowStart - rowDeletedOffset)
-      title = title.trim().substring(6)
-    rowEnd = eb.row
-
-    # now, delete annotation rows
-    editorBuffer.deleteRow(rowStart - rowDeletedOffset)
-    endDeleteOffset += 1
-    editorBuffer.deleteRow(rowEnd - endDeleteOffset)
-    endDeleteOffset += 1
-
-
-    #finally, make the new variant!
-    variant = new VariantView(editor, marker, title, @, @undoAgent, @provenanceAgent)
-    marker.setProperties(myVariant: variant)
-    #editor.decorateMarker(marker, type: 'highlight', class: 'highlight-pink')
-
-    headerElement = variant.getHeader()
-    #console.log headerElement
-    hRange = [start, new Point(end.row - 1, end.column)]
-    hm = editor.markBufferRange(hRange, invalidate: 'never', reversed: true)
-    #editor.decorateMarker(hm, type: 'highlight', class: 'highlight-pink')
-    hm.setProperties(myVariant: variant)
-    hdec = editor.decorateMarker(hm, {type: 'block', position: 'before', item: headerElement})
-    variant.setHeaderMarker(hm)
-    variant.setHeaderMarkerDecoration(hdec)
-
-    footerElement = variant.getFooter()
-    fdec = editor.decorateMarker(marker, {type: 'block', position: 'after', item: footerElement})
-    variant.setFooterMarkerDecoration(fdec)
-
-    #finally, return variant
-    {variant: variant, offset: endDeleteOffset}

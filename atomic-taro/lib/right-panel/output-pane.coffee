@@ -4,7 +4,7 @@ VariantView = require '../segment-objects/variant-view'
 
 
 module.exports =
-class OutputPane 
+class OutputPane
 
 
   constructor: (@masterVariant, @programProcessor, @atomicTaroView) ->
@@ -134,12 +134,12 @@ class OutputPane
       $(this).addClass('selected')
       ev.stopPropagation()
 
-    $(document).on 'dblclick', '.atomic-taro_output_box', {'atomicTaroView': @atomicTaroView}, (ev) ->
+    $(document).on 'dblclick', '.atomic-taro_output_box', {'master': @masterVariant}, (ev) ->
       $('.atomic-taro_output_box').removeClass('selected')
       $('.atomic-taro_output_box').removeClass('travel')
       $(this).addClass('travel')
       commit = $(this).data('commit')
-      ev.data.atomicTaroView.travelToCommit(commit)
+      ev.data.master.travelToCommit(commit)
       console.log "return to commit "+commit
       ev.stopPropagation()
 
@@ -173,5 +173,5 @@ class OutputPane
       $('.atomic-taro_output_box').removeClass('travel')
       $(output).addClass('travel')
       $(@rightClickMenu).hide()
-      @atomicTaroView.travelToCommit($(output).data('commit'))
+      @masterVariant.travelToCommit($(output).data('commit'))
       #@travelToCommit()
