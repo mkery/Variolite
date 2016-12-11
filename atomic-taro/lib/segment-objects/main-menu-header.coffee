@@ -1,58 +1,37 @@
-{Pane} = require 'atom'
 {TextEditor} = require 'atom'
 {Point, Range} = require 'atom'
-CommitLine = require './segment-objects/commit-line'
-BranchMap = require './segment-objects/branch-map'
+HeaderElement = require './header-element'
 
 module.exports =
-class MainHeaderMenu
+class MainMenuHeader extends HeaderElement
 
-  constructor: (@view, @atomicTaroView) ->
-    @model = @view.getModel()
-    @buildHeader()
+
+
+  buildHeader: (width) ->
+    # alert element
+    #@menuContainer = document.createElement('div')
+    @menuContainer.classList.add('atomic-taro_editor-header-wrapper')
+    $(@menuContainer).width(width)
+    $(@menuContainer).data('view', @view)
+
+    @headerBar = document.createElement('div')
+    @headerBar.classList.add('atomic-taro_main-menu')
+    $(@headerBar).width(width)
+
+    @addRunButton(@headerBar)
+    @menuContainer.appendChild(@headerBar)
+
+
+  showAlertPane: ->
+    $(@alertPane).show()
 
 
   getElement: ->
+    @menuContainer = document.createElement('div')
     @menuContainer
 
 
-  updateWidth: (width) ->
-    @commitLine.updateWidth($(@menuContainer).width())
-    @branchMap.updateWidth($(@menuContainer).width())
-
-
-  buildHeader: ->
-    # alert element
-    @menuContainer = document.createElement('div')
-    @mainMenu = document.createElement('div')
-    @mainMenu.classList.add('atomic-taro_main-menu')
-    @commitLine = new CommitLine(@view, @model)
-
-    branchIcon = document.createElement('span')
-    branchIcon.classList.add('icon-git-branch')
-    branchIcon.classList.add('atomic-taro_main-menu_branchIcon')
-    branchIcon.classList.add('atomic-taro_commit-branch-button')
-    @branchMap = new BranchMap(@view, @model)
-    $(branchIcon).data("branchMap", @branchMap)
-
-    @runIcon = document.createElement('span')
-    @runIcon.classList.add('icon-playback-play')
-    @runIcon.classList.add('atomic-taro_main-menu_runIcon')
-    @historyButton = document.createElement("span")
-    @historyButton.classList.add('icon-history')
-    @historyButton.classList.add('atomic-taro_commit-history-button')
-    $(@historyButton).data("commitLine", @commitLine)
-    @mainMenu.appendChild(@historyButton)
-    @mainMenu.appendChild(branchIcon)
-    @mainMenu.appendChild(@runIcon)
-    @addVariantButtons(@mainMenu)
-    $ => $(document).on 'mousedown', '.atomic-taro_main-menu_runIcon', (ev) =>
-      $(@runIcon).addClass('click')
-      @atomicTaroView.runProgram()
-      @atomicTaroView.showExplorerView()
-    $ => $(document).on 'mouseup', '.atomic-taro_main-menu_runIcon', (ev) =>
-      $(@runIcon).removeClass('click')
-
+  buildAlertPane: ->
     @alertPane = document.createElement('div')
     @alertPane.classList.add('atomic-taro_main-menu_alertBox')
     lockIcon = document.createElement('span')
@@ -80,22 +59,38 @@ class MainHeaderMenu
     @alertPane.appendChild(lockIcon)
     @alertPane.appendChild(@commitAlertLabel)
     $(@alertPane).hide()
-
-    @menuContainer.appendChild(@mainMenu)
     @menuContainer.appendChild(@alertPane)
-    @menuContainer.appendChild(@commitLine.getElement())
-    @menuContainer.appendChild(@branchMap.getElement())
 
 
-  showAlertPane: ->
-    $(@alertPane).show()
+  buildButtons: ->
+    @addVariantButtons(@headerBar)
+    @addHistoryButton(@headerBar)
+    @addBranchButton(@headerBar)
+    @branchButton.classList.add('atomic-taro_main-menu_branchIcon')
+    @historyButton.classList.add('atomic-taro_main-menu_branchIcon')
 
-  addVariantButtons: () ->
+
+
+  addRunButton: (header) ->
+    @runIcon = document.createElement('span')
+    @runIcon.classList.add('icon-playback-play')
+    @runIcon.classList.add('atomic-taro_main-menu_runIcon')
+    header.appendChild(@runIcon)
+
+    $ => $(document).on 'mousedown', '.atomic-taro_main-menu_runIcon', (ev) =>
+      $(@runIcon).addClass('click')
+      @atomicTaroView.runProgram()
+      @atomicTaroView.showExplorerView()
+    $ => $(document).on 'mouseup', '.atomic-taro_main-menu_runIcon', (ev) =>
+      $(@runIcon).removeClass('click')
+
+
+  addVariantButtons: (header) ->
     variantsButton = document.createElement("span")
     variantsButton.classList.add('main-menu_variantButton')
     variantsButton.classList.add('variants-button')
     $(variantsButton).text("variants")
-    @mainMenu.appendChild(variantsButton)
+    header.appendChild(variantsButton)
     variantsMenu = document.createElement("div")
     variantsMenu.classList.add('variants-hoverMenu')
     $(variantsMenu).hide()

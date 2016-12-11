@@ -2,7 +2,7 @@
 {Point, Range} = require 'atom'
 Variant = require './segment-objects/variant-model'
 VariantView = require './segment-objects/variant-view'
-MainHeaderMenu = require './main-header-menu'
+MainMenuHeader = require './segment-objects/main-menu-header'
 
 
 module.exports =
@@ -86,8 +86,11 @@ class VariantFactory
     wholeFile = [new Point(0,0), new Point(10000000, 10000000)]
     range = editor.getBuffer().clipRange(wholeFile)
     marker = editor.markBufferRange(range, invalidate: 'never')
-    
-    masterVariant = @buildVariant(range.start, range.end, editor, marker,  @fileName)
+
+    altHeader = new MainMenuHeader()
+    altFooter = document.createElement('div')
+    variant = new VariantView({sourceEditor: editor, marker: marker, altHeader: altHeader, altFooter: altFooter, title: @fileName, taroView: @taroView, undoAgent: @undoAgent, provAgent: @provenanceAgent})
+    masterVariant = @buildVariant(range.start, range.end, editor, marker, @fileName, variant)
     masterVariant
 
 
@@ -202,9 +205,10 @@ class VariantFactory
 
 
 
-  buildVariant: (start, end, editor, marker, title, altHeader) ->
+  buildVariant: (start, end, editor, marker, title, variant) ->
     # create variant
-    variant = new VariantView({sourceEditor: editor, marker: marker, altHeader: altHeader, title: title, taroView: @taroView, undoAgent: @undoAgent, provAgent: @provenanceAgent})
+    if not variant?
+        variant = new VariantView({sourceEditor: editor, marker: marker, title: title, taroView: @taroView, undoAgent: @undoAgent, provAgent: @provenanceAgent})
     marker.setProperties(myVariant: variant)
 
     # mark header

@@ -7,12 +7,10 @@ module.exports =
 class HeaderElement
 
 
-  constructor: (@model, @view) ->
+  constructor: () ->
     # header bar that holds interactive components above text editor
     @headerWrapper = document.createElement('div')
-    @headerWrapper.classList.add('atomic-taro_editor-header-wrapper')
     @headerBar = document.createElement('div')
-    @headerBar.classList.add('atomic-taro_editor-header-box')
     @nestLabelContainer = null
     @collapseIcon = null
     @visibleVersions = []
@@ -29,13 +27,26 @@ class HeaderElement
     @focused = false
 
 
+
+
+
+  setModel: (model) ->
+    @model = model
+
+
+  setView: (view) ->
+    @view = view
+
+
   buildHeader: (width) ->
     # build wrapper
+    @headerWrapper.classList.add('atomic-taro_editor-header-wrapper')
     $(@headerWrapper).width(width)
     $(@headerWrapper).data('view', @view)
     width = @buildWrapperLabel(@headerWrapper, width)
 
     # build main header bar
+    @headerBar.classList.add('atomic-taro_editor-header-box')
     $(@headerBar).width(width)
     nameContainer = document.createElement("div")
     nameContainer.classList.add('atomic-taro_editor-header-name-container')
@@ -87,7 +98,7 @@ class HeaderElement
 
 
   appendDiv: (elem) ->
-    @headerWrapper.appendChild(elem)
+    @getElement().appendChild(elem)
 
 
   addClass: (klass) ->
@@ -145,7 +156,7 @@ class HeaderElement
 
 
   updateWidth: (width) ->
-    $(@headerWrapper).width(width)
+    $(@getElement()).width(width)
     if @nestLabelContainer?
       $(@headerBar).width(width - $(@nestLabelContainer).width() - 20 - $(@collapseIcon).width())
     else

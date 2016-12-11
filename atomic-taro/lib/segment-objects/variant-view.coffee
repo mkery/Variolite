@@ -24,7 +24,18 @@ class VariantView
     @undoAgent = params.undoAgent
     @provenanceAgent = params.provAgent
     @model = new Variant(params)
-    @initialize()
+
+    @footerBar = params.altFooter
+    if not @footerBar?
+        @footerBar = document.createElement('div')
+        @footerBar.classList.add('atomic-taro_editor-footer-box')
+
+    @headerElement = params.altHeader
+    if not @headerElement?
+        @headerElement = new HeaderElement()
+    @commitLine = null
+    @branchMap = null
+    @diffPanels = null
 
 
   '''
@@ -46,13 +57,13 @@ class VariantView
   '''
   initialize:  ->
     #footer bar that simply marks the end
-    @footerBar = document.createElement('div')
-    @footerBar.classList.add('atomic-taro_editor-footer-box')
-
-    @headerElement = new HeaderElement(@model, @)
-    @commitLine = null
-    @branchMap = null
-    @diffPanels = null
+    # @footerBar = document.createElement('div')
+    # @footerBar.classList.add('atomic-taro_editor-footer-box')
+    #
+    # @headerElement = new HeaderElement(@model, @)
+    # @commitLine = null
+    # @branchMap = null
+    # @diffPanels = null
 
 
   getCommitLine: ->
@@ -395,6 +406,8 @@ class VariantView
   '''
   buildVariantDiv: () ->
     width = @root.getWidth()
+    @headerElement.setView(@)
+    @headerElement.setModel(@model)
     @headerElement.buildHeader(width)
     # commit line
     @commitLine = new CommitLine(@, @model)
