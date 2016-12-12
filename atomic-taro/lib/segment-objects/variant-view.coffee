@@ -23,6 +23,8 @@ class VariantView
     @root = params.taroView
     @undoAgent = params.undoAgent
     @provenanceAgent = params.provAgent
+
+    params['taroView'] = @
     @model = new Variant(params)
 
     @footerBar = params.altFooter
@@ -73,6 +75,9 @@ class VariantView
   getBranchMap: ->
     @branchMap
 
+
+  getHeaderElement: ->
+    @headerElement
 
   '''
     TODO used?

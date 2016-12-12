@@ -7,7 +7,7 @@ module.exports =
 class OutputPane
 
 
-  constructor: (@masterVariant, @programProcessor, @atomicTaroView) ->
+  constructor: (@masterVariant, @programProcessor, @travelAgent, @atomicTaroView) ->
     @pane = document.createElement('div')
     @pane.classList.add('atomic-taro_explore-pane')
     @pane.classList.add('native-key-bindings');
@@ -43,12 +43,6 @@ class OutputPane
     $ => $(document).on 'click', '.icon-x.atomic-taro_explore', (ev) =>
       console.log "clicked exit!!!"
       @atomicTaroView.closeExplorerView()
-
-    # playButton = document.createElement('span')
-    # playButton.classList.add('icon-playback-play')
-    # playButton.classList.add('atomic-taro_explore-play-button')
-    # $(playButton).click =>
-    #   @programProcessor.run()
 
     titleBox.appendChild(titleText)
     titleBox.appendChild(xIcon)
@@ -134,12 +128,12 @@ class OutputPane
       $(this).addClass('selected')
       ev.stopPropagation()
 
-    $(document).on 'dblclick', '.atomic-taro_output_box', {'master': @masterVariant}, (ev) ->
+    $(document).on 'dblclick', '.atomic-taro_output_box', {'travelAgent': @travelAgent}, (ev) ->
       $('.atomic-taro_output_box').removeClass('selected')
       $('.atomic-taro_output_box').removeClass('travel')
       $(this).addClass('travel')
       commit = $(this).data('commit')
-      ev.data.master.travelToCommit(commit)
+      ev.data.travelAgent.travelToCommit(commit)
       console.log "return to commit "+commit
       ev.stopPropagation()
 

@@ -8,18 +8,34 @@ class MainMenuHeader extends HeaderElement
 
 
   buildHeader: (width) ->
-    # alert element
-    #@menuContainer = document.createElement('div')
-    @menuContainer.classList.add('atomic-taro_editor-header-wrapper')
-    $(@menuContainer).width(width)
-    $(@menuContainer).data('view', @view)
+    @headerWrapper.classList.add('atomic-taro_editor-header-wrapper')
+    $(@headerWrapper).width(width)
+    $(@headerWrapper).data('view', @view)
 
     @headerBar = document.createElement('div')
     @headerBar.classList.add('atomic-taro_main-menu')
     $(@headerBar).width(width)
 
     @addRunButton(@headerBar)
-    @menuContainer.appendChild(@headerBar)
+
+    # add version tabs
+    nameContainer = document.createElement("div")
+    nameContainer.classList.add('atomic-taro_editor-header-name-container')
+    @versionBookmarkBar = document.createElement("div")
+    @versionBookmarkBar.classList.add('atomic-taro_editor-header-name')
+    $(@versionBookmarkBar).data("variant", @model)
+    @addNameBookmarkBar()
+    nameContainer.appendChild(@versionBookmarkBar)
+    @headerBar.appendChild(nameContainer)
+    @headerWrapper.appendChild(@headerBar)
+
+
+  '''
+    Specific to main menu, need to connect to atomicTaroView in order
+    to trigger package-level events, like running the program.
+  '''
+  setTaroView: (view) ->
+    @taroView = view
 
 
   showAlertPane: ->
@@ -27,8 +43,8 @@ class MainMenuHeader extends HeaderElement
 
 
   getElement: ->
-    @menuContainer = document.createElement('div')
-    @menuContainer
+    #@headerWrapper = document.createElement('div')
+    @headerWrapper
 
 
   buildAlertPane: ->
@@ -59,7 +75,7 @@ class MainMenuHeader extends HeaderElement
     @alertPane.appendChild(lockIcon)
     @alertPane.appendChild(@commitAlertLabel)
     $(@alertPane).hide()
-    @menuContainer.appendChild(@alertPane)
+    @headerWrapper.appendChild(@alertPane)
 
 
   buildButtons: ->
@@ -79,8 +95,8 @@ class MainMenuHeader extends HeaderElement
 
     $ => $(document).on 'mousedown', '.atomic-taro_main-menu_runIcon', (ev) =>
       $(@runIcon).addClass('click')
-      @atomicTaroView.runProgram()
-      @atomicTaroView.showExplorerView()
+      @taroView.runProgram()
+      @taroView.showExplorerView()
     $ => $(document).on 'mouseup', '.atomic-taro_main-menu_runIcon', (ev) =>
       $(@runIcon).removeClass('click')
 
@@ -103,7 +119,7 @@ class MainMenuHeader extends HeaderElement
     $(buttonShow).data("variant", @)
     $(buttonShow).click (ev) =>
       ev.stopPropagation()
-      @atomicTaroView.toggleExplorerView()
+      @taroView.toggleExplorerView()
       $(variantsMenu).hide()
     variantsMenu.appendChild(buttonShow)
 
@@ -115,3 +131,18 @@ class MainMenuHeader extends HeaderElement
       @view.newVersion()
       $(variantsMenu).hide()
     variantsMenu.appendChild(buttonAdd)
+
+
+  addNameBookmarkBar: ->
+    current = @model.getCurrentVersion()
+    root = @model.getRootVersion()
+    singleton = !@model.hasVersions()
+    if !singleton
+      @visibleVersions = [] # reset
+      @addVersionBookmark(root, current, singleton)
+      if @visibleVersions.length > 1
+        $(@buttonArchive).show()
+      else
+        $(@buttonArchive).hide()
+    else
+      $(@buttonArchive).hide()

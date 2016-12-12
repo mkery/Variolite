@@ -16,6 +16,7 @@ AnnotationProcessorBuffer = require './annotation-processor-buffer'
 AtomicTaroToolPane = require './right-panel/atomic-taro-tool-pane'
 UndoAgent = require './undo-agent'
 ProgramProcessor = require './program-processor'
+CommitTravelAgent = require './commit-travel-agent'
 VariantFactory = require './variant-factory'
 
 '''
@@ -40,6 +41,7 @@ class AtomicTaroView
 
     @variantFactory = null
     @undoAgent = new UndoAgent(50) #max undo entries
+    @travelAgent = null
     @programProcessor = null # object to run code and record output
     @provenanceAgent = null #new ProvUtils()
 
@@ -47,7 +49,6 @@ class AtomicTaroView
     @element = null
     @explorer = null
     @explorer_panel = null # the Panel object of @explorer
-    #@mainHeaderMenu = null
 
     # try to get saved meta data for this file, if there is any
     @initializeView()
@@ -157,7 +158,6 @@ class AtomicTaroView
     width = @getWidth()
     @variantListeners.updateExplorerPanelShowing(@isShowingExplorer(), width)
     @masterVariant.updateVariantWidth(width)
-    #@mainHeaderMenu.updateWidth(width)
 
 
   closeExplorerView: ->
@@ -165,7 +165,6 @@ class AtomicTaroView
     width = @getWidth()
     @variantListeners.updateExplorerPanelShowing(@explorer_panel.isVisible(), width)
     @masterVariant.updateVariantWidth(width)
-    #@mainHeaderMenu.updateWidth(width)
 
 
   toggleExplorerView: ->
@@ -244,6 +243,7 @@ class AtomicTaroView
     # create a variant manager
     @variantListeners = new Listeners(@masterVariant, @)
     @programProcessor = new ProgramProcessor(@filePath, @)
+    @travelAgent = new CommitTravelAgent(@masterVariant, @)
 
 
   '''
@@ -259,7 +259,7 @@ class AtomicTaroView
       atom.views.addViewProvider AtomicTaroToolPane, (toolPane) ->
         toolPane.getElement()
 
-      @explorer = new AtomicTaroToolPane(@masterVariant, @programProcessor, @)
+      @explorer = new AtomicTaroToolPane(@masterVariant, @programProcessor, @travelAgent, @)
 
 
   '''

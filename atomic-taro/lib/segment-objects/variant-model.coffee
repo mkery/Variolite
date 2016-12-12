@@ -139,7 +139,7 @@ class VariantModel
   registerOutput: (data) ->
     commit = @currentBranch.commit()
     # store provenance information
-    @provenanceAgent.store(data, commit)
+    #@provenanceAgent.store(data, commit)
     commit
 
 
@@ -453,7 +453,7 @@ class VariantModel
     For display versions, return if this variant box has more than 1 version.
   '''
   hasVersions: ->
-    @branches.length > 0
+    @branches.length > 0 and @branches[0].getBranches().length > 0
 
 
 

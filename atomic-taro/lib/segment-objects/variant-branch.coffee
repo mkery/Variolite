@@ -139,7 +139,8 @@ class VariantBranch
 
   activateVersion: ->
     @active = true
-    @model.getView().switchToVersion(@, false)
+    @switchToVersion()
+
 
   '''
     Closes this branch and stores its contents for easy access in the future

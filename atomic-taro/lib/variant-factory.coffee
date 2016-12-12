@@ -88,6 +88,7 @@ class VariantFactory
     marker = editor.markBufferRange(range, invalidate: 'never')
 
     altHeader = new MainMenuHeader()
+    altHeader.setTaroView(@taroView)
     altFooter = document.createElement('div')
     variant = new VariantView({sourceEditor: editor, marker: marker, altHeader: altHeader, altFooter: altFooter, title: @fileName, taroView: @taroView, undoAgent: @undoAgent, provAgent: @provenanceAgent})
     masterVariant = @buildVariant(range.start, range.end, editor, marker, @fileName, variant)
