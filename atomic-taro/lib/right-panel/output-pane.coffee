@@ -72,7 +72,7 @@ class OutputPane
     @outputList.appendChild(outputContainer)
 
 
-  backToTheFuture: ->
+  resetToPresent: ->
     $('.atomic-taro_output_box').removeClass('travel')
 
 

@@ -6,6 +6,7 @@ module.exports =
 class CommitLine
 
   constructor: (@variantView, @variantModel) ->
+    @initialized = false
     @addCommitLine() # initialize commit line
 
   getVariantView: ->
@@ -81,10 +82,14 @@ class CommitLine
 
 
   drawTimeline: ->
+      @initialized = true
       $(@commitLineElem).width($(@commitLineElem).parent().width())
       paddT = $(@commitTraveler).innerWidth() - $(@commitTraveler).width()
       $(@commitTraveler).width($(@commitLineElem).width() - paddT)
       commitNum = @getModel().getCurrentVersion().getNumberOfCommits()
+      currentCommit = @getModel().getCurrentVersion().getCurrentCommit()
+      if currentCommit == -1 # no commit
+        currentCommit = commitNum
       #console.log @getModel().getCurrentVersion()
 
       if commitNum > 0
@@ -96,7 +101,7 @@ class CommitLine
             $(@commitSlider).slider({
               max: commitNum,
               min: 0,
-              value: commitNum,
+              value: currentCommit,
               slide: (event, ui) =>
                 #console.log @variantView.getTitle(), " SLIDER ", ui.value
                 if ui.manual != true
@@ -118,8 +123,8 @@ class CommitLine
 
 
   slideToPresent: ->
-    # don't bother if timeline isn't showing
-    if $(@commitLineElem).is(":visible")
+    # don't bother if timeline hasn't been constructed
+    if @initialized
       max = @getModel().getCurrentVersion().getNumberOfCommits()
       $(@commitSlider).slider('option', 'value',max)
       $(@commitSlider).slider('option','slide')
@@ -127,8 +132,8 @@ class CommitLine
 
 
   manualSet: (commitNum) ->
-    # don't bother if timeline isn't showing
-    if $(@commitLineElem).is(":visible")
+    # don't bother if timeline hasn't been constructed
+    if @initialized
       #console.log "MANUAL SET CALLED ", commitNum
       $(@commitSlider).slider('option', 'value',commitNum)
       $(@commitSlider).slider('option','slide')

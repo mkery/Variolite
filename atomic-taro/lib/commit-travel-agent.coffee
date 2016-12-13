@@ -35,14 +35,18 @@ class CommitTravelAgent
     @masterVariant.travelStyle()
 
 
+
+  globalBackToFuture: (variant) ->
+    @masterVariant.getModel().travelToCommit({})
+    @masterVariant.removeTravelStyle()
+
+
   '''
     Any variant can call this method. This is at the global program level so that
     we can coordinate multiple components, such as the output pane and diffs.
   '''
-  resetToPresent: (variant) ->
-    variant.getModel().backToTheFuture()
-    variant.removeTravelStyle()
-    @outputPane.backToTheFuture()
+  resetEnvToPresent: ->
+    @outputPane.resetToPresent()
 
 
 

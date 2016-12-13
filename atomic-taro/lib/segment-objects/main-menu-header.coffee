@@ -66,7 +66,7 @@ class MainMenuHeader extends HeaderElement
     clockIcon.classList.add('icon-arrow-left')
     returnButton.appendChild(clockIcon)
     $(document).on 'click', '.atomic-taro_commitBackButton', (ev) =>
-      @taroView.getTravelAgent().resetToPresent(@view)
+      @taroView.getTravelAgent().globalBackToFuture(@view)
       $(@alertPane).slideUp('fast')
 
     @alertPane.appendChild(returnButton)

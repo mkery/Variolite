@@ -181,7 +181,7 @@ class VariantBranch
       @model.clearTextInRange()
     if @currentState?
       #console.log "Unraveling current state "+@title
-      @model.getView().getCommitLine().manualSet(commitID)
+      @model.getView().getCommitLine().slideToPresent()
       return @unravelCommitText(@currentState.text, insertPoint)
     else
       #console.log "traveling to commit "

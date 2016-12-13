@@ -24,15 +24,14 @@ class VariantModel
   constructor: (params) ->
     @view = params.taroView
     @sourceEditor = params.sourceEditor
-    @marker = params.marker
+    @sourceBuffer = @sourceEditor.getBuffer()  # really Variolite's buffer
+
     @undoAgent = params.undoAgent
     @provenanceAgent = params.provAgent
     @travelAgent = params.travelAgent
-    title = params.title
-    title ?= "v0"
 
-    @sourceBuffer = @sourceEditor.getBuffer()  # really Variolite's buffer
     @headerMarker = null # the header div has it's own marker
+    @marker = params.marker
     @range = null # to hold the last range of markers, in case the markers are destroyed
 
     @nestedParent = null
@@ -50,6 +49,8 @@ class VariantModel
     @branches = []
     @currentBranch = null # the currently selected branch
 
+    title = params.title
+    title ?= "v0"
     params = null
     if @marker?
       text = @sourceEditor.getTextInBufferRange(@marker.getBufferRange())
@@ -161,7 +162,8 @@ class VariantModel
     commitID = commitData.commitID
 
     #   are we traveling between 2 past points?
-    if branchID != @currentBranch.getID()
+    #   if no branch is declared, assume the current branch
+    if branchID? and branchID != @currentBranch.getID()
       branch = @findBranch(branchID)
       #console.log "Switching to version "+branchID
       #console.log branch
