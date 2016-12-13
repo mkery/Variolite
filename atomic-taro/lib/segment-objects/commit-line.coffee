@@ -96,6 +96,7 @@ class CommitLine
               min: 0,
               value: commitNum,
               slide: (event, ui) =>
+                #console.log "SLIDER ", ui.value
                 if ui.value == @getModel().getCurrentVersion().getNumberOfCommits()
                   @getModel().travelToCommit({commitID: @getModel().PRESENT, branchID: @getModel().getCurrentVersion().id})
                 else

@@ -173,18 +173,18 @@ class VariantBranch
   backToTheFuture: (insertPoint) ->
     #console.log "Back to the future "+@title
     #console.log @currentState
-    if not insertPoint? # meaning the first outermost variant
-      console.log "No insert point"
-      console.log @model.getTitle()
-      @model.clearTextInRange()
-    if @currentState?
-      #console.log "Unraveling "+@title
-      @unravelCommitText(@currentState.text, insertPoint, false)
-    else
-      @travelToCommit(@commits.length - 1)
     # Mark that we are in the present
     @currentCommit = @NO_COMMIT
-
+    if not insertPoint? # meaning the first outermost variant
+      #console.log "No insert point"
+      #console.log @model.getTitle()
+      @model.clearTextInRange()
+    if @currentState?
+      #console.log "Unraveling current state "+@title
+      return @unravelCommitText(@currentState.text, insertPoint)
+    else
+      #console.log "traveling to commit "
+      return @travelToCommit(@commits.length - 1, insertPoint)
 
 
   '''
@@ -194,6 +194,7 @@ class VariantBranch
   travelToCommit: (commitData, insertPoint) ->
     @currentCommit = commitData
     if not insertPoint?
+      #console.log "No insert point"
       @model.clearTextInRange()
       #console.log "CLEARED TEXT"
     @travel(commitData, insertPoint)
@@ -204,24 +205,27 @@ class VariantBranch
     Recursively loads in commits from chunked text.
   '''
   travel: (commitId, insertPoint) ->
-    console.log "Commits of "+@title+":  "+@commits.length
-    console.log commitId
+    #console.log "Commits of "+@title+":  "+@commits.length
+    #console.log commitId
     commit = @commits[commitId]
     #console.log "commit is:"
     #console.log commit
     #console.log @commits
     text = commit.text
-    return @unravelCommitText(text, insertPoint, true)
+    return @unravelCommitText(text, insertPoint)
 
 
   '''
     save the current state, that may not be committed yet, so that we can return to it.
   '''
-  recordCurrentState: ->
+  recordCurrentState: (destinationCommit) ->
     #console.log "The state of text for "+@title
     #console.log @model.getTextInVariantRange()
+    if destinationCommit?
+      @currentCommit = destinationCommit
+
     @currentState = null # erase what current state was there previosly
-    @currentState = {varID: @model.getVariantID(), branchID: @id, text: @chunk(false)}
+    @currentState = {varID: @model.getVariantID(), branchID: @id, text: @chunk(false, destinationCommit)}
     @text = @currentState.text
     #console.log "Recorded state for "+@title
     #console.log @currentState
@@ -232,7 +236,7 @@ class VariantBranch
     Given a chunked formatted text of a commit, parses this back into code that
     goes outside variant boxes, variant boxes and their nested boxes.
   '''
-  unravelCommitText: (text, insertPoint, commitTravel) ->
+  unravelCommitText: (text, insertPoint) ->
     if not insertPoint?
       insertPoint = @model.getVariantRange().start
       #console.log "Beginning insert at "+insertPoint
@@ -247,10 +251,7 @@ class VariantBranch
         for nest in @nested
           nestID = item.varID
           if nest.getModel().getVariantID() == nestID
-            #if commitTravel == true
             insertPoint = nest.getModel().travelToCommit(item, insertPoint)
-            #else
-            #  insertPoint = nest.getModel().backToTheFuture(insertPoint, item.branchID)
             break
       else
         range = @model.insertTextInRange(insertPoint, item.text, 'skip')
@@ -273,9 +274,11 @@ class VariantBranch
     Starts the process of creating a new commit
   '''
   commit: ->
-    # console.log "Commit called"
+    #console.log "Commit called"
     # check if anything has changed first
     diff = @isChanged()
+    # if @commits.length == 0
+    #   @currentCommit = 0
 
     # if it changed create a new commit
     if diff

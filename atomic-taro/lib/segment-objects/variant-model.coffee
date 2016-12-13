@@ -19,7 +19,7 @@ Represents a single variant of exploratory code.
 
 module.exports =
 class VariantModel
-  PRESENT: -1
+  PRESENT : -1
 
   constructor: (params) ->
     @view = params.taroView
@@ -173,14 +173,14 @@ class VariantModel
 
     # Check direction of travel:
     #   are we in tha past traveling to the present?
-    if commitID == @PRESENT
-      console.log "BACK TO THE FUTURE"
-      @currentBranch.backToTheFuture()
+    if commitID == @PRESENT or !commitID?
+      #console.log @getTitle(), " BACK TO THE FUTURE, ", commitID, ", ", @PRESENT
+      @currentBranch.backToTheFuture(insertPoint)
     #   are we in the present traveling back?
     else
       if @currentBranch.getCurrentCommit() == @currentBranch.NO_COMMIT
-        console.log "FROM PRESENT TO PAST"
-        @currentBranch.recordCurrentState()
+        #console.log "FROM PRESENT TO PAST"
+        @currentBranch.recordCurrentState(commitID)
 
       @currentBranch.travelToCommit(commitID, insertPoint)
 
