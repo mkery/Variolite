@@ -10,7 +10,7 @@ class VariantFactory
 
 
   # {sourceEditor: editor, marker: marker, title: @fileName, taroView: @taroView, undoAgent: @undoAgent, provAgent: @provenanceAgent})
-  constructor: (@filePath, @taroView, @undoAgent, @provenanceAgent) ->
+  constructor: (@filePath, @taroView, @undoAgent, @provenanceAgent, @travelAgent) ->
     # nothin much
 
 
@@ -90,7 +90,7 @@ class VariantFactory
     altHeader = new MainMenuHeader()
     altHeader.setTaroView(@taroView)
     altFooter = document.createElement('div')
-    variant = new VariantView({sourceEditor: editor, marker: marker, altHeader: altHeader, altFooter: altFooter, title: @fileName, taroView: @taroView, undoAgent: @undoAgent, provAgent: @provenanceAgent})
+    variant = new VariantView({sourceEditor: editor, marker: marker, altHeader: altHeader, altFooter: altFooter, title: @fileName, taroView: @taroView, undoAgent: @undoAgent, provAgent: @provenanceAgent, travelAgent: @travelAgent})
     masterVariant = @buildVariant(range.start, range.end, editor, marker, @fileName, variant)
     masterVariant
 
@@ -209,7 +209,7 @@ class VariantFactory
   buildVariant: (start, end, editor, marker, title, variant) ->
     # create variant
     if not variant?
-        variant = new VariantView({sourceEditor: editor, marker: marker, title: title, taroView: @taroView, undoAgent: @undoAgent, provAgent: @provenanceAgent})
+        variant = new VariantView({sourceEditor: editor, marker: marker, title: title, taroView: @taroView, undoAgent: @undoAgent, provAgent: @provenanceAgent, travelAgent: @travelAgent})
     marker.setProperties(myVariant: variant)
 
     # mark header

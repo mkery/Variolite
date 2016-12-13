@@ -28,6 +28,7 @@ class MainMenuHeader extends HeaderElement
     nameContainer.appendChild(@versionBookmarkBar)
     @headerBar.appendChild(nameContainer)
     @headerWrapper.appendChild(@headerBar)
+    @buildAlertPane()
 
 
   '''
@@ -38,7 +39,8 @@ class MainMenuHeader extends HeaderElement
     @taroView = view
 
 
-  showAlertPane: ->
+  showAlertPane: (commit) ->
+    $(@commitAlertLabel).text("commit "+commit.commitID+" on "+commit.date)
     $(@alertPane).show()
 
 
@@ -64,11 +66,7 @@ class MainMenuHeader extends HeaderElement
     clockIcon.classList.add('icon-arrow-left')
     returnButton.appendChild(clockIcon)
     $(document).on 'click', '.atomic-taro_commitBackButton', (ev) =>
-      @view.backToTheFuture()
-      $('.atomic-taro_output_box').removeClass('travel')
-      $('.atomic-taro_editor-header-box').removeClass('historical')
-      $('.atomic-taro_commit-traveler').removeClass('historical')
-      $('.atomic-taro_editor-footer-box').removeClass('historical')
+      @taroView.getTravelAgent().backToTheFuture(@view)
       $(@alertPane).slideUp('fast')
 
     @alertPane.appendChild(returnButton)

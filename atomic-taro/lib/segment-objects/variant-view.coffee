@@ -183,40 +183,24 @@ class VariantView
 
 
 
-  '''
-    Begins the process of traveling to a specific commit in this variant box.
-    Changes the appearance of the header and footer to give some visual indication
-    that we care time traveling. Then starts the model in the actual text manipulation
-    needed for traveling.
-  '''
-  travelToCommit: (commitId) ->
+  travelStyle: ->
     @headerElement.addClass('historical')
     @commitLine.addClass('historical')
     @branchMap.addClass('historical')
     $(@footerBar).addClass('historical')
-    @hover()
-    commit = @model.travelToCommit(commitId)
+    for nested in @model.getNested()
+      nested.travelStyle()
 
 
-  travelFromThePresent: (commitId) ->
-    @headerElement.addClass('historical')
-    @commitLine.addClass('historical')
-    @branchMap.addClass('historical')
-    $(@footerBar).addClass('historical')
-    @hover()
-    commit = @model.travelFromThePresent(commitId)
 
-
-  '''
-    Changes the appearance of the header to reflect returning to the most contemporary
-    commit. Starts the model actually returning back to this commit.
-  '''
-  backToTheFuture: ->
+  removeTravelStyle: ->
     @headerElement.removeClass('historical')
     @commitLine.removeClass('historical')
     @branchMap.removeClass('historical')
     $(@footerBar).removeClass('historical')
-    @model.backToTheFuture()
+    for nested in @model.getNested()
+      nested.removeTravelStyle()
+
 
 
   '''

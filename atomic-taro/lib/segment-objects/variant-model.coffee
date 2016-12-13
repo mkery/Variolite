@@ -19,6 +19,7 @@ Represents a single variant of exploratory code.
 
 module.exports =
 class VariantModel
+  PRESENT: -1
 
   constructor: (params) ->
     @view = params.taroView
@@ -26,6 +27,7 @@ class VariantModel
     @marker = params.marker
     @undoAgent = params.undoAgent
     @provenanceAgent = params.provAgent
+    @travelAgent = params.travelAgent
     title = params.title
     title ?= "v0"
 
@@ -149,39 +151,18 @@ class VariantModel
     commit
 
 
-  '''
-    Travels to most recent in time commit.
-  '''
-  backToTheFuture: (insertPoint, branchID) ->
-    if branchID? and branchID != @currentBranch.getID()
-      branch = @findBranch(branchID)
-      branch.setActive(true)
-      @currentBranch.setActive(false)
-      @currentBranch = branch
-      @getView().switchHeaderToVersion(branch)
-      branch.backToTheFuture(insertPoint)
-    else
-      @currentBranch.backToTheFuture(insertPoint)
-
-
-  travelFromThePresent: (commitData) ->
-    console.log "FROM PRESENT"
-    @currentBranch.recordCurrentState() # SAVE the latest version, not ideal to make a commit every time for this though
-    @travelToCommit(commitData)
-
 
   '''
     Starts process of travel to a commit.
     Changes display to show the user's code as it was at the time of a specific commit
   '''
   travelToCommit: (commitData, insertPoint) ->
-    #console.log "commitId is "+@currentBranch.getTitle()
-    #console.log commitData
     branchID = commitData.branchID
     commitID = commitData.commitID
 
-    branch = @findBranch(branchID)
+    #   are we traveling between 2 past points?
     if branchID != @currentBranch.getID()
+      branch = @findBranch(branchID)
       #console.log "Switching to version "+branchID
       #console.log branch
       branch.setActive(true)
@@ -190,7 +171,18 @@ class VariantModel
       @view.switchHeaderToVersion(branch)
       @currentBranch.setActive(true)
 
-    @currentBranch.travelToCommit(commitID, insertPoint)
+    # Check direction of travel:
+    #   are we in tha past traveling to the present?
+    if commitID == @PRESENT
+      console.log "BACK TO THE FUTURE"
+      @currentBranch.backToTheFuture()
+    #   are we in the present traveling back?
+    else
+      if @currentBranch.getCurrentCommit() == @currentBranch.NO_COMMIT
+        console.log "FROM PRESENT TO PAST"
+        @currentBranch.recordCurrentState()
+
+      @currentBranch.travelToCommit(commitID, insertPoint)
 
 
   '''

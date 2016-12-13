@@ -17,6 +17,7 @@ Represents a single variant of exploratory code.
 
 module.exports =
 class VariantBranch
+  NO_COMMIT : -1
 
   # {active: true, id: id, title: title, subtitle: 0, text: text, date: date, branches: [], commits: [], nested: []}
   constructor: (@model, params) ->
@@ -26,6 +27,7 @@ class VariantBranch
     @text = params?.text
     @date = params?.date
     @commits = []
+    @currentCommit = @NO_COMMIT
     @branches = []
     @nested = []
     @active = true
@@ -66,6 +68,10 @@ class VariantBranch
 
   getNested: ->
     @nested
+
+
+  getCurrentCommit: ->
+    @currentCommit
 
 
   isMultiSelected: ->
@@ -168,12 +174,16 @@ class VariantBranch
     #console.log "Back to the future "+@title
     #console.log @currentState
     if not insertPoint? # meaning the first outermost variant
+      console.log "No insert point"
+      console.log @model.getTitle()
       @model.clearTextInRange()
     if @currentState?
       #console.log "Unraveling "+@title
       @unravelCommitText(@currentState.text, insertPoint, false)
     else
       @travelToCommit(@commits.length - 1)
+    # Mark that we are in the present
+    @currentCommit = @NO_COMMIT
 
 
 
@@ -182,6 +192,7 @@ class VariantBranch
     Changes display to show the user's code as it was at the time of a specific commit
   '''
   travelToCommit: (commitData, insertPoint) ->
+    @currentCommit = commitData
     if not insertPoint?
       @model.clearTextInRange()
       #console.log "CLEARED TEXT"
@@ -193,8 +204,8 @@ class VariantBranch
     Recursively loads in commits from chunked text.
   '''
   travel: (commitId, insertPoint) ->
-    #console.log "Commits of "+@title+":  "+@commits.length
-    #console.log commitId
+    console.log "Commits of "+@title+":  "+@commits.length
+    console.log commitId
     commit = @commits[commitId]
     #console.log "commit is:"
     #console.log commit
@@ -236,10 +247,10 @@ class VariantBranch
         for nest in @nested
           nestID = item.varID
           if nest.getModel().getVariantID() == nestID
-            if commitTravel == true
-              insertPoint = nest.getModel().travelToCommit(item, insertPoint)
-            else
-              insertPoint = nest.getModel().backToTheFuture(insertPoint, item.branchID)
+            #if commitTravel == true
+            insertPoint = nest.getModel().travelToCommit(item, insertPoint)
+            #else
+            #  insertPoint = nest.getModel().backToTheFuture(insertPoint, item.branchID)
             break
       else
         range = @model.insertTextInRange(insertPoint, item.text, 'skip')

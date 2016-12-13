@@ -14,6 +14,8 @@ class OutputPane
     @outputList = document.createElement('div')
 
     @initialize()
+    @travelAgent.setOutputPane(@)
+
 
   initialize: ->
     @pane.appendChild(@makeTitleDiv())
@@ -64,10 +66,14 @@ class OutputPane
 
     outDate = document.createElement('div')
     outDate.classList.add('atomic-taro_output_date')
-    $(outDate).text(@dateNow())
+    $(outDate).text(@dateNow()+" commit "+commit.commitID)
     outputContainer.appendChild(outDate)
 
     @outputList.appendChild(outputContainer)
+
+
+  backToTheFuture: ->
+    $('.atomic-taro_output_box').removeClass('travel')
 
 
   tagCommit: (outputBox, tag) ->
@@ -133,8 +139,8 @@ class OutputPane
       $('.atomic-taro_output_box').removeClass('travel')
       $(this).addClass('travel')
       commit = $(this).data('commit')
-      ev.data.travelAgent.travelToCommit(commit)
-      console.log "return to commit "+commit
+      ev.data.travelAgent.travelToGlobalCommit(commit)
+      console.log "return to commit ", commit
       ev.stopPropagation()
 
     $(document).on 'mousedown', '.atomic-taro_output_box', {'menu': @rightClickMenu}, (ev) ->

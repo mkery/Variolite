@@ -179,7 +179,6 @@ class AtomicTaroView
     width = @getWidth()
     @variantListeners.updateExplorerPanelShowing(@isShowingExplorer(), width)
     @masterVariant.updateVariantWidth(width)
-    #@mainHeaderMenu.updateWidth(width)
     @explorer_panel.isVisible()
 
 
@@ -200,7 +199,8 @@ class AtomicTaroView
     @explorer.registerOutput(data, commitId)
 
 
-
+  getTravelAgent: ->
+    @travelAgent
 
 
   '''
@@ -232,13 +232,9 @@ class AtomicTaroView
     @element.classList.add('atomic-taro_pane')#, 'scroll-view')
 
     #@variantWidth = $(@element).width() - 20 #@sourceEditor.getElement().getWidth() - 20
-    @variantFactory = new VariantFactory(@filePath, @, @undoAgent, @provenanceAgent)
+    @variantFactory = new VariantFactory(@filePath, @, @undoAgent, @provenanceAgent, @travelAgent)
     @masterVariant = @variantFactory.buildMasterVariant(@exploratoryEditor, @masterVariant)
     @variantFactory.initVariants(@exploratoryEditor, @masterVariant)
-
-    # menu at the top of the code
-    #@mainHeaderMenu = new MainHeaderMenu(@masterVariant, @)
-    #@element.appendChild(@mainHeaderMenu.getElement())
 
     # create a variant manager
     @variantListeners = new Listeners(@masterVariant, @)

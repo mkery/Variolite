@@ -7,7 +7,6 @@ class CommitLine
 
   constructor: (@variantView, @variantModel) ->
     @addCommitLine() # initialize commit line
-    @prevCommit = -1 #meaning the current/no commit
 
   getVariantView: ->
     @variantView
@@ -98,14 +97,10 @@ class CommitLine
               value: commitNum,
               slide: (event, ui) =>
                 if ui.value == @getModel().getCurrentVersion().getNumberOfCommits()
-                  @getVariantView().backToTheFuture()
-                  @prevCommit = -1
+                  @getModel().travelToCommit({commitID: @getModel().PRESENT, branchID: @getModel().getCurrentVersion().id})
                 else
-                  if @prevCommit == -1
-                    @getVariantView().travelFromThePresent({commitID: ui.value, branchID: @getModel().getCurrentVersion().id})
-                  else
-                    @getVariantView().travelToCommit({commitID: ui.value, branchID: @getModel().getCurrentVersion().id})
-                  @prevCommit = ui.value
+                  @getModel().travelToCommit({commitID: ui.value, branchID: @getModel().getCurrentVersion().id})
+
             })
             #console.log "commit num: "+commitNum+" ticks: "+$(@commitSlider).children('.atomic-taro_commit-ticks').length
             #console.log "WIDTH "+$(@commitTraveler).width()
