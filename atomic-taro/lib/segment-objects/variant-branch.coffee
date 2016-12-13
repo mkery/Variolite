@@ -181,6 +181,7 @@ class VariantBranch
       @model.clearTextInRange()
     if @currentState?
       #console.log "Unraveling current state "+@title
+      @model.getView().getCommitLine().manualSet(commitID)
       return @unravelCommitText(@currentState.text, insertPoint)
     else
       #console.log "traveling to commit "
@@ -204,13 +205,14 @@ class VariantBranch
     Changes display to show the user's code as it was at the time of a specific commit.
     Recursively loads in commits from chunked text.
   '''
-  travel: (commitId, insertPoint) ->
+  travel: (commitID, insertPoint) ->
     #console.log "Commits of "+@title+":  "+@commits.length
-    #console.log commitId
-    commit = @commits[commitId]
+    #console.log commitID
+    commit = @commits[commitID]
     #console.log "commit is:"
     #console.log commit
     #console.log @commits
+    @model.getView().getCommitLine().manualSet(commitID)
     text = commit.text
     return @unravelCommitText(text, insertPoint)
 
@@ -396,8 +398,8 @@ class VariantBranch
     variantView = v
     root = v.rootVersion
     if root?
-      variantView = @view.makeNewFromJson(v)
+      variantView = @model.getView().makeNewFromJson(v)
       variantView.buildVariantDiv()
       if nestParent?
-        variantView.getModel().setNestedParent([nestParent, @view])
+        variantView.getModel().setNestedParent([nestParent, @model.getView()])
     variantView

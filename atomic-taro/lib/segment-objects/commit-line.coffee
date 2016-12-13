@@ -53,6 +53,8 @@ class CommitLine
     $(@commitTraveler).removeClass('historical')
 
 
+
+
   updateWidth: (width) ->
     $(@commitLineElem).width(width)
     paddT = $(@commitTraveler).innerWidth() - $(@commitTraveler).width()
@@ -96,11 +98,12 @@ class CommitLine
               min: 0,
               value: commitNum,
               slide: (event, ui) =>
-                #console.log "SLIDER ", ui.value
-                if ui.value == @getModel().getCurrentVersion().getNumberOfCommits()
-                  @getModel().travelToCommit({commitID: @getModel().PRESENT, branchID: @getModel().getCurrentVersion().id})
-                else
-                  @getModel().travelToCommit({commitID: ui.value, branchID: @getModel().getCurrentVersion().id})
+                #console.log @variantView.getTitle(), " SLIDER ", ui.value
+                if ui.manual != true
+                  if ui.value == @getModel().getCurrentVersion().getNumberOfCommits()
+                    @getModel().travelToCommit({commitID: @getModel().PRESENT, branchID: @getModel().getCurrentVersion().id})
+                  else
+                    @getModel().travelToCommit({commitID: ui.value, branchID: @getModel().getCurrentVersion().id})
 
             })
             #console.log "commit num: "+commitNum+" ticks: "+$(@commitSlider).children('.atomic-taro_commit-ticks').length
@@ -115,10 +118,21 @@ class CommitLine
 
 
   slideToPresent: ->
-    max = @getModel().getCurrentVersion().getNumberOfCommits()
-    $(@commitSlider).slider('option', 'value',max)
-    $(@commitSlider).slider('option','slide')
-       .call($(@commitSlider),null,{ handle: $('.ui-slider-handle', $(@commitSlider)), value: max })
+    # don't bother if timeline isn't showing
+    if $(@commitLineElem).is(":visible")
+      max = @getModel().getCurrentVersion().getNumberOfCommits()
+      $(@commitSlider).slider('option', 'value',max)
+      $(@commitSlider).slider('option','slide')
+         .call($(@commitSlider),null,{ manual: true, handle: $('.ui-slider-handle', $(@commitSlider)), value: max })
+
+
+  manualSet: (commitNum) ->
+    # don't bother if timeline isn't showing
+    if $(@commitLineElem).is(":visible")
+      #console.log "MANUAL SET CALLED ", commitNum
+      $(@commitSlider).slider('option', 'value',commitNum)
+      $(@commitSlider).slider('option','slide')
+         .call($(@commitSlider),null,{ manual: true, handle: $('.ui-slider-handle', $(@commitSlider)), value: commitNum })
 
 
 

@@ -39,7 +39,7 @@ class CommitTravelAgent
     Any variant can call this method. This is at the global program level so that
     we can coordinate multiple components, such as the output pane and diffs.
   '''
-  backToTheFuture: (variant) ->
+  resetToPresent: (variant) ->
     variant.getModel().backToTheFuture()
     variant.removeTravelStyle()
     @outputPane.backToTheFuture()
