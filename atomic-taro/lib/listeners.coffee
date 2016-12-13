@@ -85,13 +85,6 @@ class Listeners
       @focusedVariant.unFocus()
       @focusedVariant = null
 
-    updateExplorerPanelShowing: (showing, w) ->
-      if showing
-        $('.showVariantsButton').text("hide")
-      else
-        $('.showVariantsButton').text("show")
-
-
 
     addJqueryListeners: (element) ->
       @variantWidth = $(@root.getElement()).width()

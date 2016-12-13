@@ -38,16 +38,16 @@ class HeaderElement
     @view = view
 
 
-  buildHeader: (width) ->
+  buildHeader: () ->
     # build wrapper
     @headerWrapper.classList.add('atomic-taro_editor-header-wrapper')
-    $(@headerWrapper).width(width)
+    #$(@headerWrapper).width(width)
     $(@headerWrapper).data('view', @view)
-    width = @buildWrapperLabel(@headerWrapper, width)
+    #width = @buildWrapperLabel(@headerWrapper, width)
 
     # build main header bar
     @headerBar.classList.add('atomic-taro_editor-header-box')
-    $(@headerBar).width(width)
+    #$(@headerBar).width(width)
     nameContainer = document.createElement("div")
     nameContainer.classList.add('atomic-taro_editor-header-name-container')
 
@@ -65,24 +65,24 @@ class HeaderElement
     The header wrapper contains the collapseIcon and also labels to indicate if a
     variant box is nested within another one.
   '''
-  buildWrapperLabel: (headerContainer, width) ->
-    @collapseIcon = document.createElement("span")
-    @collapseIcon.classList.add("icon-chevron-down")
-    @collapseIcon.classList.add("taro-collapse-button")
-    $(@collapseIcon).click =>
-      @model.collapse()
-    headerContainer.appendChild(@collapseIcon)
+  buildWrapperLabel: (headerContainer) ->
+    # @collapseIcon = document.createElement("span")
+    # @collapseIcon.classList.add("icon-chevron-down")
+    # @collapseIcon.classList.add("taro-collapse-button")
+    # $(@collapseIcon).click =>
+    #   @model.collapse()
+    # headerContainer.appendChild(@collapseIcon)
 
-    width = width - $(@collapseIcon).width()
+    # width = width - $(@collapseIcon).width()
     nestLabel = @model.generateNestLabel()
     if nestLabel?
       @nestLabelContainer =  document.createElement("span")
       $(@nestLabelContainer).text(nestLabel)
       headerContainer.appendChild(@nestLabelContainer)
-      width = width - $(@nestLabelContainer).width() - 20
-    else
-      width -= 20
-    width
+      #width = width - $(@nestLabelContainer).width() - 20
+    # else
+    #   width -= 20
+    # width
 
 
 
@@ -155,12 +155,6 @@ class HeaderElement
     return v
 
 
-  updateWidth: (width) ->
-    $(@getElement()).width(width)
-    if @nestLabelContainer?
-      $(@headerBar).width(width - $(@nestLabelContainer).width() - 20 - $(@collapseIcon).width())
-    else
-      $(@headerBar).width(width - $(@collapseIcon).width() - 5)
 
 
   update: ->

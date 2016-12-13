@@ -124,13 +124,6 @@ class AtomicTaroView
     @filePath
 
 
-  '''
-    Returns the current width of the editor area of the tool, when the editor
-    is resized.
-  '''
-  getWidth: ->
-    @exploratoryEditor.getElement().getWidth()# - 20
-
 
   '''
     There is a master variant that wraps the entire file.
@@ -155,30 +148,27 @@ class AtomicTaroView
       @explorer_panel = atom.workspace.addRightPanel({item: @explorer})
     if not @explorer_panel.isVisible()
       @explorer_panel.show()
-    width = @getWidth()
-    @variantListeners.updateExplorerPanelShowing(@isShowingExplorer(), width)
-    @masterVariant.updateVariantWidth(width)
+    $('.showVariantsButton').text("hide")
 
 
   closeExplorerView: ->
     @explorer_panel.hide()
-    width = @getWidth()
-    @variantListeners.updateExplorerPanelShowing(@explorer_panel.isVisible(), width)
-    @masterVariant.updateVariantWidth(width)
+    $('.showVariantsButton').text("show")
 
 
   toggleExplorerView: ->
     if @explorer_panel?
       if @explorer_panel.isVisible()
         @explorer_panel.hide()
+        $('.showVariantsButton').text("show")
       else
         @explorer_panel.show()
+        $('.showVariantsButton').text("hide")
 
     else
       @explorer_panel = atom.workspace.addRightPanel({item: @explorer})
-    width = @getWidth()
-    @variantListeners.updateExplorerPanelShowing(@isShowingExplorer(), width)
-    @masterVariant.updateVariantWidth(width)
+      $('.showVariantsButton').text("hide")
+
     @explorer_panel.isVisible()
 
 
@@ -231,15 +221,16 @@ class AtomicTaroView
     @element = document.createElement('div')
     @element.classList.add('atomic-taro_pane')#, 'scroll-view')
 
-    #@variantWidth = $(@element).width() - 20 #@sourceEditor.getElement().getWidth() - 20
+    @travelAgent = new CommitTravelAgent(@)
     @variantFactory = new VariantFactory(@filePath, @, @undoAgent, @provenanceAgent, @travelAgent)
     @masterVariant = @variantFactory.buildMasterVariant(@exploratoryEditor, @masterVariant)
+    @travelAgent.setMasterVariant(@masterVariant)
     @variantFactory.initVariants(@exploratoryEditor, @masterVariant)
+
 
     # create a variant manager
     @variantListeners = new Listeners(@masterVariant, @)
     @programProcessor = new ProgramProcessor(@filePath, @)
-    @travelAgent = new CommitTravelAgent(@masterVariant, @)
 
 
   '''

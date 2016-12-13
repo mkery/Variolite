@@ -28,7 +28,6 @@ class VariantModel
 
     @undoAgent = params.undoAgent
     @provenanceAgent = params.provAgent
-    @travelAgent = params.travelAgent
 
     @headerMarker = null # the header div has it's own marker
     @marker = params.marker
@@ -177,14 +176,14 @@ class VariantModel
     #   are we in tha past traveling to the present?
     if commitID == @PRESENT or !commitID?
       #console.log @getTitle(), " BACK TO THE FUTURE, ", commitID, ", ", @PRESENT
-      @currentBranch.backToTheFuture(insertPoint)
+      return @currentBranch.backToTheFuture(insertPoint)
     #   are we in the present traveling back?
     else
       if @currentBranch.getCurrentCommit() == @currentBranch.NO_COMMIT
         #console.log "FROM PRESENT TO PAST"
         @currentBranch.recordCurrentState(commitID)
 
-      @currentBranch.travelToCommit(commitID, insertPoint)
+      return @currentBranch.travelToCommit(commitID, insertPoint)
 
 
   '''

@@ -12,6 +12,7 @@ class OutputPane
     @pane.classList.add('atomic-taro_explore-pane')
     @pane.classList.add('native-key-bindings');
     @outputList = document.createElement('div')
+    @outputList.classList.add('atomic-taro_output-list-pane')
 
     @initialize()
     @travelAgent.setOutputPane(@)
@@ -31,10 +32,11 @@ class OutputPane
   getWidth: ->
     $(@pane).width()
 
+
   makeTitleDiv: ->
-    titleBox = document.createElement('div')
-    titleBox.classList.add('atomic-taro_explore-title-container')
-    titleBox.classList.add('active')
+    @titleBox = document.createElement('div')
+    @titleBox.classList.add('atomic-taro_explore-title-container')
+    @titleBox.classList.add('active')
     titleText = document.createElement('span')
     $(titleText).text("Output")
 
@@ -46,10 +48,10 @@ class OutputPane
       console.log "clicked exit!!!"
       @atomicTaroView.closeExplorerView()
 
-    titleBox.appendChild(titleText)
-    titleBox.appendChild(xIcon)
-    # titleBox.appendChild(playButton)
-    titleBox
+    @titleBox.appendChild(titleText)
+    @titleBox.appendChild(xIcon)
+    # @titleBox.appendChild(playButton)
+    @titleBox
 
 
   registerOutput: (data, commit) ->
@@ -63,17 +65,21 @@ class OutputPane
     $(outputContainer).click (ev) ->
       console.log 'clicked with ctrl?', ev.ctrlKey
 
-
     outDate = document.createElement('div')
     outDate.classList.add('atomic-taro_output_date')
     $(outDate).text(@dateNow()+" commit "+commit.commitID)
     outputContainer.appendChild(outDate)
 
     @outputList.appendChild(outputContainer)
+    $(@outputList).scrollTop($(@outputList)[0].scrollHeight)
 
 
   resetToPresent: ->
     $('.atomic-taro_output_box').removeClass('travel')
+
+
+  setToCommit: (variant, branchID, commitID) ->
+    # show past outputs
 
 
   tagCommit: (outputBox, tag) ->

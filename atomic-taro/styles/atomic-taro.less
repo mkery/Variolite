@@ -48,7 +48,9 @@ atom-text-editor, /* 1 */
 }
 
 .atomic-taro_editor-footer-box{
-  min-width: 200px;
+  display: flex;
+  flex-direction: row;
+  width: 100%;
   height: 1px;
   margin-bottom: 4px;
   //background-color: @tree-view-background-color;
@@ -66,6 +68,9 @@ atom-text-editor, /* 1 */
   font-family: Inconsolata, Monaco, Consolas, 'Courier New', Courier;
   font-size: @fontDemoSize;//@font-size;
   cursor: default;
+  display: flex;
+  flex-direction: row;
+  width: 100%;
 }
 
 .atomic-taro_editor-header-box{
@@ -83,6 +88,7 @@ atom-text-editor, /* 1 */
   border-top:  1px solid @mono-3;
   border-bottom:  1px solid @inset-panel-background-color;
   margin-bottom: 5px;
+  flex: 1 1 auto;
 
 }
 .atomic-taro_editor-header-box:hover, .atomic-taro_editor-header-box.active{
@@ -95,15 +101,6 @@ atom-text-editor, /* 1 */
   position:fixed;
   z-index: 4;
 }
-/*.atomic-taro_editor-header-box.activeVariant{
-  //border-left: 3px solid @hue-1;
-  border-bottom: 1px solid @hue-1;
-}
-.atomic-taro_editor-header-box.activeVariant:hover{
-  border: 1px solid @mono-2;
-  //border-left: 3px solid @hue-1;
-  border-bottom: 1px solid @hue-1;
-}*/
 .atomic-taro_editor-header-box.inactiveVariant{
   color: @hue-1;
   margin: 0px;
@@ -288,12 +285,12 @@ atom-text-editor, /* 1 */
   background-color: #E9EFF4;
 }
 
-
-.output-container{
-  font-family: Inconsolata, Monaco, Consolas, 'Courier New', Courier;
-  font-size: @fontDemoSize;//@font-size;
-  background-color: @syntax-selection-color;
-  margin: 0px;
-  border: 1px solid @syntax-selection-color;//@mono-3;
-  height: 40px;
-}
+//
+// .output-container{
+//   font-family: Inconsolata, Monaco, Consolas, 'Courier New', Courier;
+//   font-size: @fontDemoSize;//@font-size;
+//   background-color: @syntax-selection-color;
+//   margin: 0px;
+//   border: 1px solid @syntax-selection-color;//@mono-3;
+//   height: 40px;
+// }

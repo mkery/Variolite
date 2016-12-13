@@ -23,6 +23,7 @@ class VariantView
     @root = params.taroView
     @undoAgent = params.undoAgent
     @provenanceAgent = params.provAgent
+    @travelAgent = params.travelAgent
 
     params['taroView'] = @
     @model = new Variant(params)
@@ -78,6 +79,11 @@ class VariantView
 
   getHeaderElement: ->
     @headerElement
+
+
+  getTravelAgent: ->
+    @travelAgent
+
 
   '''
     TODO used?
@@ -315,16 +321,6 @@ class VariantView
     @model.registerOutput(data)
 
 
-  '''
-    Handle resize of the width.
-  '''
-  updateVariantWidth: (width) ->
-    @headerElement.updateWidth(width)
-    @branchMap.updateWidth(width)
-    @commitLine.updateWidth(width)
-    for n in @model.getNested()
-      n.updateVariantWidth(width)
-
 
   '''
     Attatches a new nested variant to this parent variant box.
@@ -394,10 +390,9 @@ class VariantView
     UI for this variant box.
   '''
   buildVariantDiv: () ->
-    width = @root.getWidth()
     @headerElement.setView(@)
     @headerElement.setModel(@model)
-    @headerElement.buildHeader(width)
+    @headerElement.buildHeader()
     # commit line
     @commitLine = new CommitLine(@, @model)
     @headerElement.appendDiv(@commitLine.getElement())
@@ -407,10 +402,9 @@ class VariantView
     # variants panel
     @diffPanels = new DiffPanels(@, @model)
     @headerElement.appendDiv(@diffPanels.getElement())
-    @diffPanels.updateWidth(width)
 
     @headerElement.buildButtons()
-    $(@footerBar).css('margin-left', $(@nestLabelContainer).width() + 20)
+    #$(@footerBar).css('margin-left', $(@nestLabelContainer).width() + 20)
 
     if @model.getNested().length > 0
       for n in @model.getNested()

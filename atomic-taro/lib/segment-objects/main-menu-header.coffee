@@ -7,14 +7,12 @@ class MainMenuHeader extends HeaderElement
 
 
 
-  buildHeader: (width) ->
+  buildHeader: () ->
     @headerWrapper.classList.add('atomic-taro_editor-header-wrapper')
-    $(@headerWrapper).width(width)
     $(@headerWrapper).data('view', @view)
 
     @headerBar = document.createElement('div')
     @headerBar.classList.add('atomic-taro_main-menu')
-    $(@headerBar).width(width)
 
     @addRunButton(@headerBar)
 

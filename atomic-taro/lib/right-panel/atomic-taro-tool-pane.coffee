@@ -1,4 +1,4 @@
-{Point, Range, TextBuffer} = require 'atom'
+{View, Point, Range, TextBuffer} = require 'atom'
 Variant = require '../segment-objects/variant-model'
 VariantView = require '../segment-objects/variant-view'
 OutputPane = require './output-pane'

@@ -43,7 +43,8 @@ class BranchMap
   '''
   toggleBranchMap: ->
     if $(@branchMapElem).is(":visible")
-      $(@branchMapElem).hide()
+      #$(@branchMapElem).hide()
+      $(@branchMapElem).slideUp('fast')
       @subscriptions.dispose()
       #console.log @subscriptions
       return false
@@ -52,6 +53,7 @@ class BranchMap
       $(@branchMapElem).html("")
       $(@branchMapElem).show()
       @drawBranchMap()
+      #$(@branchMapElem).slideDown('fast')
       return true
 
 

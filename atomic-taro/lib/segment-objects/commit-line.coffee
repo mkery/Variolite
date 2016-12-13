@@ -55,15 +55,6 @@ class CommitLine
 
 
 
-
-  updateWidth: (width) ->
-    $(@commitLineElem).width(width)
-    paddT = $(@commitTraveler).innerWidth() - $(@commitTraveler).width()
-    $(@commitTraveler).width(width - paddT)
-    if $(@commitLineElem).is(":visible")
-      @addTickMarks(@getModel().getCurrentVersion().getNumberOfCommits())
-
-
   redraw: ->
     if $(@commitLineElem).is(":visible")
       @drawTimeline()
@@ -74,7 +65,8 @@ class CommitLine
   '''
   toggleCommitTimeline: ->
     if $(@commitLineElem).is(":visible")
-      $(@commitLineElem).hide()
+      #$(@commitLineElem).hide()
+      $(@commitLineElem).slideUp('fast')
       return false
     else
       @drawTimeline()
@@ -83,9 +75,9 @@ class CommitLine
 
   drawTimeline: ->
       @initialized = true
-      $(@commitLineElem).width($(@commitLineElem).parent().width())
-      paddT = $(@commitTraveler).innerWidth() - $(@commitTraveler).width()
-      $(@commitTraveler).width($(@commitLineElem).width() - paddT)
+      #$(@commitLineElem).width($(@commitLineElem).parent().width())
+      #paddT = $(@commitTraveler).innerWidth() - $(@commitTraveler).width()
+      #$(@commitTraveler).width($(@commitLineElem).width() - paddT)
       commitNum = @getModel().getCurrentVersion().getNumberOfCommits()
       currentCommit = @getModel().getCurrentVersion().getCurrentCommit()
       if currentCommit == -1 # no commit
@@ -107,8 +99,10 @@ class CommitLine
                 if ui.manual != true
                   if ui.value == @getModel().getCurrentVersion().getNumberOfCommits()
                     @getModel().travelToCommit({commitID: @getModel().PRESENT, branchID: @getModel().getCurrentVersion().id})
+                    @getVariantView().getTravelAgent().resetEnvToPresent()
                   else
                     @getModel().travelToCommit({commitID: ui.value, branchID: @getModel().getCurrentVersion().id})
+                    @getVariantView().getTravelAgent().setEnvToCommit(@getModel(), {commitID: ui.value, branchID: @getModel().getCurrentVersion().id})
 
             })
             #console.log "commit num: "+commitNum+" ticks: "+$(@commitSlider).children('.atomic-taro_commit-ticks').length
@@ -119,6 +113,7 @@ class CommitLine
         $(@commitTraveler).addClass("textOnly")
         $(@noCommits).html("No commits to show yet!")
       $(@commitLineElem).show()
+      #$(@commitLineElem).slideDown('fast')
 
 
 

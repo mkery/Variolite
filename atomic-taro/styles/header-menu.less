@@ -10,7 +10,7 @@
   padding-top: 10px;
   padding-bottom: 10px;
   padding-left: 10px;
-  background-color: white;
+  background-color: @base-background-color;//white;
   border-bottom: 1px solid @tool-panel-border-color;
   font-family: Inconsolata, Monaco, Consolas, 'Courier New', Courier;
   font-size: @fontDemoSize;
@@ -18,6 +18,9 @@
   top: 0px;
   z-index: 10;
   color: @text-color;
+  display: flex;
+  flex-direction: row;
+  width: 100%;
 }
 
 .atomic-taro_main-menu_runIcon{

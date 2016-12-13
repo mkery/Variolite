@@ -4,9 +4,17 @@
 module.exports =
 class CommitTravelAgent
 
-  constructor: (@masterVariant, @atomicTaroView) ->
-    @mainMenuHeader = @masterVariant.getHeaderElement()
+  constructor: (@atomicTaroView) ->
+    @mainMenuHeader = null
     @outputPane = null
+
+
+  '''
+    added later after the master variant initializes
+  '''
+  setMasterVariant: (master) ->
+    @masterVariant = master
+    @mainMenuHeader = @masterVariant.getHeaderElement()
 
 
   '''
@@ -48,6 +56,12 @@ class CommitTravelAgent
   resetEnvToPresent: ->
     @outputPane.resetToPresent()
 
+
+  setEnvToCommit: (variant, commitData) ->
+    branchID = commitData.branchID
+    commitID = commitData.commitID
+    @outputPane.setToCommit(variant, branchID, commitID)
+    # DO SOMETHING
 
 
   localTravel: (commit) ->
