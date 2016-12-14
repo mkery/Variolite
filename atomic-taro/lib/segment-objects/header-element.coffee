@@ -268,6 +268,11 @@ class HeaderElement
     @variantsButton.classList.add('variants-button')
     $(@variantsButton).text("variants")
     headerContainer.appendChild(@variantsButton)
+
+    $(@variantsButton).hoverIntent \
+      (-> $(this).children('.variants-hoverMenu').slideDown('fast')),\
+      (-> $(this).children('.variants-hoverMenu').slideUp('fast'))
+
     variantsMenu = document.createElement("div")
     variantsMenu.classList.add('variants-hoverMenu')
     $(variantsMenu).hide()

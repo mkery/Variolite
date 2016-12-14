@@ -247,7 +247,7 @@ class AtomicTaroView
         toolPane.getElement()
 
       @explorer = new AtomicTaroToolPane(@masterVariant, @programProcessor, @travelAgent, @)
-
+      @showExplorerView()
 
   '''
     Creates a TextEditor that uses AnnotationProcessorBuffer for this tool. Ideally

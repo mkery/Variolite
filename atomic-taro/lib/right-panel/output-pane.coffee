@@ -1,7 +1,7 @@
 {Point, Range, TextBuffer} = require 'atom'
 Variant = require '../segment-objects/variant-model'
 VariantView = require '../segment-objects/variant-view'
-
+require '../ui-helpers/jquery.hoverIntent.minified.js'
 
 module.exports =
 class OutputPane
@@ -22,6 +22,7 @@ class OutputPane
     @pane.appendChild(@makeTitleDiv())
     @pane.appendChild(@outputList)
     @pane.appendChild(@makeContextMenu())
+    @makeTravelDiv()
     @addJqueryListeners()
 
 
@@ -65,10 +66,15 @@ class OutputPane
     $(outputContainer).click (ev) ->
       console.log 'clicked with ctrl?', ev.ctrlKey
 
+    $(outputContainer).hoverIntent \
+      (-> $(this).children('.atomic-taro_output_date').slideDown('fast')),\
+      (-> $(this).children('.atomic-taro_output_date').slideUp('fast'))
+
     outDate = document.createElement('div')
     outDate.classList.add('atomic-taro_output_date')
     $(outDate).text(@dateNow()+" commit "+commit.commitID)
     outputContainer.appendChild(outDate)
+    $(outDate).hide()
 
     @outputList.appendChild(outputContainer)
     $(@outputList).scrollTop($(@outputList)[0].scrollHeight)
@@ -80,6 +86,42 @@ class OutputPane
 
   setToCommit: (variant, branchID, commitID) ->
     # show past outputs
+
+
+
+  makeTravelDiv: ->
+    travelWrapper = document.createElement('div')
+    travelWrapper.classList.add('atomic-taro_output_travel-wrapper')
+
+    travelDiv = document.createElement('div')
+    travelDiv.classList.add('atomic-taro_output_travel-div')
+
+    label = document.createElement('div')
+    label.classList.add('atomic-taro_explore-title-container')
+    label.classList.add('active')
+    titleText = document.createElement('span')
+    $(titleText).text("Output from this commit")
+
+    xIcon = document.createElement('span')
+    xIcon.classList.add('icon-dash')
+    xIcon.classList.add('atomic-taro_explore')
+    xIcon.classList.add('text-smaller')
+    $ => $(document).on 'click', '.icon-dash.atomic-taro_explore', (ev) =>
+      $(travelDiv).hide()
+      xIcon.classList.add('icon-file-add')
+      $(xIcon).removeClass('icon-dash')
+
+    $ => $(document).on 'click', '.icon-file-add.atomic-taro_explore', (ev) =>
+      $(travelDiv).show()
+      xIcon.classList.add('icon-dash')
+      $(xIcon).removeClass('icon-file-add')
+
+    label.appendChild(titleText)
+    label.appendChild(xIcon)
+    travelWrapper.appendChild(label)
+    travelWrapper.appendChild(travelDiv)
+    @outputList.appendChild(travelWrapper)
+
 
 
   tagCommit: (outputBox, tag) ->
@@ -156,6 +198,14 @@ class OutputPane
         $(ev.data.menu).show()
         $(ev.data.menu).offset({left:ev.pageX,top:ev.pageY})
         $(ev.data.menu).data('output', this)
+
+    # $(document).on 'mouseover', '.atomic-taro_output_box', (ev) ->
+    #   $(this).children('.atomic-taro_output_date').slideDown('fast')
+    #   ev.stopPropagation()
+    #
+    # $(document).on 'mouseleave', '.atomic-taro_output_box', (ev) ->
+    #   $(this).children('.atomic-taro_output_date').hide()
+    #   ev.stopPropagation()
 
     $(document).on 'blur', '.output-rmemu_tag', (e) =>
       $(@rightClickMenu).hide()

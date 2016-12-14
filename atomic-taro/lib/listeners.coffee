@@ -110,15 +110,15 @@ class Listeners
       #------------- hover for variants button
 
       #$('.variants-button').hoverIntent (ev) ->
-      $(document).on 'mouseenter', '.variants-button', (ev) ->
-        hoverMenu = $(this).children('.variants-hoverMenu')
-        hoverMenu.slideDown('fast')
-        topPos = $(this).position().top + $(this).outerHeight() #+ hoverMenu.css('padding-top')
-        rightPos = $(this).position().left - hoverMenu.width()/2
-        hoverMenu.css({top : topPos+"px" , left : rightPos+"px"})
-      $(document).on 'mouseleave', '.variants-button', ->
-        hoverMenu = $(this).children('.variants-hoverMenu')
-        hoverMenu.slideUp('fast')
+      # $(document).on 'mouseenter', '.variants-button', (ev) ->
+      #   hoverMenu = $(this).children('.variants-hoverMenu')
+      #   hoverMenu.slideDown('fast')
+      #   topPos = $(this).position().top + $(this).outerHeight() #+ hoverMenu.css('padding-top')
+      #   rightPos = $(this).position().left - hoverMenu.width()/2
+      #   hoverMenu.css({top : topPos+"px" , left : rightPos+"px"})
+      # $(document).on 'mouseleave', '.variants-button', ->
+      #   hoverMenu = $(this).children('.variants-hoverMenu')
+      #   hoverMenu.slideUp('fast')
 
       #$(document).on 'mouseup', '.atomic-taro_editor-header_version-title', (ev) ->
       #  $(this).children('.atomic-taro_editor-header_x').show()
