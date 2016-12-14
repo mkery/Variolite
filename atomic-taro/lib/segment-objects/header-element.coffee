@@ -9,6 +9,7 @@ class HeaderElement
 
   constructor: () ->
     # header bar that holds interactive components above text editor
+    @verticalWrapper = document.createElement('div')
     @headerWrapper = document.createElement('div')
     @headerBar = document.createElement('div')
     @nestLabelContainer = null
@@ -27,9 +28,6 @@ class HeaderElement
     @focused = false
 
 
-
-
-
   setModel: (model) ->
     @model = model
 
@@ -40,6 +38,7 @@ class HeaderElement
 
   buildHeader: () ->
     # build wrapper
+    @verticalWrapper.classList.add('atomic-taro_editor-vertical-wrapper')
     @headerWrapper.classList.add('atomic-taro_editor-header-wrapper')
     #$(@headerWrapper).width(width)
     $(@headerWrapper).data('view', @view)
@@ -59,6 +58,7 @@ class HeaderElement
     nameContainer.appendChild(@versionBookmarkBar)
     @headerBar.appendChild(nameContainer)
     @headerWrapper.appendChild(@headerBar)
+    @verticalWrapper.appendChild(@headerWrapper)
 
 
   '''
@@ -94,7 +94,7 @@ class HeaderElement
 
 
   getElement: ->
-    @headerWrapper
+    @verticalWrapper
 
 
   appendDiv: (elem) ->

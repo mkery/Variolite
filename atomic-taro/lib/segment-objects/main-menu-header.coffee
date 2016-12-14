@@ -8,11 +8,11 @@ class MainMenuHeader extends HeaderElement
 
 
   buildHeader: () ->
-    @headerWrapper.classList.add('atomic-taro_editor-header-wrapper')
-    $(@headerWrapper).data('view', @view)
-
     @headerBar = document.createElement('div')
     @headerBar.classList.add('atomic-taro_main-menu')
+
+    @variantButtons = document.createElement('div')
+    @variantButtons.classList.add('atomic-taro_main-menu_variantContainer')
 
     @addRunButton(@headerBar)
 
@@ -25,6 +25,7 @@ class MainMenuHeader extends HeaderElement
     @addNameBookmarkBar()
     nameContainer.appendChild(@versionBookmarkBar)
     @headerBar.appendChild(nameContainer)
+    @headerBar.appendChild(@variantButtons)
     @headerWrapper.appendChild(@headerBar)
     @buildAlertPane()
 
@@ -75,9 +76,9 @@ class MainMenuHeader extends HeaderElement
 
 
   buildButtons: ->
-    @addVariantButtons(@headerBar)
-    @addHistoryButton(@headerBar)
-    @addBranchButton(@headerBar)
+    @addVariantButtons(@variantButtons)
+    @addHistoryButton(@variantButtons)
+    @addBranchButton(@variantButtons)
     @branchButton.classList.add('atomic-taro_main-menu_branchIcon')
     @historyButton.classList.add('atomic-taro_main-menu_branchIcon')
 
