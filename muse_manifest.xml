@@ -1,0 +1,22 @@
+<manifest alg="2" build="2017.0.0.363" opt="true" iceEnabled="true" iceMarkupVersion="2" iceEnabledOptions="link,responsive,cachebuster" exportTarget="other" domain="https://mkery.github.io/Variolite" resolutions="1x" timestamp="1481845871965">
+  <folder name="css">
+    <file name="site_global.css" crc="4214342048"/>
+    <file name="index.css" crc="505227705" ref="index"/>
+  </folder>
+  <folder name="scripts">
+    <file name="jquery-1.8.3.min.js" crc="209076791" ref="index"/>
+    <file name="museutils.js" crc="163421577" ref="index"/>
+    <file name="whatinput.js" crc="86476730" ref="index"/>
+    <file name="museconfig.js" crc="36584860" ref="index"/>
+    <file name="jquery.watch.js" crc="104486786" ref="index"/>
+    <file name="require.js" crc="244322403" ref="index"/>
+  </folder>
+  <folder name="images">
+    <file name="artwork-6.svg" crc="114921144" seo="true" ref="index"/>
+    <file name="artwork 6_poster_.png" crc="3920248905" ref="index"/>
+    <file name="sample_of_variolite,_olympic_peninsula,_washington_usa.jpg" crc="4121477732" seo="true" ref="index"/>
+    <file name="artwork-8.svg" crc="4246789460" seo="true" ref="index"/>
+    <file name="artwork 8_poster_.png" crc="121363209" ref="index"/>
+  </folder>
+  <file name="index.html" crc="3908665819" seo="true" mt="1481845685793" redirect="true"/>
+</manifest>

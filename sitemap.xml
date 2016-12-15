@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://mkery.github.io/Variolite/index.html</loc>
+    <lastmod>2016-12-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://mkery.github.io/Variolite/images/sample_of_variolite,_olympic_peninsula,_washington_usa.jpg</loc>
+    <lastmod>2016-12-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://mkery.github.io/Variolite/images/artwork-6.svg</loc>
+    <lastmod>2016-12-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://mkery.github.io/Variolite/images/artwork-8.svg</loc>
+    <lastmod>2016-12-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+</urlset>
