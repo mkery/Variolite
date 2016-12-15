@@ -74,6 +74,10 @@ class VariantBranch
     @currentCommit
 
 
+  getCurrentCommitObject: ->
+    @commits[@currentCommit]
+
+
   isMultiSelected: ->
     @multiSelected
 
@@ -275,7 +279,7 @@ class VariantBranch
   '''
     Starts the process of creating a new commit
   '''
-  commit: ->
+  commit: (output) ->
     #console.log "Commit called"
     # check if anything has changed first
     diff = @isChanged()
@@ -285,13 +289,13 @@ class VariantBranch
     # if it changed create a new commit
     if diff
       @latestCommit = @model.getTextInVariantRange()
-      commit = @commitChunk(@model.dateNow()) # chunks the current state so that it can be quickly reloaded
+      commit = @commitChunk(@model.dateNow(), output) # chunks the current state so that it can be quickly reloaded
 
     # if nothing has changed, point to the latest commit
     else
       #console.log "UNCHANGED"
       commit = @commits[@commits.length - 1]
-
+      commit['output'].push output
     #console.log "Returning commit!"
     #console.log commit
     #@git-utils -- commit
@@ -299,18 +303,19 @@ class VariantBranch
 
 
 
-  commitChunk: (date) ->
+  commitChunk: (date, output) ->
     #console.log "Starting commit chunk "+@title
-    chunks = @chunk(true)
+    chunks = @chunk(true, output)
     #console.log "Chunked "+@title+":"
     #console.log chunks
     #console.log "commited a version "
     #console.log @currentVersion.commits
     #@git-utils commit
     # return a reference, so that others can find this commit
-    commit = {date: date, text: chunks, varID: @model.getVariantID(), branchID: @id, commitID: @commits.length}
+    commit = {date: date, text: chunks, varID: @model.getVariantID(), branchID: @id, commitID: @commits.length, output: []}
+    commit.output.push output
     @commits.push commit
-    #console.log "Done commit:"
+    #console.log "Done commit for ", @title, ":"
     #console.log commit
     return commit
 

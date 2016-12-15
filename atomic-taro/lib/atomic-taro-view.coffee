@@ -18,6 +18,7 @@ UndoAgent = require './undo-agent'
 ProgramProcessor = require './program-processor'
 CommitTravelAgent = require './commit-travel-agent'
 VariantFactory = require './variant-factory'
+Output = require './output'
 
 '''
   TODO - rethink annotation-processor-buffer
@@ -28,9 +29,11 @@ VariantFactory = require './variant-factory'
 module.exports =
 class AtomicTaroView
 
-  constructor: (statePath, @filePath, @fileName, @fileType, sourceEditor) ->
+  constructor: (statePath, @filePath, @baseFolder, @fileName, @fileType, sourceEditor) ->
     # editors. The source editor is the editor of the original file.
     # The exploratory editor is uses our annotation processor buffer.
+    #@filePath = @baseFolder+"/"+@fileName+"."+@fileType
+    #console.log "BASE FILE IS ", @filePath
     @sourceEditor = sourceEditor
     @exploratoryEditor = null
 
@@ -185,8 +188,10 @@ class AtomicTaroView
     output to here.
   '''
   registerOutput: (data) ->
-    commitId = @masterVariant.registerOutput(data)
-    @explorer.registerOutput(data, commitId)
+    out = new Output(data)
+    commitId = @masterVariant.registerOutput(out)
+    out.setCommit(commitId)
+    @explorer.registerOutput(out, commitId)
 
 
   getTravelAgent: ->
@@ -230,7 +235,7 @@ class AtomicTaroView
 
     # create a variant manager
     @variantListeners = new Listeners(@masterVariant, @)
-    @programProcessor = new ProgramProcessor(@filePath, @)
+    @programProcessor = new ProgramProcessor(@baseFolder, @filePath, @)
 
 
   '''

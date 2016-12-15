@@ -10,6 +10,8 @@ class AtomicTaroToolPane
   constructor: (@masterVariant, @programProcessor, @travelAgent, @root) ->
     @pane = document.createElement('div')
     @pane.classList.add('atomic-taro_tools-pane')
+    $(@pane).width('20em')
+    $(@pane).css('max-width', '20em')
 
     @outputExplorer = new OutputPane(@masterVariant, @programProcessor, @travelAgent, @root)
 
@@ -49,18 +51,20 @@ class AtomicTaroToolPane
     $(document).off('mousemove', @resizeToolView)
     $(document).off('mouseup', @resizeStopped)
 
+
   resizeToolView: ({pageX, which}) =>
     return @resizeStopped() unless which is 1
 
     width = $(@pane).outerWidth() + $(@pane).offset().left - pageX
     $(@pane).width(width)
+    $(@pane).css('max-width', width)
 
   addSearchBar: ->
     searchContainer = document.createElement('div')
     searchContainer.classList.add('atomic-taro_search-bar-container')
-    searchIcon = document.createElement('span')
-    searchIcon.classList.add('icon-search-save')
-    searchIcon.classList.add('atomic-taro_search-icon')
+    # searchIcon = document.createElement('span')
+    # searchIcon.classList.add('icon-search-save')
+    # searchIcon.classList.add('atomic-taro_search-icon')
     searchBar = document.createElement('input')
     searchBar.type = "search"
     searchBar.placeholder = "search"

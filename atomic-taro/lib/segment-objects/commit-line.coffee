@@ -99,10 +99,12 @@ class CommitLine
                 if ui.manual != true
                   if ui.value == @getModel().getCurrentVersion().getNumberOfCommits()
                     @getModel().travelToCommit({commitID: @getModel().PRESENT, branchID: @getModel().getCurrentVersion().id})
+                    @getVariantView().removeTravelStyle()
                     @getVariantView().getTravelAgent().resetEnvToPresent()
                   else
+                    @getVariantView().travelStyle()
                     @getModel().travelToCommit({commitID: ui.value, branchID: @getModel().getCurrentVersion().id})
-                    @getVariantView().getTravelAgent().setEnvToCommit(@getModel(), {commitID: ui.value, branchID: @getModel().getCurrentVersion().id})
+                    @getVariantView().getTravelAgent().setEnvToCommit(@getModel(), @getModel().getCurrentVersion().getCurrentCommitObject())
 
             })
             #console.log "commit num: "+commitNum+" ticks: "+$(@commitSlider).children('.atomic-taro_commit-ticks').length

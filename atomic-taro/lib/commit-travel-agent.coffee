@@ -47,6 +47,7 @@ class CommitTravelAgent
   globalBackToFuture: (variant) ->
     @masterVariant.getModel().travelToCommit({})
     @masterVariant.removeTravelStyle()
+    @resetEnvToPresent()
 
 
   '''
@@ -58,14 +59,5 @@ class CommitTravelAgent
 
 
   setEnvToCommit: (variant, commitData) ->
-    branchID = commitData.branchID
-    commitID = commitData.commitID
-    @outputPane.setToCommit(variant, branchID, commitID)
+    @outputPane.setToCommit(variant, commitData)
     # DO SOMETHING
-
-
-  localTravel: (commit) ->
-    # if travel only in a local variant, don't change the whole filePath
-    # but make the output from that commit available and
-    # also somehow give the user the ability to go back to the entire
-    # file that created (those)that output at this commit

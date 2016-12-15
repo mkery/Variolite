@@ -22,7 +22,8 @@ class OutputPane
     @pane.appendChild(@makeTitleDiv())
     @pane.appendChild(@outputList)
     @pane.appendChild(@makeContextMenu())
-    @makeTravelDiv()
+    @makeTerminal()
+    @maketravelDiv()
     @addJqueryListeners()
 
 
@@ -55,14 +56,15 @@ class OutputPane
     @titleBox
 
 
-  registerOutput: (data, commit) ->
+  registerOutput: (output, commit) ->
     $('.atomic-taro_output_box').removeClass('newest')
     outputContainer = document.createElement('div')
     outputContainer.classList.add('list-item')
     outputContainer.classList.add('atomic-taro_output_box')
     outputContainer.classList.add('newest')
-    $(outputContainer).text(data)
+    $(outputContainer).text(output.data)
     $(outputContainer).data('commit', commit)
+    $(outputContainer).data('output', output)
     $(outputContainer).click (ev) ->
       console.log 'clicked with ctrl?', ev.ctrlKey
 
@@ -72,33 +74,70 @@ class OutputPane
 
     outDate = document.createElement('div')
     outDate.classList.add('atomic-taro_output_date')
-    $(outDate).text(@dateNow()+" commit "+commit.commitID)
+    $(outDate).text(commit.date+" commit "+commit.commitID)
     outputContainer.appendChild(outDate)
     $(outDate).hide()
 
     @outputList.appendChild(outputContainer)
     $(@outputList).scrollTop($(@outputList)[0].scrollHeight)
 
+    return outputContainer
+
 
   resetToPresent: ->
     $('.atomic-taro_output_box').removeClass('travel')
+    $(@travelWrapper).hide()
 
 
-  setToCommit: (variant, branchID, commitID) ->
+  setToCommit: (variant, commit) ->
     # show past outputs
+    console.log "SET OUTPUT PANE TO COMMIT ",commit
+    out = commit.output
+    $(@travelDiv).empty()
+    for result in out
+      @travelDiv.appendChild(@registerOutput(result, commit))
+    $(@travelWrapper).slideDown('fast')
 
 
+  makeTerminal: ->
+    terminalWrapper = document.createElement('div')
+    terminalWrapper.classList.add('atomic-taro_terminal-wrapper')
 
-  makeTravelDiv: ->
-    travelWrapper = document.createElement('div')
-    travelWrapper.classList.add('atomic-taro_output_travel-wrapper')
+    # terminal = document.createElement('input')
+    # terminal.type = "text"
+    # terminal.placeholder = "terminal"
+    # terminal.classList.add('input-text')
+    # terminal.classList.add('atomic-taro_terminal')
+    #
+    # $(terminal).on 'keyup', (ev) =>
+    #   if(ev.keyCode == 13) # enter/return key
+    #     @programProcessor.run($(terminal).val())
 
-    travelDiv = document.createElement('div')
-    travelDiv.classList.add('atomic-taro_output_travel-div')
+    terminal = document.createElement('textarea')
+    terminal.placeholder = "terminal"
+    terminal.classList.add('input-textarea')
+    terminal.classList.add('atomic-taro_terminal')
+
+    $(terminal).on 'keyup', (ev) =>
+      if(ev.keyCode == 13) # enter/return key
+        @programProcessor.run($(terminal).val().slice(0, -1))
+        $(terminal).val("")
+
+    terminalWrapper.appendChild(terminal)
+    @pane.appendChild(terminalWrapper)
+
+
+  maketravelDiv: ->
+    @travelWrapper = document.createElement('div')
+    @travelWrapper.classList.add('atomic-taro_output_travel-wrapper')
+
+    @travelDiv = document.createElement('div')
+    @travelDiv.classList.add('atomic-taro_output_travel-div')
 
     label = document.createElement('div')
     label.classList.add('atomic-taro_explore-title-container')
     label.classList.add('active')
+    label.classList.add('past')
     titleText = document.createElement('span')
     $(titleText).text("Output from this commit")
 
@@ -107,20 +146,21 @@ class OutputPane
     xIcon.classList.add('atomic-taro_explore')
     xIcon.classList.add('text-smaller')
     $ => $(document).on 'click', '.icon-dash.atomic-taro_explore', (ev) =>
-      $(travelDiv).hide()
+      $(@travelDiv).hide()
       xIcon.classList.add('icon-file-add')
       $(xIcon).removeClass('icon-dash')
 
     $ => $(document).on 'click', '.icon-file-add.atomic-taro_explore', (ev) =>
-      $(travelDiv).show()
+      $(@travelDiv).show()
       xIcon.classList.add('icon-dash')
       $(xIcon).removeClass('icon-file-add')
 
     label.appendChild(titleText)
     label.appendChild(xIcon)
-    travelWrapper.appendChild(label)
-    travelWrapper.appendChild(travelDiv)
-    @outputList.appendChild(travelWrapper)
+    @travelWrapper.appendChild(label)
+    @travelWrapper.appendChild(@travelDiv)
+    $(@travelWrapper).hide()
+    @outputList.appendChild(@travelWrapper)
 
 
 

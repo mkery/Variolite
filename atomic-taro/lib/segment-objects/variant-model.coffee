@@ -138,15 +138,13 @@ class VariantModel
   '''
     Records an output and a commit that generated it
   '''
-  registerOutput: (data) ->
-    commit = @currentBranch.commit()
-    # store provenance information
-    #@provenanceAgent.store(data, commit)
+  registerOutput: (output) ->
+    commit = @currentBranch.commit(output)
     commit
 
 
-  commit: ->
-    commit = @currentBranch.commit()
+  commit: (output) ->
+    commit = @currentBranch.commit(output)
     @view.getCommitLine().redraw()
     commit
 

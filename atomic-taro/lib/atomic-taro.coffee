@@ -59,7 +59,7 @@ module.exports = AtomicTaro =
       statePath = folder+"/"+fileBase+".taro"
       atom.views.addViewProvider AtomicTaroView, (taroView) ->
         toolPane.getElement()
-      @atomicTaroView = new AtomicTaroView statePath, @filePath, fileName, fileType, plainCodeEditor
+      @atomicTaroView = new AtomicTaroView statePath, @filePath, folder, fileName, fileType, plainCodeEditor
       @atomicTaroView
 
 
