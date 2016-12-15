@@ -87,6 +87,7 @@ class HeaderElement
 
 
   buildButtons: ->
+    @addBlankBar(@headerBar)
     @addVariantButtons(@headerBar)
     @addActiveButton(@headerBar)
     @addHistoryButton(@headerBar)
@@ -105,8 +106,18 @@ class HeaderElement
     $(@headerBar).addClass(klass)
 
 
+  travelStyle: (commit) ->
+    @addClass('historical')
+    $(@blankBar).addClass('travel')
+
+
   removeClass: (klass) ->
     $(@headerBar).removeClass(klass)
+
+
+  removeTravelStyle: ->
+    @removeClass('historical')
+    $(@blankBar).removeClass('travel')
 
 
   focus: ->
@@ -234,6 +245,11 @@ class HeaderElement
       @addVersionBookmark(branch, current, false)
 
 
+
+  addBlankBar: (headerContainer) ->
+    @blankBar = document.createElement("div")
+    @blankBar.classList.add('atomic-taro_editor-blank-bar')
+    headerContainer.appendChild(@blankBar)
 
   addActiveButton: (headerContainer) ->
     @activeButton = document.createElement("span")

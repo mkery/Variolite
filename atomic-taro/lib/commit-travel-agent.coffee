@@ -40,7 +40,8 @@ class CommitTravelAgent
 
     @masterVariant.getModel().travelToCommit(commit)
     # style all variants so it's clear we're in the past
-    @masterVariant.travelStyle()
+    @masterVariant.travelStyle(commit)
+    @setEnvToCommit(@masterVariant, commit)
 
 
 
@@ -56,8 +57,10 @@ class CommitTravelAgent
   '''
   resetEnvToPresent: ->
     @outputPane.resetToPresent()
+    #@mainMenuHeader.hideAlertPane()
 
 
   setEnvToCommit: (variant, commitData) ->
     @outputPane.setToCommit(variant, commitData)
+    #@mainMenuHeader.showAlertPane(commitData.commitID)
     # DO SOMETHING

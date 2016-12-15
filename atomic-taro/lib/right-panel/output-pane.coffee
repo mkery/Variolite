@@ -91,7 +91,7 @@ class OutputPane
 
   setToCommit: (variant, commit) ->
     # show past outputs
-    console.log "SET OUTPUT PANE TO COMMIT ",commit
+    #console.log "SET OUTPUT PANE TO COMMIT ",commit
     out = commit.output
     $(@travelDiv).empty()
     for result in out

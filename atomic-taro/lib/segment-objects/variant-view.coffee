@@ -189,8 +189,8 @@ class VariantView
 
 
 
-  travelStyle: ->
-    @headerElement.addClass('historical')
+  travelStyle: (commit) ->
+    @headerElement.travelStyle(commit)
     @commitLine.addClass('historical')
     @branchMap.addClass('historical')
     $(@footerBar).addClass('historical')
@@ -200,7 +200,7 @@ class VariantView
 
 
   removeTravelStyle: ->
-    @headerElement.removeClass('historical')
+    @headerElement.removeTravelStyle()
     @commitLine.removeClass('historical')
     @branchMap.removeClass('historical')
     $(@footerBar).removeClass('historical')

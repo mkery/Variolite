@@ -27,7 +27,7 @@ class MainMenuHeader extends HeaderElement
     @headerBar.appendChild(nameContainer)
     @headerBar.appendChild(@variantButtons)
     @headerWrapper.appendChild(@headerBar)
-    @buildAlertPane()
+
 
 
   '''
@@ -43,9 +43,23 @@ class MainMenuHeader extends HeaderElement
     $(@alertPane).show()
 
 
+  hideAlertPane: ->
+    $(@alertPane).slideUp('fast')
+
+
   getElement: ->
     #@headerWrapper = document.createElement('div')
     @headerWrapper
+
+
+  travelStyle: (commit) ->
+    @addClass('historical')
+    @showAlertPane(commit)
+
+
+  removeTravelStyle: ->
+    @removeClass('historical')
+    @hideAlertPane()
 
 
   buildAlertPane: ->
@@ -81,6 +95,7 @@ class MainMenuHeader extends HeaderElement
     @addBranchButton(@variantButtons)
     @branchButton.classList.add('atomic-taro_main-menu_branchIcon')
     @historyButton.classList.add('atomic-taro_main-menu_branchIcon')
+    @buildAlertPane()
 
 
 
