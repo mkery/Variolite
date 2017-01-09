@@ -31,12 +31,7 @@ module.exports =
 class AtomicTaroView
 
   constructor: (statePath, @filePath, @baseFolder, @fileName, @fileType, sourceEditor) ->
-    # editors. The source editor is the editor of the original file.
-    # The exploratory editor is uses our annotation processor buffer.
-    #@filePath = @baseFolder+"/"+@fileName+"."+@fileType
-    #console.log "BASE FILE IS ", @filePath
-    @sourceEditor = sourceEditor
-    @exploratoryEditor = atom.workspace.getActiveTextEditor() #sourceEditor #null
+    @exploratoryEditor = sourceEditor
 
     @variantListeners = null # holds jquery listeners
 
@@ -54,6 +49,8 @@ class AtomicTaroView
     @element = null
     @explorer = null
     @explorer_panel = null # the Panel object of @explorer
+
+    @focusData = {explorePanel: false}
 
     # try to get saved meta data for this file, if there is any
     @initializeView()
@@ -86,20 +83,20 @@ class AtomicTaroView
   '''
   deserialize: (statePath) ->
     # try to get saved meta data for this file, if there is any
-    $.getJSON (statePath), (state) =>
-        console.log "JSON found"
-        console.log state
-
-        stateVariants = state.atomicTaroViewState.variants
-        #console.log "state variants????"
-        #console.log stateVariants.variants
-        @masterVariant.deserialize(stateVariants)
-        @postInit_buildView()
-
-      .fail =>
-        console.log "No saved taro file found."
-        @postInit_buildView()
-
+    # $.getJSON (statePath), (state) =>
+    #     console.log "JSON found"
+    #     console.log state
+    #
+    #     stateVariants = state.atomicTaroViewState.variants
+    #     #console.log "state variants????"
+    #     #console.log stateVariants.variants
+    #     @masterVariant.deserialize(stateVariants)
+    #     @postInit_buildView()
+    #
+    #   .fail =>
+    #     console.log "No saved taro file found."
+    #     @postInit_buildView()
+    #@postInit_buildView()
 
   '''
     ??? used
@@ -135,6 +132,20 @@ class AtomicTaroView
   '''
   getMasterVariant: ->
     @masterVariant
+
+
+
+  loseTabFocus: ->
+    if @explorer_panel.isVisible()
+      @explorer_panel.hide()
+      @focusData.explorePanel = true
+    else
+      @focusData.explorePanel = false
+
+
+  gainTabFocus: ->
+    if @focusData.explorePanel == true
+      @showExplorerView()
 
 
   '''
@@ -247,10 +258,11 @@ class AtomicTaroView
       if annot?
         @exploratoryEditor.setText(annot)
       @variantFactory.initVariants(@exploratoryEditor, @masterVariant)
+      @postInit_buildView()
 
 
     # create a variant manager
-    @variantListeners = new Listeners(@masterVariant, @)
+    @variantListeners = new Listeners(@masterVariant, @, @exploratoryEditor)
     @programProcessor = new ProgramProcessor(@baseFolder, @filePath, @fileName, @)
 
 

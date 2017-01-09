@@ -16,6 +16,7 @@ class HeaderElement
     @collapseIcon = null
     @visibleVersions = []
     @buttonArchive = null
+    @editorID = null
 
     #must be built later
     @versionBookmarkBar = null
@@ -36,7 +37,13 @@ class HeaderElement
     @view = view
 
 
+  setEditorID: (id) ->
+    @editorID = id
+    #@getElement().classList.add(id)
+
+
   buildHeader: (width) ->
+    console.log "building header"
     # build wrapper
     @verticalWrapper.classList.add('atomic-taro_editor-vertical-wrapper')
     @headerWrapper.classList.add('atomic-taro_editor-header-wrapper')
@@ -259,6 +266,7 @@ class HeaderElement
     @historyButton = document.createElement("span")
     @historyButton.classList.add('atomic-taro_commit-history-button')
     @historyButton.classList.add('icon-history')
+    @historyButton.classList.add(@editorID)
     $(@historyButton).data("commitLine", @view.getCommitLine())
     $(@historyButton).hide()
     headerContainer.appendChild(@historyButton)
@@ -267,6 +275,7 @@ class HeaderElement
     @branchButton = document.createElement("span")
     @branchButton.classList.add('atomic-taro_commit-branch-button')
     @branchButton.classList.add('icon-git-branch')
+    @branchButton.classList.add(@editorID)
     $(@branchButton).data("branchMap", @view.getBranchMap())
     $(@branchButton).hide()
     headerContainer.appendChild(@branchButton)
@@ -275,6 +284,7 @@ class HeaderElement
     @variantsButton = document.createElement("div")
     @variantsButton.classList.add('atomic-taro_editor-header-buttons')
     @variantsButton.classList.add('variants-button')
+    @variantsButton.classList.add(@editorID)
     $(@variantsButton).text("variants")
     headerContainer.appendChild(@variantsButton)
 

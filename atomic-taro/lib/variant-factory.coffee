@@ -13,7 +13,7 @@ class VariantFactory
     @annotationBuffer = null
 
 
-  setAnnotationBuffer: (buffer) ->
+  #setAnnotationBuffer: (buffer) ->
     # ???
 
 

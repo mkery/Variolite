@@ -9,11 +9,12 @@ manages all of the segments and all of their interactions.
 module.exports =
 class Listeners
 
-    constructor: (variants, @root, @undoAgent) ->
+    constructor: (variants, @root, editor) ->
       # segments/header
       @variantWidth = null
       @focusedVariant = null
       @variants = variants # for some reason this prevents duplicate blocks
+      @editorID = editor.id
 
 
     serialize: ->
@@ -151,14 +152,14 @@ class Listeners
         v = $(this).data("variant")
         v.toggleActive()
 
-      $(document).on 'click', '.atomic-taro_commit-history-button', (ev) ->
+      $(document).on 'click', '.atomic-taro_commit-history-button'+'.'+@editorID, (ev) ->
         v = $(this).data("commitLine")
         if v.toggleCommitTimeline()
           $(this).addClass('clicked')
         else
           $(this).removeClass('clicked')
 
-      $(document).on 'click', '.atomic-taro_commit-branch-button', (ev) ->
+      $(document).on 'click', '.atomic-taro_commit-branch-button'+'.'+@editorID, (ev) ->
         ev.stopPropagation()
         v = $(this).data("branchMap")
         if v.toggleBranchMap()

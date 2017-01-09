@@ -394,6 +394,8 @@ class VariantView
   '''
   buildVariantDiv: (width) ->
     $(@footerBar).width(width)
+    console.log "sourceEditor ", @sourceEditor.id
+    @headerElement.setEditorID(@sourceEditor.id)
     @headerElement.setView(@)
     @headerElement.setModel(@model)
     @headerElement.buildHeader(width)

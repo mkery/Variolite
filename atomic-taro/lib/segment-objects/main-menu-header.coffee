@@ -29,6 +29,8 @@ class MainMenuHeader extends HeaderElement
     @headerBar.appendChild(@variantButtons)
     @headerWrapper.appendChild(@headerBar)
 
+    @addJqueryListeners()
+
 
 
   '''
@@ -57,18 +59,12 @@ class MainMenuHeader extends HeaderElement
     @addClass('active')
     $(@currentVersionName).addClass('focused')
     $(@variantsButton).addClass('active')
-    #$(@activeButton).show()
-    #$(@historyButton).show()
-    #$(@branchButton).show()
 
 
   blur: ->
     @removeClass('active')
     $(@currentVersionName).removeClass('focused')
     $(@variantsButton).removeClass('active')
-    # $(@activeButton).hide()
-    # $(@historyButton).hide()
-    # $(@branchButton).hide()
     $('.icon-primitive-square').removeClass('highlighted')
     $('.atomic-taro_editor-header_version-title').removeClass('highlighted')
 
@@ -96,12 +92,11 @@ class MainMenuHeader extends HeaderElement
 
     returnButton = document.createElement('span')
     returnButton.classList.add('atomic-taro_commitBackButton')
+    returnButton.classList.add(@editorID)
     clockIcon = document.createElement('span')
     clockIcon.classList.add('icon-arrow-left')
     returnButton.appendChild(clockIcon)
-    $(document).on 'click', '.atomic-taro_commitBackButton', (ev) =>
-      @taroView.getTravelAgent().globalBackToFuture(@view)
-      $(@alertPane).slideUp('fast')
+
 
     @alertPane.appendChild(returnButton)
     @alertPane.appendChild(lockIcon)
@@ -127,14 +122,9 @@ class MainMenuHeader extends HeaderElement
     @runIcon = document.createElement('span')
     @runIcon.classList.add('icon-playback-play')
     @runIcon.classList.add('atomic-taro_main-menu_runIcon')
+    @runIcon.classList.add(@editorID)
     header.appendChild(@runIcon)
 
-    $ => $(document).on 'mousedown', '.atomic-taro_main-menu_runIcon', (ev) =>
-      $(@runIcon).addClass('click')
-      @taroView.runProgram()
-      @taroView.showExplorerView()
-    $ => $(document).on 'mouseup', '.atomic-taro_main-menu_runIcon', (ev) =>
-      $(@runIcon).removeClass('click')
 
 
   addVariantButtons: (header) ->
@@ -187,3 +177,18 @@ class MainMenuHeader extends HeaderElement
         $(@buttonArchive).hide()
     else
       $(@buttonArchive).hide()
+
+
+  addJqueryListeners: ->
+    # run icon
+    $ => $(document).on 'mousedown', '.atomic-taro_main-menu_runIcon'+"."+@editorID, (ev) =>
+      $(@runIcon).addClass('click')
+      @taroView.runProgram()
+      @taroView.showExplorerView()
+    $ => $(document).on 'mouseup', '.atomic-taro_main-menu_runIcon'+"."+@editorID, (ev) =>
+      $(@runIcon).removeClass('click')
+
+    # commit back button
+    $(document).on 'click', '.atomic-taro_commitBackButton', (ev) =>
+      @taroView.getTravelAgent().globalBackToFuture(@view)
+      $(@alertPane).slideUp('fast')
