@@ -9,9 +9,13 @@ module.exports =
 class VariantFactory
 
 
-  # {sourceEditor: editor, marker: marker, title: @fileName, taroView: @taroView, undoAgent: @undoAgent, provAgent: @provenanceAgent})
-  constructor: (@filePath, @taroView, @undoAgent, @provenanceAgent, @travelAgent) ->
-    # nothin much
+  constructor: (@filePath, @taroView, @undoAgent, @provenanceAgent, @travelAgent, @annotationAgent) ->
+    @annotationBuffer = null
+
+
+  setAnnotationBuffer: (buffer) ->
+    # ???
+
 
 
   '''
@@ -63,6 +67,7 @@ class VariantFactory
     Existing variant boxes are indicated by annotations in the code.
   '''
   initVariants: (editor, masterVariant) ->
+    console.log "Init variants!"
     # Get the location of all variant annotaions in the file.
     beacons = @findMarkers(editor)
     list_offset = @addAllVariants(editor, beacons, 0, [])
@@ -77,7 +82,9 @@ class VariantFactory
     # Now, make all variant boxes in the file nested children of the master
     # file-level variant.
     curr = masterVariant.getModel().getCurrentVersion()
-    masterVariant.addedNestedVariant(v, curr) for v in list_offset.list
+    for v in list_offset.list
+      masterVariant.addedNestedVariant(v, curr)
+
 
 
 

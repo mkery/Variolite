@@ -57,26 +57,49 @@ class OutputPane
 
 
   registerOutput: (output, commit) ->
+    $('.atomic-taro_output_box').removeClass('selected')
     $('.atomic-taro_output_box').removeClass('newest')
     outputContainer = document.createElement('div')
     outputContainer.classList.add('list-item')
     outputContainer.classList.add('atomic-taro_output_box')
     outputContainer.classList.add('newest')
-    $(outputContainer).text(output.data)
+    $(outputContainer).addClass('selected')
+
+    command = document.createElement('div')
+    command.classList.add('atomic-taro_output_command')
+    $(command).text(output.command)
+    outputContainer.appendChild(command)
+    #$(command).hide()
+
+
+    outData = document.createElement('span')
+    $(outData).text(output.data)
+    outputContainer.appendChild(outData)
     $(outputContainer).data('commit', commit)
     $(outputContainer).data('output', output)
-    $(outputContainer).click (ev) ->
-      console.log 'clicked with ctrl?', ev.ctrlKey
+    # $(outputContainer).click (ev) ->
+    #   console.log 'clicked with ctrl?', ev.ctrlKey
 
     $(outputContainer).hoverIntent \
-      (-> $(this).children('.atomic-taro_output_date').slideDown('fast')),\
-      (-> $(this).children('.atomic-taro_output_date').slideUp('fast'))
+       (-> $(this).children('.atomic-taro_output-x').show()),\
+       (-> $(this).children('.atomic-taro_output-x').hide())
 
-    outDate = document.createElement('div')
-    outDate.classList.add('atomic-taro_output_date')
-    $(outDate).text(commit.date+" commit "+commit.commitID)
-    outputContainer.appendChild(outDate)
-    $(outDate).hide()
+    xIcon = document.createElement('div')
+    xIcon.classList.add('icon-x')
+    #xIcon.classList.add('atomic-taro_explore')
+    xIcon.classList.add('atomic-taro_output-x')
+    xIcon.classList.add('text-smaller')
+    #$ => $(document).on 'click', '.icon-x.atomic-taro_explore', (ev) =>
+    #  console.log "clicked exit!!!"
+    $(xIcon).hide()
+    outputContainer.appendChild(xIcon)
+
+    if commit?
+      outDate = document.createElement('div')
+      outDate.classList.add('atomic-taro_output_date')
+      $(outDate).text(commit.date+" commit "+commit.commitID)
+      outputContainer.appendChild(outDate)
+      $(outDate).hide()
 
     @outputList.appendChild(outputContainer)
     $(@outputList).scrollTop($(@outputList)[0].scrollHeight)
@@ -119,7 +142,9 @@ class OutputPane
     terminal.classList.add('atomic-taro_terminal')
 
     $(terminal).on 'keyup', (ev) =>
-      if(ev.keyCode == 13) # enter/return key
+      if(ev.keyCode == 38)# up key
+        $(terminal).val(@programProcessor.getLast())
+      else if(ev.keyCode == 13) # enter/return key
         @programProcessor.run($(terminal).val().slice(0, -1))
         $(terminal).val("")
 
@@ -216,19 +241,34 @@ class OutputPane
     $.datepicker.formatDate('mm/dd/yy', date)+" "+hour+":"+minute+sign
 
 
+
+
   addJqueryListeners: ->
-    $(document).on 'click', '.atomic-taro_output_box', (ev) ->
+    $(document).on 'click', '.atomic-taro_output-x', (ev) ->
+      $(this).parent().remove()
+
+
+    $(document).on 'click', '.atomic-taro_output_box', {'output-pane': @}, (ev) ->
       $('.atomic-taro_output_box').removeClass('selected')
+      children = $(this).children('.atomic-taro_output_date')
+      if children.is(":visible")
+        #$(this).children('.atomic-taro_output_command').hide()
+        children.slideUp('fast')
+      else
+        #$('.atomic-taro_output_date').hide()
+        #$(this).children('.atomic-taro_output_command').show()
+        children.slideDown('fast')
       $(this).addClass('selected')
-      ev.stopPropagation()
+      #ev.stopPropagation()
 
     $(document).on 'dblclick', '.atomic-taro_output_box', {'travelAgent': @travelAgent}, (ev) ->
       $('.atomic-taro_output_box').removeClass('selected')
       $('.atomic-taro_output_box').removeClass('travel')
       $(this).addClass('travel')
       commit = $(this).data('commit')
-      ev.data.travelAgent.travelToGlobalCommit(commit)
-      console.log "return to commit ", commit
+      if commit?
+        ev.data.travelAgent.travelToGlobalCommit(commit)
+        console.log "return to commit ", commit
       ev.stopPropagation()
 
     $(document).on 'mousedown', '.atomic-taro_output_box', {'menu': @rightClickMenu}, (ev) ->

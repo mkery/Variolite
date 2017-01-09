@@ -139,6 +139,7 @@ class VariantModel
     Records an output and a commit that generated it
   '''
   registerOutput: (output) ->
+    @view.getCommitLine().redraw()
     commit = @currentBranch.commit(output)
     commit
 

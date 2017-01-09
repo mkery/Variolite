@@ -62,6 +62,7 @@ class AtomicTaroToolPane
   addSearchBar: ->
     searchContainer = document.createElement('div')
     searchContainer.classList.add('atomic-taro_search-bar-container')
+    searchContainer.classList.add('native-key-bindings')
     # searchIcon = document.createElement('span')
     # searchIcon.classList.add('icon-search-save')
     # searchIcon.classList.add('atomic-taro_search-icon')

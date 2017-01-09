@@ -1,10 +1,10 @@
 import os
 
 
-print "ApasVcfdcfffddVddVdddffn"
+print "Appsssssssssdlde"
 
 def doPear(s):
-    print "Pefffffffffffffffarffff!!!"
+    print "Pear!!!"
     orange = True
     if orange:
         print "Also orange!"

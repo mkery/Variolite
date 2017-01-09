@@ -36,17 +36,17 @@ class HeaderElement
     @view = view
 
 
-  buildHeader: () ->
+  buildHeader: (width) ->
     # build wrapper
     @verticalWrapper.classList.add('atomic-taro_editor-vertical-wrapper')
     @headerWrapper.classList.add('atomic-taro_editor-header-wrapper')
-    #$(@headerWrapper).width(width)
+    $(@headerWrapper).width(width)
     $(@headerWrapper).data('view', @view)
     #width = @buildWrapperLabel(@headerWrapper, width)
 
     # build main header bar
     @headerBar.classList.add('atomic-taro_editor-header-box')
-    #$(@headerBar).width(width)
+    $(@headerBar).width(width)
     nameContainer = document.createElement("div")
     nameContainer.classList.add('atomic-taro_editor-header-name-container')
 
@@ -59,7 +59,7 @@ class HeaderElement
     @headerBar.appendChild(nameContainer)
     @headerWrapper.appendChild(@headerBar)
     @verticalWrapper.appendChild(@headerWrapper)
-
+    #$(@headerBar).hide()
 
   '''
     The header wrapper contains the collapseIcon and also labels to indicate if a
@@ -87,7 +87,6 @@ class HeaderElement
 
 
   buildButtons: ->
-    @addBlankBar(@headerBar)
     @addVariantButtons(@headerBar)
     @addActiveButton(@headerBar)
     @addHistoryButton(@headerBar)
@@ -108,7 +107,6 @@ class HeaderElement
 
   travelStyle: (commit) ->
     @addClass('historical')
-    $(@blankBar).addClass('travel')
 
 
   removeClass: (klass) ->
@@ -117,11 +115,11 @@ class HeaderElement
 
   removeTravelStyle: ->
     @removeClass('historical')
-    $(@blankBar).removeClass('travel')
 
 
   focus: ->
     @addClass('active')
+    #$(@headerBar).slideDown('fast')
     $(@currentVersionName).addClass('focused')
     $(@variantsButton).addClass('active')
     $(@activeButton).show()
@@ -138,7 +136,7 @@ class HeaderElement
     $(@branchButton).hide()
     $('.icon-primitive-square').removeClass('highlighted')
     $('.atomic-taro_editor-header_version-title').removeClass('highlighted')
-
+    #$(@headerBar).slideUp('fast')
 
   '''
     TODO ????? WHAT ????
@@ -245,11 +243,6 @@ class HeaderElement
       @addVersionBookmark(branch, current, false)
 
 
-
-  addBlankBar: (headerContainer) ->
-    @blankBar = document.createElement("div")
-    @blankBar.classList.add('atomic-taro_editor-blank-bar')
-    headerContainer.appendChild(@blankBar)
 
   addActiveButton: (headerContainer) ->
     @activeButton = document.createElement("span")

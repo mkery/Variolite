@@ -5,9 +5,10 @@
 module.exports =
 class CommitLine
 
-  constructor: (@variantView, @variantModel) ->
+  constructor: (@variantView, @variantModel, width) ->
     @initialized = false
-    @addCommitLine() # initialize commit line
+    @showing = false
+    @addCommitLine(width) # initialize commit line
 
   getVariantView: ->
     @variantView
@@ -15,11 +16,16 @@ class CommitLine
   getModel: ->
     @variantModel
 
-  addCommitLine: () ->
+  addCommitLine: (width) ->
     @commitLineElem = document.createElement('div')
     @commitLineElem.classList.add('atomic-taro_commit-element')
+    $(@commitLineElem).width(width)
+    
     @commitTraveler = document.createElement('div')
     @commitTraveler.classList.add('atomic-taro_commit-traveler')
+    paddT = $(@commitTraveler).innerWidth() - $(@commitTraveler).width()
+    $(@commitTraveler).width($(@commitLineElem).width() - paddT)
+
     @commitSlider = document.createElement('div')
     @commitSlider.classList.add('commit-slider')
     @tickMarkers = document.createElement('div')
@@ -40,6 +46,7 @@ class CommitLine
     @commitLineElem.appendChild(@commitTraveler)
     #@commitLineElem.appendChild(@nowMarker)
     $(@commitLineElem).hide()
+    @showing = false
 
 
 
@@ -56,7 +63,9 @@ class CommitLine
 
 
   redraw: ->
-    if $(@commitLineElem).is(":visible")
+    #console.log "REDRAW!!! ", @showing
+    if @showing == true
+      #console.log "222 REDRAW 222 !!!"
       @drawTimeline()
 
 
@@ -64,20 +73,23 @@ class CommitLine
     Show the commit timeline to view and travel between commits.
   '''
   toggleCommitTimeline: ->
-    if $(@commitLineElem).is(":visible")
+    #console.log "TOGGLE SHOW COMMIT LINE ", @showing
+    if @showing == true
       #$(@commitLineElem).hide()
       $(@commitLineElem).slideUp('fast')
+      @showing = false
       return false
     else
       @drawTimeline()
+      @showing = true
       return true
 
 
   drawTimeline: ->
       @initialized = true
       #$(@commitLineElem).width($(@commitLineElem).parent().width())
-      #paddT = $(@commitTraveler).innerWidth() - $(@commitTraveler).width()
-      #$(@commitTraveler).width($(@commitLineElem).width() - paddT)
+      # paddT = $(@commitTraveler).innerWidth() - $(@commitTraveler).width()
+      # $(@commitTraveler).width($(@commitLineElem).width() - paddT)
       commitNum = @getModel().getCurrentVersion().getNumberOfCommits()
       currentCommit = @getModel().getCurrentVersion().getCurrentCommit()
       if currentCommit == -1 # no commit
@@ -116,6 +128,7 @@ class CommitLine
         $(@commitTraveler).addClass("textOnly")
         $(@noCommits).html("No commits to show yet!")
       $(@commitLineElem).show()
+      @showing = true
       #$(@commitLineElem).slideDown('fast')
 
 

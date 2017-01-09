@@ -321,6 +321,9 @@ class VariantView
     @model.registerOutput(data)
 
 
+  updateWidth: ->
+    @commitLine.redraw()
+
 
   '''
     Attatches a new nested variant to this parent variant box.
@@ -389,18 +392,19 @@ class VariantView
     On initialization, once all saved data in loaded into the model, finally build the
     UI for this variant box.
   '''
-  buildVariantDiv: () ->
+  buildVariantDiv: (width) ->
+    $(@footerBar).width(width)
     @headerElement.setView(@)
     @headerElement.setModel(@model)
-    @headerElement.buildHeader()
+    @headerElement.buildHeader(width)
     # commit line
-    @commitLine = new CommitLine(@, @model)
+    @commitLine = new CommitLine(@, @model, width)
     @headerElement.appendDiv(@commitLine.getElement())
     # branch map
-    @branchMap = new BranchMap(@, @model)
+    @branchMap = new BranchMap(@, @model, width)
     @headerElement.appendDiv(@branchMap.getElement())
     # variants panel
-    @diffPanels = new DiffPanels(@, @model)
+    @diffPanels = new DiffPanels(@, @model, width)
     @headerElement.appendDiv(@diffPanels.getElement())
 
     @headerElement.buildButtons()
@@ -409,4 +413,4 @@ class VariantView
     if @model.getNested().length > 0
       for n in @model.getNested()
         if n.rootVersion? == false
-          n.buildVariantDiv()
+          n.buildVariantDiv(width)

@@ -3,9 +3,13 @@ import os
 
 print "ApasVcfdcfffddVddVdddffn"
 
+#%%^%%pear
 def doPear(s):
     print "Pefffffffffffffffarffff!!!"
+#%%^%%orange
     orange = True
     if orange:
+#^^%^^
         print "Also orange!"
+#^^%^^
     # Pear ends

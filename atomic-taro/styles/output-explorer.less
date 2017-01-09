@@ -8,11 +8,11 @@
 
 .atomic-taro_output-list-pane
 {
-  overflow-x: scroll;
-  // overflow-y: hidden;
-  // word-wrap: break-word;
+  overflow-y: scroll;
+  //overflow-x: hidden;
+  word-wrap: break-word;
   width: 100%;
-  flex: 1 1 auto;
+  //flex: 1 1 auto;
   flex-wrap: wrap;
 }
 
@@ -26,14 +26,28 @@
   color: @text-color-success;
 }
 
+.atomic-taro_output-x
+{
+  float: right;
+  margin-bottom: 5px;
+  //z-index: 4;
+  display: block;
+  position: absolute;
+  top: 0px;
+  right: 0px;
+}
+
 
 .atomic-taro_terminal-wrapper{
   background-color: @button-background-color-hover;
   border: 2px solid @background-color-selected;
+  flex: 1 1 auto;
 }
 
 .atomic-taro_terminal{
   width: 100%;
+  flex: 1 1 auto;
+  resize: none;
   font-family:  Inconsolata, Monaco, Consolas, 'Courier New', Courier;
 }
 
@@ -41,8 +55,9 @@
 
 .atomic-taro_output_box
 {
+  position: relative;
   font-family: monospace;
-  z-index: 4;
+  //z-index: 4;
   cursor: default;
   margin-top: 2px;
   margin-bottom: 2px;
@@ -67,6 +82,11 @@
 {
   color: @text-color-subtle;
   font-style: italic;
+}
+
+.atomic-taro_output_command
+{
+  color: @hue-1;
 }
 
 .atomic-taro_output-rmenu{
@@ -106,8 +126,8 @@
   z-index: 5px;
   //height: 50%;
   width: 100%;
-  position: relative;
-  top: 0px;
+  position: absolute;
+  bottom: 0px;
   background-color: rgba(255, 255, 255, 0.85);
   border: 1px solid @text-color-warning;
 }

@@ -5,8 +5,8 @@
 module.exports =
 class BranchMap
 
-  constructor: (@variantView, @variantModel) ->
-    @addBranchMap() # initialize commit line
+  constructor: (@variantView, @variantModel, width) ->
+    @addBranchMap(width) # initialize commit line
     @subscriptions = new CompositeDisposable()
 
 
@@ -16,9 +16,10 @@ class BranchMap
   getModel: ->
     @variantModel
 
-  addBranchMap: () ->
+  addBranchMap: (width) ->
     @branchMapElem = document.createElement('div')
     @branchMapElem.classList.add('atomic-taro_branch-map')
+    $(@branchMapElem).width(width)
     $(@branchMapElem).hide()
 
 
@@ -49,7 +50,7 @@ class BranchMap
       #console.log @subscriptions
       return false
     else
-      $(@branchMapElem).width($(@branchMapElem).parent().width())
+      #$(@branchMapElem).width($(@branchMapElem).parent().width())
       $(@branchMapElem).html("")
       $(@branchMapElem).show()
       @drawBranchMap()

@@ -7,9 +7,10 @@ class MainMenuHeader extends HeaderElement
 
 
 
-  buildHeader: () ->
+  buildHeader: (width) ->
     @headerBar = document.createElement('div')
     @headerBar.classList.add('atomic-taro_main-menu')
+    $(@headerBar).width(width)
 
     @variantButtons = document.createElement('div')
     @variantButtons.classList.add('atomic-taro_main-menu_variantContainer')
@@ -50,6 +51,26 @@ class MainMenuHeader extends HeaderElement
   getElement: ->
     #@headerWrapper = document.createElement('div')
     @headerWrapper
+
+
+  focus: ->
+    @addClass('active')
+    $(@currentVersionName).addClass('focused')
+    $(@variantsButton).addClass('active')
+    #$(@activeButton).show()
+    #$(@historyButton).show()
+    #$(@branchButton).show()
+
+
+  blur: ->
+    @removeClass('active')
+    $(@currentVersionName).removeClass('focused')
+    $(@variantsButton).removeClass('active')
+    # $(@activeButton).hide()
+    # $(@historyButton).hide()
+    # $(@branchButton).hide()
+    $('.icon-primitive-square').removeClass('highlighted')
+    $('.atomic-taro_editor-header_version-title').removeClass('highlighted')
 
 
   travelStyle: (commit) ->
@@ -95,6 +116,9 @@ class MainMenuHeader extends HeaderElement
     @addBranchButton(@variantButtons)
     @branchButton.classList.add('atomic-taro_main-menu_branchIcon')
     @historyButton.classList.add('atomic-taro_main-menu_branchIcon')
+    $(@activeButton).show()
+    $(@historyButton).show()
+    $(@branchButton).show()
     @buildAlertPane()
 
 

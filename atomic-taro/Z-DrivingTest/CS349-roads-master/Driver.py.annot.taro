@@ -16,11 +16,13 @@ from sklearn.svm import SVC
 import random
 
 
+#%%^%%v0
 num_selfTrips = 160
 num_testTrips = 40
 num_NOTselfTrips = 160
 size = num_testTrips+num_selfTrips
 cv = 5 #number of cross-validation trials
+#^^%^^
 
 
 class Driver(object):
@@ -58,7 +60,10 @@ class Driver(object):
 		#auc = 0
 		return (prec, recall, auc, acc)
 
-
+	#takes two arrays corresponding to the whole dataset and the corresponding labels and a number k,
+	#corresponding to the current trial number out of the series of 5 cross-validation trials
+	#returns four lists corresponding to the training data, training labels, testing data, and testing
+	#labels respectively
 	def splitData(self, data, labels, k):
 
 		traintrips = []
@@ -118,8 +123,7 @@ class Driver(object):
 			#print self.calculateResults(predLabels, testtarget)
 		return res
 
-	#takes a number of trips to be sampled, number of drivers to be sampled from,
-	#and binary string
+	#takes a number of trips to be sampled, number of drivers to be sampled from, and binary string
 	#specifying features sample random trips from a given number of random drivers
 	#returns a list of sample trips
 	def getRandomDriverTrips(self, numtrips, numNotDrivers, feat):
@@ -134,8 +138,7 @@ class Driver(object):
 		if numNotDrivers == 0 or numNotDrivers >= len(notDrivers):
 			numNotDrivers = len(notDrivers)-1
 
-		#if we are comparing to only one driver and that driver is the same as
-		#the original driver
+		#if we are comparing to only one driver and that driver is the same as the original driver
 		if numNotDrivers == 1:
 			while notDrivers[1] == self.name:
 				copy = notDrivers[1:]

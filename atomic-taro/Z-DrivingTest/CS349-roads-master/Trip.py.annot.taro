@@ -8,14 +8,18 @@ import math
 from scipy.ndimage import gaussian_filter1d
 
 
+#%%^%%v0
 #computes the norm of a vector (x,y)
 def computeNorm(x, y):
 	return distance(x, y, 0, 0)
+#^^%^^
 
 #computes the euclidean distance between two points (x0,y0) and (x1,y1)
 def distance(x0, y0, x1, y1):
+#%%^%%v0
 	return math.sqrt((x1-x0)**2 + (y1-y0)**2)
 
+#^^%^^
 #uses the inner product formula to compute the angle between two vectors
 def computeAngle (p1, p2):
 	dot = 0
@@ -79,6 +83,7 @@ class Trip(object):
 		self.tripPath=self.tripPathRaw #used for testing path smoothing
 	 	#self.plotTrip()
 
+#%%^%%v0
 	 	self.dV = []
 	 	#initialize features
 	 	self.v = [] #speed at each second
@@ -115,6 +120,7 @@ class Trip(object):
 	 	#self.stops = findStops(self.v)#len(findStops(self.v))
 
 	 	#self.speed_hist, self.acc = findSpeed_Hist(self.tripPath)
+#^^%^^
 
 
 	#applies Gaussian smoothing to a given list of data
@@ -137,6 +143,7 @@ class Trip(object):
 		return data
 
 	#computes turning angle over 3s, turning speed*turning angle over 3s and change of heading
+#%%^%%v0
 	def computeTurningAngles (self):
 
 		#computes velocity vectors and change of heading
@@ -154,6 +161,7 @@ class Trip(object):
 			angle = computeAngle(self.dV[ind-2], self.dV[ind])
 			self.ang.append(angle)
 			self.ang_sp.append(angle*((self.v[ind-2]+self.v[ind-1]+self.v[ind]))/3)
+#^^%^^
 
 
 	#finds turns above 50 degrees, recording the total turning angle,
@@ -302,6 +310,7 @@ class Trip(object):
 				features += allFeatures[i] + ","
 
 
+#%%^%%v0
 		"""
 		features += str(self.tripDist)+","
 		features += str (self.advSpeed) + ","
@@ -320,6 +329,7 @@ class Trip(object):
 		features += printHist_Feature(self.turn_dist_hist) +"," #12
 		features += printHist_Feature(self.sharp_turn_sp_hist) + "," #13
 		"""
+#^^%^^
 
 		return features[:-1] + "\n"
 

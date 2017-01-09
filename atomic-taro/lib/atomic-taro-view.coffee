@@ -19,6 +19,7 @@ ProgramProcessor = require './program-processor'
 CommitTravelAgent = require './commit-travel-agent'
 VariantFactory = require './variant-factory'
 Output = require './output'
+AnnotationAgent = require './annotation-agent'
 
 '''
   TODO - rethink annotation-processor-buffer
@@ -35,7 +36,7 @@ class AtomicTaroView
     #@filePath = @baseFolder+"/"+@fileName+"."+@fileType
     #console.log "BASE FILE IS ", @filePath
     @sourceEditor = sourceEditor
-    @exploratoryEditor = null
+    @exploratoryEditor = atom.workspace.getActiveTextEditor() #sourceEditor #null
 
     @variantListeners = null # holds jquery listeners
 
@@ -47,6 +48,7 @@ class AtomicTaroView
     @travelAgent = null
     @programProcessor = null # object to run code and record output
     @provenanceAgent = null #new ProvUtils()
+    @annotationAgent = new AnnotationAgent(@baseFolder, @fileName)
 
     #divs
     @element = null
@@ -157,6 +159,7 @@ class AtomicTaroView
   closeExplorerView: ->
     @explorer_panel.hide()
     $('.showVariantsButton').text("show")
+    @masterVariant.updateWidth()
 
 
   toggleExplorerView: ->
@@ -164,6 +167,7 @@ class AtomicTaroView
       if @explorer_panel.isVisible()
         @explorer_panel.hide()
         $('.showVariantsButton').text("show")
+        @masterVariant.updateWidth()
       else
         @explorer_panel.show()
         $('.showVariantsButton').text("hide")
@@ -187,11 +191,18 @@ class AtomicTaroView
     When the user's program is run, Variolite wraps the output and returns the
     output to here.
   '''
-  registerOutput: (data) ->
-    out = new Output(data)
+  registerOutput: (command, data) ->
+    out = new Output(command, data)
     commitId = @masterVariant.registerOutput(out)
     out.setCommit(commitId)
     @explorer.registerOutput(out, commitId)
+
+
+  registerErr: (command, data) ->
+    out = new Output(command, data)
+    #commitId = @masterVariant.registerOutput(out)
+    #out.setCommit(commitId)
+    @explorer.registerOutput(out)
 
 
   getTravelAgent: ->
@@ -218,24 +229,42 @@ class AtomicTaroView
   '''
   initializeView: ->
     # exploratoryEditor is the python file modified to show our visualization things
-    @exploratoryEditor = @initExploratoryEditor(@sourceEditor)
-    @exploratoryEditor.getElement().setHeight(635) # WARNING HARD CODED!!!!
+    #@exploratoryEditor = @initExploratoryEditor(@sourceEditor)
+    #@exploratoryEditor.getElement().setHeight(635) # WARNING HARD CODED!!!!
     @initCursorListeners()
 
     #root element
-    @element = document.createElement('div')
-    @element.classList.add('atomic-taro_pane')#, 'scroll-view')
+    #@element = document.createElement('div')
+    #@element.classList.add('atomic-taro_pane')#, 'scroll-view')
+    @element = @exploratoryEditor.getElement()
 
     @travelAgent = new CommitTravelAgent(@)
-    @variantFactory = new VariantFactory(@filePath, @, @undoAgent, @provenanceAgent, @travelAgent)
+    @variantFactory = new VariantFactory(@filePath, @, @undoAgent, @provenanceAgent, @travelAgent, @annotationAgent)
     @masterVariant = @variantFactory.buildMasterVariant(@exploratoryEditor, @masterVariant)
     @travelAgent.setMasterVariant(@masterVariant)
-    @variantFactory.initVariants(@exploratoryEditor, @masterVariant)
+    @annotationAgent.setMasterVariant(@masterVariant)
+    @annotationAgent.load (annot) =>
+      if annot?
+        @exploratoryEditor.setText(annot)
+      @variantFactory.initVariants(@exploratoryEditor, @masterVariant)
 
 
     # create a variant manager
     @variantListeners = new Listeners(@masterVariant, @)
-    @programProcessor = new ProgramProcessor(@baseFolder, @filePath, @)
+    @programProcessor = new ProgramProcessor(@baseFolder, @filePath, @fileName, @)
+
+
+
+  getWrapLineX: (editor) ->
+    editorElement = editor.getElement()
+    column = atom.config.get('editor.preferredLineLength', scope: editor.getRootScopeDescriptor())
+    columnWidth = editorElement.getDefaultCharacterWidth() * column
+    if editorElement.logicalDisplayBuffer
+      columnWidth -= editorElement.getScrollLeft()
+    else
+      columnWidth -= editor.getScrollLeft()
+    return Math.round(columnWidth)
+
 
 
   '''
@@ -243,9 +272,10 @@ class AtomicTaroView
     up building and display the tool.
   '''
   postInit_buildView: ->
-      @element.appendChild(@exploratoryEditor.getElement())
+      #@element.appendChild(@exploratoryEditor.getElement())
+      wrapWidth = @getWrapLineX(@exploratoryEditor)
 
-      @masterVariant.buildVariantDiv()
+      @masterVariant.buildVariantDiv(wrapWidth)
       @variantListeners.addJqueryListeners()
 
       atom.views.addViewProvider AtomicTaroToolPane, (toolPane) ->
@@ -284,6 +314,11 @@ class AtomicTaroView
         @variantListeners.setFocusedVariant(m)
 
 
+  wrapNewVariant: ->
+    #console.log "WRAP NEW VARIANT"
+    @variantFactory.wrapNewVariant(@exploratoryEditor, @masterVariant)
+
+
   '''
    This is the title that shows up on the tab in Atom
   '''
@@ -294,4 +329,5 @@ class AtomicTaroView
     Since atom doesn't know how to save our editor, we manually set this up
   '''
   saveVariants: (e) ->
-    @exploratoryEditor.save()
+    #@exploratoryEditor.save()
+    @annotationAgent.save()

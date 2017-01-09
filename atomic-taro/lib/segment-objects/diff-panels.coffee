@@ -6,8 +6,8 @@ JsDiff = require 'diff'
 module.exports =
 class DiffPanels
 
-  constructor: (@variantView, @variantModel) ->
-    @addDiffPanels() # initialize commit line
+  constructor: (@variantView, @variantModel, width) ->
+    @addDiffPanels(width) # initialize commit line
     @highlightMarkers = []
     @diffVers = []
 
@@ -65,9 +65,10 @@ class DiffPanels
 
 
 
-  addDiffPanels: () ->
+  addDiffPanels: (width) ->
     @diffPanelElem = document.createElement('table')
     @diffPanelElem.classList.add('atomic-taro_diff-panel')
+    $(@diffPanelElem).width(width)
 
     row = document.createElement('tr')
 

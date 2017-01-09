@@ -39,28 +39,28 @@ module.exports = AtomicTaro =
     opens our package while on a python file, it
     will open our exploratory view of that python file.
     '''
-    atom.workspace.addOpener (uriToOpen, plainCodeEditor) =>
-      try
-        {protocol, host, pathname} = url.parse(uriToOpen)
-      catch error
-        console.log "opener failed"
-        return
-
-      return unless protocol is 'tarotaro:'
-      console.log "opening a new exploratory editor"
-      try
-        pathname = decodeURI(pathname) if pathname
-      catch error
-        return
-      lastIndex = @filePath.lastIndexOf('/')
-      folder = @filePath.substring(0, lastIndex)
-      fileName = @filePath.substring(lastIndex + 1)
-      [fileBase, fileType] = fileName.split(".")
-      statePath = folder+"/"+fileBase+".taro"
-      atom.views.addViewProvider AtomicTaroView, (taroView) ->
-        toolPane.getElement()
-      @atomicTaroView = new AtomicTaroView statePath, @filePath, folder, fileName, fileType, plainCodeEditor
-      @atomicTaroView
+    # atom.workspace.addOpener (uriToOpen, plainCodeEditor) =>
+    #   try
+    #     {protocol, host, pathname} = url.parse(uriToOpen)
+    #   catch error
+    #     console.log "opener failed"
+    #     return
+    #
+    #   return unless protocol is 'tarotaro:'
+    #   console.log "opening a new exploratory editor"
+    #   try
+    #     pathname = decodeURI(pathname) if pathname
+    #   catch error
+    #     return
+    #   lastIndex = @filePath.lastIndexOf('/')
+    #   folder = @filePath.substring(0, lastIndex)
+    #   fileName = @filePath.substring(lastIndex + 1)
+    #   [fileBase, fileType] = fileName.split(".")
+    #   statePath = folder+"/"+fileBase+".taro"
+    #   atom.views.addViewProvider AtomicTaroView, (taroView) ->
+    #     toolPane.getElement()
+    #   @atomicTaroView = new AtomicTaroView statePath, @filePath, folder, fileName, fileType, plainCodeEditor
+    #   @atomicTaroView
 
 
   deactivate: ->
@@ -78,10 +78,10 @@ module.exports = AtomicTaro =
         @atomicTaroView.copyVariant(e)
 
   taroWrapVariant: (e) ->
-    editor = atom.workspace.getActivePaneItem()
-    if editor instanceof AtomicTaroView
-        @atomicTaroView = editor
-        @atomicTaroView.wrapNewVariant(e)
+    #editor = atom.workspace.getActivePaneItem()
+    #if editor instanceof AtomicTaroView
+        #@atomicTaroView = editor
+    @atomicTaroView.wrapNewVariant(e)
 
   taropaste: (e) ->
     editor = atom.workspace.getActivePaneItem()
@@ -97,12 +97,24 @@ module.exports = AtomicTaro =
     @filePath = atom.workspace.getActiveTextEditor().getPath()
     uri = 'tarotaro://file'+atom.workspace.getActiveTextEditor().getPath()
 
-    if uri? #and path.extname(uri) is '.py'
-      plainCodeEditor = atom.workspace.getActiveTextEditor()
-      atom.workspace.open(uri, plainCodeEditor, split: 'right', searchAllPanes: true)#.done (view) ->
-      #previousActivePane.activate()
-      previousActivePane = atom.workspace.paneForItem(plainCodeEditor)
-      previousActivePane.removeItem(plainCodeEditor, false)
+    #if uri? #and path.extname(uri) is '.py'
+    plainCodeEditor = atom.workspace.getActiveTextEditor()
+    #atom.workspace.open(uri, plainCodeEditor, split: 'right', searchAllPanes: true)#.done (view) ->
+    #previousActivePane = atom.workspace.paneForItem(plainCodeEditor)
+    #previousActivePane.removeItem(plainCodeEditor, false)
+    # try
+    #   pathname = decodeURI(pathname) if pathname
+    # catch error
+    #   return
+    lastIndex = @filePath.lastIndexOf('/')
+    folder = @filePath.substring(0, lastIndex)
+    fileName = @filePath.substring(lastIndex + 1)
+    [fileBase, fileType] = fileName.split(".")
+    statePath = folder+"/"+fileBase+".taro"
+    atom.views.addViewProvider AtomicTaroView, (taroView) ->
+      toolPane.getElement()
+    @atomicTaroView = new AtomicTaroView statePath, @filePath, folder, fileName, fileType, plainCodeEditor
+
 
 
 
@@ -116,20 +128,20 @@ module.exports = AtomicTaro =
     @atomicTaroView.toggleExplorerView()
 
   handleSaveEvent: (e) ->
-    editor = atom.workspace.getActivePaneItem()
-    if editor instanceof AtomicTaroView
-        @atomicTaroView = editor
-        @atomicTaroView.saveVariants(e)
-        cereal = @serialize()
-        lastIndex = @filePath.lastIndexOf('/')
-        folder = @filePath.substring(0, lastIndex)
-        fileName = @filePath.substring(lastIndex + 1).split(".")[0]
-        console.log cereal
-        fs.writeFile (folder+"/"+fileName+".taro"), JSON.stringify(cereal), (error) ->
-          console.error("Error writing file", error) if error
+    #editor = atom.workspace.getActivePaneItem()
+    #if editor instanceof AtomicTaroView
+        #@atomicTaroView = editor
+    @atomicTaroView.saveVariants(e)
+    cereal = @serialize()
+    lastIndex = @filePath.lastIndexOf('/')
+    folder = @filePath.substring(0, lastIndex)
+    fileName = @filePath.substring(lastIndex + 1).split(".")[0]
+    console.log cereal
+    fs.writeFile (folder+"/"+fileName+".taro"), JSON.stringify(cereal), (error) ->
+      console.error("Error writing file", error) if error
 
   handleSaveAsEvent: (e) ->
-    editor = atom.workspace.getActivePaneItem()
-    if editor instanceof AtomicTaroView
+    #editor = atom.workspace.getActivePaneItem()
+    #if editor instanceof AtomicTaroView
       #console.log atom.workspace.getActivePane()
       console.log "SAVE AS"
