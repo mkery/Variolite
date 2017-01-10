@@ -163,11 +163,17 @@ class VariantModel
       branch = @findBranch(branchID)
       #console.log "Switching to version "+branchID
       #console.log branch
+      # branch.setActive(true)
+      # @currentBranch.setActive(false)
+      # @currentBranch = branch
       branch.setActive(true)
-      @currentBranch.setActive(false)
+      #@currentBranch?.close()
       @currentBranch = branch
-      @view.switchHeaderToVersion(branch)
-      @currentBranch.setActive(true)
+      @view.switchHeaderOnly(branch)
+      # @currentBranch.setActive(true)
+      #@view.switchToVersion(branch)
+
+
 
     # Check direction of travel:
     #   are we in tha past traveling to the present?
@@ -244,15 +250,15 @@ class VariantModel
     tool is closed and opened.
   '''
   serialize: ->
-    if @pendingDestruction == false
-      if @marker?
-        text = @sourceEditor.getTextInBufferRange(@marker.getBufferRange())
-        @currentVersion.text = text
-
-        # Now, since we can have nested variants that are not in
-        # JSON form, put everything in JSON form
-        rootVersion: if @rootVersion? then @serializeWalk(@rootVersion) else null
-        currentVersion:  @currentVersion.id
+    # if @pendingDestruction == false
+    #   if @marker?
+    #     text = @sourceEditor.getTextInBufferRange(@marker.getBufferRange())
+    #     @currentVersion.text = text
+    #
+    #     # Now, since we can have nested variants that are not in
+    #     # JSON form, put everything in JSON form
+    #     rootVersion: if @rootVersion? then @serializeWalk(@rootVersion) else null
+    #     currentVersion:  @currentVersion.id
 
 
   '''

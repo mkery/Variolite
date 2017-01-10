@@ -371,6 +371,14 @@ class VariantView
     @model.switchToVersion(v)
     @headerElement.switchToVersion(v)
     @branchMap.redraw()
+    @commitLine.redraw()
+
+
+  switchHeaderOnly: (v) ->
+    @diffPanels.close()
+    @headerElement.switchToVersion(v)
+    @branchMap.redraw()
+    @commitLine.redraw()
 
 
 

@@ -20,7 +20,7 @@ class CommitLine
     @commitLineElem = document.createElement('div')
     @commitLineElem.classList.add('atomic-taro_commit-element')
     $(@commitLineElem).width(width)
-    
+
     @commitTraveler = document.createElement('div')
     @commitTraveler.classList.add('atomic-taro_commit-traveler')
     paddT = $(@commitTraveler).innerWidth() - $(@commitTraveler).width()
@@ -63,7 +63,7 @@ class CommitLine
 
 
   redraw: ->
-    #console.log "REDRAW!!! ", @showing
+    #console.log "REDRAW!!! "
     if @showing == true
       #console.log "222 REDRAW 222 !!!"
       @drawTimeline()
@@ -87,21 +87,18 @@ class CommitLine
 
   drawTimeline: ->
       @initialized = true
-      #$(@commitLineElem).width($(@commitLineElem).parent().width())
-      # paddT = $(@commitTraveler).innerWidth() - $(@commitTraveler).width()
-      # $(@commitTraveler).width($(@commitLineElem).width() - paddT)
       commitNum = @getModel().getCurrentVersion().getNumberOfCommits()
       currentCommit = @getModel().getCurrentVersion().getCurrentCommit()
       if currentCommit == -1 # no commit
         currentCommit = commitNum
-      #console.log @getModel().getCurrentVersion()
+      #console.log "commit line num ", @getModel().getCurrentVersion(), " num ", commitNum
 
       if commitNum > 0
+        $(@commitSlider).show()
+        $(@nowBracket).show()
+        $(@commitTraveler).removeClass("textOnly")
+        $(@noCommits).html("")
         if $(@tickMarkers).children('.atomic-taro_commit-ticks').length != commitNum
-            #$(@nowMarker).show()
-            $(@nowBracket).show()
-            $(@commitTraveler).removeClass("textOnly")
-            $(@noCommits).html("")
             $(@commitSlider).slider({
               max: commitNum,
               min: 0,
@@ -127,6 +124,8 @@ class CommitLine
       else
         $(@commitTraveler).addClass("textOnly")
         $(@noCommits).html("No commits to show yet!")
+        $(@commitSlider).hide()
+        $(@nowBracket).hide()
       $(@commitLineElem).show()
       @showing = true
       #$(@commitLineElem).slideDown('fast')
