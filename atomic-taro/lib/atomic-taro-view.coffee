@@ -136,7 +136,7 @@ class AtomicTaroView
 
 
   loseTabFocus: ->
-    if @explorer_panel.isVisible()
+    if @explorer_panel?.isVisible()
       @explorer_panel.hide()
       @focusData.explorePanel = true
     else
@@ -294,7 +294,7 @@ class AtomicTaroView
         toolPane.getElement()
 
       @explorer = new AtomicTaroToolPane(@masterVariant, @programProcessor, @travelAgent, @)
-      @showExplorerView()
+      #@showExplorerView()
 
   '''
     Creates a TextEditor that uses AnnotationProcessorBuffer for this tool. Ideally

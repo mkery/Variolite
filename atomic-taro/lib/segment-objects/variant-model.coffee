@@ -9,11 +9,9 @@ Represents a single variant of exploratory code.
 '''
 
 '''
-  TODO: - commit only when the code has changed (track change sets)
+  TODO:
         - compare multiple
         - travel to different versions and commits
-        - can make a commit even when nothing has changed D:
-        - Is currentVersion maintained when traveling in commits?
         - How to deal with variant boxes that were dissolved but existed in the past?
 '''
 
@@ -246,7 +244,6 @@ class VariantModel
     tool is closed and opened.
   '''
   serialize: ->
-    '''# we don't want a variant to be saved unless we plan to keep it
     if @pendingDestruction == false
       if @marker?
         text = @sourceEditor.getTextInBufferRange(@marker.getBufferRange())
@@ -255,7 +252,7 @@ class VariantModel
         # Now, since we can have nested variants that are not in
         # JSON form, put everything in JSON form
         rootVersion: if @rootVersion? then @serializeWalk(@rootVersion) else null
-        currentVersion:  @currentVersion.id'''
+        currentVersion:  @currentVersion.id
 
 
   '''

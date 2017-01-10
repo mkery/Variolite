@@ -137,9 +137,9 @@ class Listeners
           variant.switchToVersion(v)
 
       $(document).on 'mouseenter', '.atomic-taro_editor-header_version-title', (ev) ->
-        $(this).children('.atomic-taro_editor-header_x').show()
+        $(this).children('.atomic-taro_editor-header_x').css('visibility', 'visible')
       $(document).on 'mouseleave', '.atomic-taro_editor-header_version-title', (ev) ->
-        $(this).children('.atomic-taro_editor-header_x').hide()
+        $(this).children('.atomic-taro_editor-header_x').css('visibility', 'hidden')
 
 
       $(document).on 'click', '.atomic-taro_editor-header_x', (ev) ->

@@ -40,6 +40,11 @@ module.exports = AtomicTaro =
         if changeTo
           @focusedView.gainTabFocus()
 
+    atom.workspace.onDidDestroyPaneItem (e) =>
+      console.log "Destroyed! "
+      destroyed = e.item
+      @activeViews = @activeViews.filter (view) => view.exploratoryEditor.id != destroyed.id
+      console.log @activeViews
 
   deactivate: ->
     @subscriptions.dispose()
@@ -64,7 +69,8 @@ module.exports = AtomicTaro =
     filePath = atom.workspace.getActiveTextEditor().getPath()
     # check if there is a view for this file already
     for view in @activeViews
-      if view.filePath == filePath
+      #console.log "active view ", view
+      if view?.filePath == filePath
         return
 
     @addTaroView(filePath)

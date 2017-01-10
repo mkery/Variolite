@@ -139,7 +139,7 @@ class VariantView
     when the tool is closed and opened again later.
   '''
   serialize: ->
-    #TODO add ui
+    #TODO add ui?
     @model.serialize()
 
 

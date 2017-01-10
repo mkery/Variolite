@@ -226,7 +226,7 @@ class HeaderElement
       xIcon.classList.add('atomic-taro_editor-header_x')
       $(xIcon).data("variant", @view)
       versionTitle.appendChild(xIcon)
-      $(xIcon).hide()
+      $(xIcon).css('visibility', 'hidden')
       @versionBookmarkBar.appendChild(versionTitle)
 
       if(v.getID() == current?.id)

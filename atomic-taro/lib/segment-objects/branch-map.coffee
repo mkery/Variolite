@@ -97,8 +97,8 @@ class BranchMap
       y = (mapHeight*.50) - squareWidth/4
       square = document.createElement('div')
       square.classList.add('atomic-taro_branch-map-square')
-      disposable = atom.tooltips.add(square, {title: root.getTitle(), placement: "bottom"})
-      @subscriptions.add disposable
+      #disposable = atom.tooltips.add(square, {title: root.getTitle(), placement: "bottom"})
+      #@subscriptions.add disposable
       #console.log "disposable added"
       #console.log @subscriptions
       $(square).data("branch", root)
