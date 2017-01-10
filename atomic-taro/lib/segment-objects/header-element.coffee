@@ -43,7 +43,7 @@ class HeaderElement
 
 
   buildHeader: (width) ->
-    console.log "building header"
+    #console.log "building header"
     # build wrapper
     @verticalWrapper.classList.add('atomic-taro_editor-vertical-wrapper')
     @headerWrapper.classList.add('atomic-taro_editor-header-wrapper')
@@ -303,7 +303,7 @@ class HeaderElement
     buttonAdd.classList.add('createVariantButton')
     $(buttonAdd).html("<span class='icon icon-repo-create'>new branch</span>")
     $(buttonAdd).click =>
-      @view.newVersion()
+      @view.newBranch()
       $(variantsMenu).hide()
       @view.getBranchMap().redraw()
     variantsMenu.appendChild(buttonAdd)

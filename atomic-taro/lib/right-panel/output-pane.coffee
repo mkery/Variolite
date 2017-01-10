@@ -47,7 +47,7 @@ class OutputPane
     xIcon.classList.add('atomic-taro_explore')
     xIcon.classList.add('text-smaller')
     $ => $(document).on 'click', '.icon-x.atomic-taro_explore', (ev) =>
-      console.log "clicked exit!!!"
+      #console.log "clicked exit!!!"
       @atomicTaroView.closeExplorerView()
 
     @titleBox.appendChild(titleText)
@@ -268,7 +268,7 @@ class OutputPane
       commit = $(this).data('commit')
       if commit?
         ev.data.travelAgent.travelToGlobalCommit(commit)
-        console.log "return to commit ", commit
+        #console.log "return to commit ", commit
       ev.stopPropagation()
 
     $(document).on 'mousedown', '.atomic-taro_output_box', {'menu': @rightClickMenu}, (ev) ->

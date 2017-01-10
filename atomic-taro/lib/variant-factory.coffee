@@ -9,13 +9,8 @@ module.exports =
 class VariantFactory
 
 
-  constructor: (@filePath, @taroView, @undoAgent, @provenanceAgent, @travelAgent, @annotationAgent) ->
-    @annotationBuffer = null
-
-
-  #setAnnotationBuffer: (buffer) ->
-    # ???
-
+  constructor: (@filePath, @taroView, @undoAgent, @metaFolder, @travelAgent, @annotationAgent) ->
+    # nothing
 
 
   '''
@@ -56,7 +51,7 @@ class VariantFactory
         if nest_Parent != null
           nest_Parent[1].addedNestedVariant(variant, nest_Parent[0])  #nest_Parent is an array - second item is the VariantView
         else
-          console.log "adding variant to manager"
+          #console.log "adding variant to manager"
           masterVariant.addedNestedVariant(variant, masterVariant.getModel().getCurrentVersion())
 
 
@@ -67,7 +62,7 @@ class VariantFactory
     Existing variant boxes are indicated by annotations in the code.
   '''
   initVariants: (editor, masterVariant) ->
-    console.log "Init variants!"
+    #console.log "Init variants!"
     # Get the location of all variant annotaions in the file.
     beacons = @findMarkers(editor)
     list_offset = @addAllVariants(editor, beacons, 0, [])
@@ -97,7 +92,7 @@ class VariantFactory
     altHeader = new MainMenuHeader()
     altHeader.setTaroView(@taroView)
     altFooter = document.createElement('div')
-    variant = new VariantView({sourceEditor: editor, marker: marker, altHeader: altHeader, altFooter: altFooter, title: @fileName, taroView: @taroView, undoAgent: @undoAgent, provAgent: @provenanceAgent, travelAgent: @travelAgent})
+    variant = new VariantView({id: 0, sourceEditor: editor, marker: marker, altHeader: altHeader, altFooter: altFooter, title: @fileName, taroView: @taroView, undoAgent: @undoAgent, metaFolder: @metaFolder, travelAgent: @travelAgent})
     masterVariant = @buildVariant(range.start, range.end, editor, marker, @fileName, variant)
     masterVariant
 
@@ -216,7 +211,7 @@ class VariantFactory
   buildVariant: (start, end, editor, marker, title, variant) ->
     # create variant
     if not variant?
-        variant = new VariantView({sourceEditor: editor, marker: marker, title: title, taroView: @taroView, undoAgent: @undoAgent, provAgent: @provenanceAgent, travelAgent: @travelAgent})
+        variant = new VariantView({sourceEditor: editor, marker: marker, title: title, taroView: @taroView, undoAgent: @undoAgent, metaFolder: @metaFolder, travelAgent: @travelAgent})
     marker.setProperties(myVariant: variant)
 
     # mark header

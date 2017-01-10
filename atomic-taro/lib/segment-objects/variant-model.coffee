@@ -3,6 +3,7 @@ JsDiff = require 'diff'
 crypto = require 'crypto'
 GitUtils = require './git-utils'
 VariantBranch = require './variant-branch'
+fs = require 'fs'
 
 '''
 Represents a single variant of exploratory code.
@@ -25,7 +26,7 @@ class VariantModel
     @sourceBuffer = @sourceEditor.getBuffer()  # really Variolite's buffer
 
     @undoAgent = params.undoAgent
-    @provenanceAgent = params.provAgent
+    #@provenanceAgent = params.provAgent
 
     @headerMarker = null # the header div has it's own marker
     @marker = params.marker
@@ -40,7 +41,14 @@ class VariantModel
     @pendingDestruction = false
 
     # TODO do not need to re-generate id for variant that has one!
-    @variantID = crypto.randomBytes(20).toString('hex')
+    @variantID = params.id
+    if not @variantID?
+        @variantID = crypto.randomBytes(20).toString('hex')
+        @variantFolder = params.metaFolder + "/" + @variantID.substring(0, 11)
+    else
+      @variantFolder = params.metaFolder + "/" + @variantID
+    console.log "Trying to make a folder at: ",@variantFolder
+    @mkdirSync(@variantFolder) # If folder does not exist, creates a new folder
 
     # Branch objects for each version associated with this variant
     @branches = []
@@ -55,6 +63,9 @@ class VariantModel
       params = {title: title, text: text, date: date}
 
     @currentBranch = new VariantBranch(@, params)
+    branchFolder = @variantFolder + "/" + @currentBranch.getID()
+    @mkdirSync(branchFolder) # If folder does not exist, creates a new folder
+    @currentBranch.setFolder(branchFolder)
     @branches.push @currentBranch
 
     @prevTitles = [] # TODO for help with undo?
@@ -148,12 +159,12 @@ class VariantModel
     commit
 
 
-
   '''
     Starts process of travel to a commit.
     Changes display to show the user's code as it was at the time of a specific commit
   '''
   travelToCommit: (commitData, insertPoint) ->
+    console.log @currentBranch.title+" traveling to commit"
     branchID = commitData.branchID
     commitID = commitData.commitID
 
@@ -161,32 +172,23 @@ class VariantModel
     #   if no branch is declared, assume the current branch
     if branchID? and branchID != @currentBranch.getID()
       branch = @findBranch(branchID)
-      #console.log "Switching to version "+branchID
-      #console.log branch
-      # branch.setActive(true)
-      # @currentBranch.setActive(false)
-      # @currentBranch = branch
       branch.setActive(true)
-      #@currentBranch?.close()
       @currentBranch = branch
       @view.switchHeaderOnly(branch)
-      # @currentBranch.setActive(true)
-      #@view.switchToVersion(branch)
-
 
 
     # Check direction of travel:
     #   are we in tha past traveling to the present?
     if commitID == @PRESENT or !commitID?
-      #console.log @getTitle(), " BACK TO THE FUTURE, ", commitID, ", ", @PRESENT
+      console.log @getTitle(), " BACK TO THE FUTURE, ", commitID, ", ", @PRESENT
       return @currentBranch.backToTheFuture(insertPoint)
     #   are we in the present traveling back?
     else
       if @currentBranch.getCurrentCommit() == @currentBranch.NO_COMMIT
-        #console.log "FROM PRESENT TO PAST"
+        console.log "FROM PRESENT TO PAST"
         @currentBranch.recordCurrentState(commitID)
 
-      return @currentBranch.travelToCommit(commitID, insertPoint)
+      return @currentBranch.travelToCommit(commitData, insertPoint)
 
 
   '''
@@ -332,23 +334,24 @@ class VariantModel
     the VariantView header elements.
   '''
   reinstate: =>
+    console.log "Re-instate range is ", @range
+    @marker = @sourceEditor.markBufferRange(@range, invalidate: 'never')
+    @marker.setProperties(myVariant: @view)
+    #editor.decorateMarker(marker, type: 'highlight', class: 'highlight-green')
+
+    headerElement = @view.getHeader()
+    #console.log headerElement
+    hRange = [@range.start, new Point(@range.end.row - 1, @range.end.col)]
+    @headerMarker = @sourceEditor.markBufferRange(hRange, invalidate: 'never', reversed: true)
+    #editor.decorateMarker(hm, type: 'highlight', class: 'highlight-pink')
+    @headerMarker.setProperties(myVariant: @view)
+    hdec = @sourceEditor.decorateMarker(@headerMarker, {type: 'block', position: 'before', item: headerElement})
+    @view.setHeaderMarkerDecoration(hdec)
+
+    footerElement = @view.getFooter()
+    fdec = @sourceEditor.decorateMarker(@marker, {type: 'block', position: 'after', item: footerElement})
+    @view.setFooterMarkerDecoration(fdec)
     if @pendingDestruction
-      @marker = @sourceEditor.markBufferRange(@range, invalidate: 'never')
-      @marker.setProperties(myVariant: @view)
-      #editor.decorateMarker(marker, type: 'highlight', class: 'highlight-green')
-
-      headerElement = @view.getHeader()
-      #console.log headerElement
-      hRange = [@range.start, new Point(@range.end.row - 1, @range.end.col)]
-      @headerMarker = @sourceEditor.markBufferRange(hRange, invalidate: 'never', reversed: true)
-      #editor.decorateMarker(hm, type: 'highlight', class: 'highlight-pink')
-      @headerMarker.setProperties(myVariant: @view)
-      hdec = @sourceEditor.decorateMarker(@headerMarker, {type: 'block', position: 'before', item: headerElement})
-      @view.setHeaderMarkerDecoration(hdec)
-
-      footerElement = @view.getFooter()
-      fdec = @sourceEditor.decorateMarker(@marker, {type: 'block', position: 'after', item: footerElement})
-      @view.setFooterMarkerDecoration(fdec)
       @pendingDestruction = false
 
 
@@ -485,10 +488,19 @@ class VariantModel
       return false
 
 
+  mkdirSync: (path) ->
+    try
+      fs.mkdirSync(path);
+    catch e
+      if e.code != 'EEXIST'
+        #throw e
+        console.log "Failed to create directory.", e
+
+
   '''
     Creates a new version of this variant box, a new branch in the commit tree.
   '''
-  newVersion: ->
+  newBranch: ->
     # new text has clean text before we add marker placeholders
     newText = @getTextInVariantRange()
     @currentBranch.close()
@@ -501,6 +513,10 @@ class VariantModel
     subtitle = @currentBranch.getBranches().length
     index = @currentBranch.getTitle() + "-" + (subtitle + 1)
     newBranch = new VariantBranch(@,{title: index, text: newText, date: @dateNow()})
+
+    branchFolder = @variantFolder + "/" + newBranch.getID()
+    @mkdirSync(branchFolder) # If folder does not exist, creates a new folder
+    newBranch.setFolder(branchFolder)
 
     @currentBranch.addBranch newBranch
     @currentBranch = newBranch

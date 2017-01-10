@@ -30,7 +30,7 @@ AnnotationAgent = require './annotation-agent'
 module.exports =
 class AtomicTaroView
 
-  constructor: (statePath, @filePath, @baseFolder, @fileName, @fileType, sourceEditor) ->
+  constructor: (statePath, @filePath, @baseFolder, @fileName, @metaFolder, sourceEditor) ->
     @exploratoryEditor = sourceEditor
 
     @variantListeners = null # holds jquery listeners
@@ -42,7 +42,7 @@ class AtomicTaroView
     @undoAgent = new UndoAgent(50) #max undo entries
     @travelAgent = null
     @programProcessor = null # object to run code and record output
-    @provenanceAgent = null #new ProvUtils()
+    #@provenanceAgent = null #new ProvUtils()
     @annotationAgent = new AnnotationAgent(@baseFolder, @fileName)
 
     #divs
@@ -250,7 +250,7 @@ class AtomicTaroView
     @element = @exploratoryEditor.getElement()
 
     @travelAgent = new CommitTravelAgent(@)
-    @variantFactory = new VariantFactory(@filePath, @, @undoAgent, @provenanceAgent, @travelAgent, @annotationAgent)
+    @variantFactory = new VariantFactory(@filePath, @, @undoAgent, @metaFolder, @travelAgent, @annotationAgent)
     @masterVariant = @variantFactory.buildMasterVariant(@exploratoryEditor, @masterVariant)
     @travelAgent.setMasterVariant(@masterVariant)
     @annotationAgent.setMasterVariant(@masterVariant)
@@ -301,11 +301,11 @@ class AtomicTaroView
     we can use the text editor that is already there once we figure out a good alternative
     for dealing with annotations!
   '''
-  initExploratoryEditor: (sourceEditor) ->
-    sourceCode = sourceEditor.getBuffer().getText()
-    exploratoryEditor = atom.workspace.buildTextEditor(buffer: new AnnotationProcessorBuffer(text: sourceCode, undoAgent: @undoAgent, filePath: @filePath, variantView: @), grammar: atom.grammars.selectGrammar("file."+@fileType),  scrollPastEnd: true)
-    atom.textEditors.add(exploratoryEditor)
-    exploratoryEditor
+  # initExploratoryEditor: (sourceEditor) ->
+  #   sourceCode = sourceEditor.getBuffer().getText()
+  #   exploratoryEditor = atom.workspace.buildTextEditor(buffer: new AnnotationProcessorBuffer(text: sourceCode, undoAgent: @undoAgent, filePath: @filePath, variantView: @), grammar: atom.grammars.selectGrammar("file."+@fileType),  scrollPastEnd: true)
+  #   atom.textEditors.add(exploratoryEditor)
+  #   exploratoryEditor
 
 
   '''

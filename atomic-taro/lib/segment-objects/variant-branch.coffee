@@ -2,6 +2,7 @@
 JsDiff = require 'diff'
 crypto = require 'crypto'
 GitUtils = require './git-utils'
+fs = require 'fs'
 
 '''
 Represents a single variant of exploratory code.
@@ -21,6 +22,7 @@ class VariantBranch
 
   # {active: true, id: id, title: title, subtitle: 0, text: text, date: date, branches: [], commits: [], nested: []}
   constructor: (@model, params) ->
+    @branchFolder = null
     @id = crypto.randomBytes(20).toString('hex')
     @title = params?.title
     @subtitle = 0
@@ -36,6 +38,14 @@ class VariantBranch
     @currentState = null # a place to store the current state while traveling to past commits
 
     @latestCommit = "" #TODO for now just plaintext of last commit
+
+
+  setFolder: (folder) ->
+    @branchFolder = folder
+
+
+  getFolder: ->
+    @branchFolder
 
 
   getID: ->
@@ -152,6 +162,13 @@ class VariantBranch
     @switchToVersion()
 
 
+  findOrAddNested: (varID) ->
+    for nest in @nested
+      nestModel = nest.getModel()
+      if nestModel.getVariantID() == varID
+        return nest
+
+
   '''
     Closes this branch and stores its contents for easy access in the future
   '''
@@ -172,12 +189,49 @@ class VariantBranch
 
 
   '''
+    Look at currently active nested variants. If any of these are NOT in the
+    past commit, deactivate them.
+    Look at nested variants in the commitData. If any of these do NOT exist in
+    our current state, schedule them to be activated once we travel back.
+    Assume we are already on the correct branch for this commit.
+  '''
+  roleCall: (commitData) ->
+    toAdd = []
+    #console.log "ROLE CALL on ", commitData
+
+    for nested in @getNested()
+      cleared = false
+      for item in commitData.text
+        if item.varID and item.varID == nested.getModel().getVariantID()
+          cleared = true
+          break
+      if not cleared
+        console.log "clearing "+nested.getModel().getTitle()
+        nested.dissolve()
+
+    for item in commitData.text
+      if item.varID
+        varID = item.varID
+        # check if variant is instantiated
+        variant = @findOrAddNested(varID)
+
+        # check if variant is active, schedule if not
+        if variant.getModel().pendingDestruction == true
+          toAdd.push variant
+
+    return toAdd
+
+
+  '''
     Travels to most recent in time commit.
   '''
   backToTheFuture: (insertPoint) ->
     #console.log "Back to the future "+@title
     #console.log @currentState
     # Mark that we are in the present
+    if @currentState? # close all unneeded variants before the text is cleared
+      nestedToActivate = @roleCall(@currentState)
+
     @currentCommit = @NO_COMMIT
     if not insertPoint? # meaning the first outermost variant
       #console.log "No insert point"
@@ -186,6 +240,8 @@ class VariantBranch
     if @currentState?
       #console.log "Unraveling current state "+@title
       @model.getView().getCommitLine().slideToPresent()
+      # make sure we have the correct set of nested variants
+      #nestedToActivate = @roleCall(@currentState)
       return @unravelCommitText(@currentState.text, insertPoint)
     else
       #console.log "traveling to commit "
@@ -197,12 +253,16 @@ class VariantBranch
     Changes display to show the user's code as it was at the time of a specific commit
   '''
   travelToCommit: (commitData, insertPoint) ->
-    @currentCommit = commitData
+    commitID = commitData.commitID
+    @currentCommit = commitID
     if not insertPoint?
       #console.log "No insert point"
       @model.clearTextInRange()
       #console.log "CLEARED TEXT"
-    @travel(commitData, insertPoint)
+    # make sure we have the correct set of nested variants
+    nestedToActivate = @roleCall(commitData)
+    console.log "Traveling to commit ", commitData
+    @travel(commitID, insertPoint)
 
 
   '''
@@ -253,11 +313,15 @@ class VariantBranch
 
     for item in text
       if item.varID? #commitID?
+        nestID = item.varID
         # then this item is a nested variant
         for nest in @nested
-          nestID = item.varID
-          if nest.getModel().getVariantID() == nestID
-            insertPoint = nest.getModel().travelToCommit(item, insertPoint)
+          nestModel = nest.getModel()
+          if nestModel.getVariantID() == nestID
+            insertPoint = nestModel.travelToCommit(item, insertPoint)
+            if nestModel.pendingDestruction == true # temporarily re-instantiate
+              console.log "Reinstating "+nestModel.getTitle()
+              nest.reinstate()
             break
       else
         range = @model.insertTextInRange(insertPoint, item.text, 'skip')
@@ -290,17 +354,22 @@ class VariantBranch
     if diff
       @latestCommit = @model.getTextInVariantRange()
       commit = @commitChunk(@model.dateNow(), output) # chunks the current state so that it can be quickly reloaded
+      @writeCommitToFile(commit)
 
     # if nothing has changed, point to the latest commit
     else
       #console.log "UNCHANGED"
       commit = @commits[@commits.length - 1]
       commit['output'].push output
-    #console.log "Returning commit!"
-    #console.log commit
+    console.log "Returning commit!"
+    console.log commit
     #@git-utils -- commit
     return commit
 
+
+  writeCommitToFile: (commit) ->
+    fs.writeFile (@branchFolder+"/"+commit.commitID+".json"), JSON.stringify(commit), (error) ->
+      console.error("Error writing file", error) if error
 
 
   commitChunk: (date, output) ->
@@ -338,42 +407,50 @@ class VariantBranch
         marker = model.getMarker()
         range = marker.getBufferRange()
 
-        freeRange = [new Point(textPointer, 0), new Point(range.start.row, 0)]
-        freeRange = @model.clipRange(freeRange)
-        if not freeRange.isEmpty()
-          if chunks.length > 0
-            freeText = "\n"+@model.getTextInVariantRange(freeRange)
-          else
-            freeText = @model.getTextInVariantRange(freeRange)
-          chunks.push {text: freeText}
-
-        textPointer = range.start.row
-        # Hacky, but the only thing I can get to work now
-        if doCommit
-          #console.log "Doing a commit of "+model.getCurrentVersion().getTitle()
-          chunkReference = model.commit(params)
-          #console.log "Chunk reference returned"
-          #console.log chunkReference
+        if model.pendingDestruction
+              # take full range as text
+              freeRange = [new Point(textPointer, 0), new Point(range.end.row, Number.MAX_VALUE)]
+              @addFreeRange(freeRange, chunks)
+              textPointer = range.end.row + 1
         else
-          chunkReference = model.getCurrentVersion().recordCurrentState(params)
-        chunks.push chunkReference
+            freeRange = [new Point(textPointer, 0), new Point(range.start.row, 0)]
+            @addFreeRange(freeRange, chunks)
 
-        textPointer = range.end.row + 1
+            textPointer = range.start.row
+            # Hacky, but the only thing I can get to work now
+            if doCommit
+              #console.log "Doing a commit of "+model.getCurrentVersion().getTitle()
+              chunkReference = model.commit(params)
+              #console.log "Chunk reference returned"
+              #console.log chunkReference
+            else
+              chunkReference = model.getCurrentVersion().recordCurrentState(params)
+            chunks.push chunkReference
+
+            textPointer = range.end.row + 1
 
       #After nested, get any remaining free text
-      freeRange = [new Point(textPointer, 0), new Point(@model.getVariantRange().end.row, 100000000)]
-      freeRange = @model.clipRange(freeRange)
-      if not freeRange.isEmpty()
-        #console.log "END free range"
-        #console.log freeRange
-        freeText = "\n"+@model.getTextInVariantRange(freeRange)
-        chunks.push {text: freeText}
+      freeRange = [new Point(textPointer, 0), new Point(@model.getVariantRange().end.row, Number.MAX_VALUE)]
+      @addFreeRange(freeRange, chunks)
 
     else
       # entire variant
       chunks.push {text: @model.getTextInVariantRange()}
 
     return chunks
+
+
+  '''
+    Helper method to chunk
+  '''
+  addFreeRange: (freeRange, chunks) ->
+    freeRange = @model.clipRange(freeRange)
+    if not freeRange.isEmpty()
+      if chunks.length > 0
+        freeText = "\n"+@model.getTextInVariantRange(freeRange)
+      else
+        freeText = @model.getTextInVariantRange(freeRange)
+      chunks.push {text: freeText}
 
 
 

@@ -159,7 +159,7 @@ class MainMenuHeader extends HeaderElement
     buttonAdd.classList.add('createVariantButton')
     $(buttonAdd).html("<span class='icon icon-repo-create'>new version</span>")
     $(buttonAdd).click =>
-      @view.newVersion()
+      @view.newBranch()
       $(variantsMenu).hide()
     variantsMenu.appendChild(buttonAdd)
 

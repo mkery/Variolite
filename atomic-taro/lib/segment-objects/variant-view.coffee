@@ -22,7 +22,7 @@ class VariantView
     @sourceEditor = params.sourceEditor
     @root = params.taroView
     @undoAgent = params.undoAgent
-    @provenanceAgent = params.provAgent
+    #@provenanceAgent = params.provAgent
     @travelAgent = params.travelAgent
 
     params['taroView'] = @
@@ -336,10 +336,10 @@ class VariantView
   '''
     Adds a new version to this variant box.
   '''
-  newVersion: ->
+  newBranch: ->
     if @diffPanels.isShowing()
       @switchToVersion(@diffPanels.getV1())
-    v = @model.newVersion()
+    v = @model.newBranch()
     @headerElement.update()
 
 
@@ -402,7 +402,7 @@ class VariantView
   '''
   buildVariantDiv: (width) ->
     $(@footerBar).width(width)
-    console.log "sourceEditor ", @sourceEditor.id
+    #console.log "sourceEditor ", @sourceEditor.id
     @headerElement.setEditorID(@sourceEditor.id)
     @headerElement.setView(@)
     @headerElement.setModel(@model)

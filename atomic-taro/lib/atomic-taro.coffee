@@ -41,10 +41,10 @@ module.exports = AtomicTaro =
           @focusedView.gainTabFocus()
 
     atom.workspace.onDidDestroyPaneItem (e) =>
-      console.log "Destroyed! "
+      #console.log "Destroyed! "
       destroyed = e.item
       @activeViews = @activeViews.filter (view) => view.exploratoryEditor.id != destroyed.id
-      console.log @activeViews
+      #console.log @activeViews
 
   deactivate: ->
     @subscriptions.dispose()
@@ -87,7 +87,10 @@ module.exports = AtomicTaro =
     fileName = filePath.substring(lastIndex + 1)
     [fileBase, fileType] = fileName.split(".")
     statePath = folder+"/"+fileBase+".taro"
-    atomicTaroView = new AtomicTaroView statePath, filePath, folder, fileName, fileType, editor
+    metaFolder = folder + "/" + fileBase+"-meta"
+    @mkdirSync(metaFolder) # If folder does not exist, creates a new folder
+
+    atomicTaroView = new AtomicTaroView statePath, filePath, folder, fileName, metaFolder, editor
 
     #editor.taroView = atomicTaroView
     @activeViews.push atomicTaroView
@@ -113,3 +116,12 @@ module.exports = AtomicTaro =
 
   handleSaveAsEvent: (e) ->
     console.log "SAVE AS"
+
+
+  mkdirSync: (path) ->
+    try
+      fs.mkdirSync(path);
+    catch e
+      if e.code != 'EEXIST'
+        #throw e
+        console.log "Failed to create directory."

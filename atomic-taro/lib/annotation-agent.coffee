@@ -32,7 +32,7 @@ class AnnotationAgent
     $.get file, (data) =>
       text = data
       @subBuffer = new TextBuffer(text: text)
-      console.log "RETRIEVED TEXT ", text
+      #console.log "RETRIEVED TEXT ", text
       callback(text)
 
     #console.log "RETRIEVED TEXT ", text
