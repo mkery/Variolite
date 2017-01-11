@@ -62,7 +62,7 @@ module.exports = AtomicTaro =
     #editor = atom.workspace.getActivePaneItem()
     #if editor instanceof AtomicTaroView
         #@atomicTaroView = editor
-    @atomicTaroView.wrapNewVariant(e)
+    @focusedView.wrapNewVariant(e)
 
 
   open: ->
@@ -86,11 +86,10 @@ module.exports = AtomicTaro =
     folder = filePath.substring(0, lastIndex)
     fileName = filePath.substring(lastIndex + 1)
     [fileBase, fileType] = fileName.split(".")
-    statePath = folder+"/"+fileBase+".taro"
     metaFolder = folder + "/" + fileBase+"-meta"
     @mkdirSync(metaFolder) # If folder does not exist, creates a new folder
 
-    atomicTaroView = new AtomicTaroView statePath, filePath, folder, fileName, metaFolder, editor
+    atomicTaroView = new AtomicTaroView filePath, folder, fileName, metaFolder, editor
 
     #editor.taroView = atomicTaroView
     @activeViews.push atomicTaroView

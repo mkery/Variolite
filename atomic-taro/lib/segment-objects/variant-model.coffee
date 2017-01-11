@@ -35,11 +35,26 @@ class VariantModel
     @nestedParent = null
     @collapsed = false
 
+    # Branch objects for each version associated with this variant
+    @branches = []
+    @currentBranch = null # the currently selected branch
+
     # pendingDestruction is a way to keep variants around (in case the user clicks
     # dissolve then later undo) but prevents this variant from being counted in a
     # save action. Figure out a better way of handling this in the long run!
     @pendingDestruction = false
 
+    if params.metaData?
+      @unpackMetaData(params.metaData, params.metaFolder)
+    else
+      @freshNewRevisionTree(params)
+
+    @prevTitles = [] # TODO for help with undo?
+    @prevVers = [] # TODO for help with undo?
+
+
+
+  freshNewRevisionTree: (params) ->
     # TODO do not need to re-generate id for variant that has one!
     @variantID = params.id
     if not @variantID?
@@ -50,17 +65,13 @@ class VariantModel
     console.log "Trying to make a folder at: ",@variantFolder
     @mkdirSync(@variantFolder) # If folder does not exist, creates a new folder
 
-    # Branch objects for each version associated with this variant
-    @branches = []
-    @currentBranch = null # the currently selected branch
-
     title = params.title
     title ?= "v0"
     params = null
     if @marker?
       text = @sourceEditor.getTextInBufferRange(@marker.getBufferRange())
       date = @dateNow()
-      params = {title: title, text: text, date: date}
+      params = {title: title, text: text, date: date, id: 0}
 
     @currentBranch = new VariantBranch(@, params)
     branchFolder = @variantFolder + "/" + @currentBranch.getID()
@@ -68,8 +79,20 @@ class VariantModel
     @currentBranch.setFolder(branchFolder)
     @branches.push @currentBranch
 
-    @prevTitles = [] # TODO for help with undo?
-    @prevVers = [] # TODO for help with undo?
+
+
+  unpackMetaData: (item, metaFolder) ->
+    @variantID = item.varID
+    @variantFolder = metaFolder + "/" + @variantID
+
+    branchID = item.branchID
+    date = item.date
+    title = "b0" #TODO
+    @currentBranch = new VariantBranch(@, {title: title, date: date, id: branchID})
+    branchFolder = @variantFolder + "/" + @currentBranch.getID()
+    @currentBranch.setFolder(branchFolder)
+    @branches.push @currentBranch
+
 
 
   '''
@@ -545,6 +568,12 @@ class VariantModel
     v = @prevVers.pop()
     @.getView().switchToVersion(v)
 
+
+  findNested: (varID) ->
+    if @currentBranch?
+      @currentBranch.findNested(varID)
+    else
+      null
 
 
   getNested: ->

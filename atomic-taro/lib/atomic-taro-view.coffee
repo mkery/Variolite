@@ -12,14 +12,12 @@ fs = require 'fs'
 Listeners = require './listeners'
 Variant = require './segment-objects/variant-model'
 VariantView = require './segment-objects/variant-view'
-AnnotationProcessorBuffer = require './annotation-processor-buffer'
 AtomicTaroToolPane = require './right-panel/atomic-taro-tool-pane'
 UndoAgent = require './undo-agent'
 ProgramProcessor = require './program-processor'
 CommitTravelAgent = require './commit-travel-agent'
-VariantFactory = require './variant-factory'
+VariantMetaAgent = require './variant-meta-agent'
 Output = require './output'
-AnnotationAgent = require './annotation-agent'
 
 '''
   TODO - rethink annotation-processor-buffer
@@ -30,7 +28,7 @@ AnnotationAgent = require './annotation-agent'
 module.exports =
 class AtomicTaroView
 
-  constructor: (statePath, @filePath, @baseFolder, @fileName, @metaFolder, sourceEditor) ->
+  constructor: (@filePath, @baseFolder, @fileName, @metaFolder, sourceEditor) ->
     @exploratoryEditor = sourceEditor
 
     @variantListeners = null # holds jquery listeners
@@ -38,12 +36,11 @@ class AtomicTaroView
     # The master variant is a top level variant that wraps the entire file
     @masterVariant = null
 
-    @variantFactory = null
+    @variantMetaAgent = null
     @undoAgent = new UndoAgent(50) #max undo entries
     @travelAgent = null
     @programProcessor = null # object to run code and record output
-    #@provenanceAgent = null #new ProvUtils()
-    @annotationAgent = new AnnotationAgent(@baseFolder, @fileName)
+
 
     #divs
     @element = null
@@ -53,8 +50,7 @@ class AtomicTaroView
     @focusData = {explorePanel: false}
 
     # try to get saved meta data for this file, if there is any
-    @initializeView()
-    @deserialize(statePath)
+    @deserialize()
 
 
   '''
@@ -81,22 +77,47 @@ class AtomicTaroView
   '''
     Decodes a JSON file metadata into variant boxes and commits
   '''
-  deserialize: (statePath) ->
-    # try to get saved meta data for this file, if there is any
-    # $.getJSON (statePath), (state) =>
-    #     console.log "JSON found"
-    #     console.log state
-    #
-    #     stateVariants = state.atomicTaroViewState.variants
-    #     #console.log "state variants????"
-    #     #console.log stateVariants.variants
-    #     @masterVariant.deserialize(stateVariants)
-    #     @postInit_buildView()
-    #
-    #   .fail =>
-    #     console.log "No saved taro file found."
-    #     @postInit_buildView()
-    #@postInit_buildView()
+  deserialize:  ->
+    # TODO set to most recent commit!
+    baseCommitFile = @metaFolder+"/0/0/0.json" # the top level commit, default branch
+    console.log "trying to open ", baseCommitFile
+    data = null
+    try
+      data = fs.readFileSync(baseCommitFile, 'utf8')
+    catch err
+      console.log "No meta data found ", err
+
+    json = null
+    if data?
+      json = JSON.parse(data)
+    console.log "Json found? ", json
+    @initializeView(json)
+
+
+
+  '''
+    Run when tool is first opened, to put all the main div elements in place, while the
+    variant informaiton may still be loading.
+  '''
+  initializeView: (metadata) ->
+    @initCursorListeners()
+    @element = @exploratoryEditor.getElement()
+
+    @travelAgent = new CommitTravelAgent(@)
+    @variantMetaAgent = new VariantMetaAgent(@, @undoAgent, @metaFolder, @travelAgent, @exploratoryEditor)
+    @masterVariant = @variantMetaAgent.buildMasterVariant()
+    if metadata?
+      @variantMetaAgent.unpackMetaData(@masterVariant, metadata)
+
+    @travelAgent.setMasterVariant(@masterVariant)
+
+    # create a variant manager
+    @variantListeners = new Listeners(@masterVariant, @, @exploratoryEditor)
+    @programProcessor = new ProgramProcessor(@baseFolder, @filePath, @fileName, @)
+    #@postInit_buildView() #TODO in wrong place
+
+
+
 
   '''
     ??? used
@@ -126,6 +147,8 @@ class AtomicTaroView
     @filePath
 
 
+  getFileName: ->
+    @fileName
 
   '''
     There is a master variant that wraps the entire file.
@@ -232,38 +255,6 @@ class AtomicTaroView
   '''
   addJqueryListeners: ->
     @variantListeners.addJqueryListeners(@element)
-
-
-  '''
-    Run when tool is first opened, to put all the main div elements in place, while the
-    variant informaiton may still be loading.
-  '''
-  initializeView: ->
-    # exploratoryEditor is the python file modified to show our visualization things
-    #@exploratoryEditor = @initExploratoryEditor(@sourceEditor)
-    #@exploratoryEditor.getElement().setHeight(635) # WARNING HARD CODED!!!!
-    @initCursorListeners()
-
-    #root element
-    #@element = document.createElement('div')
-    #@element.classList.add('atomic-taro_pane')#, 'scroll-view')
-    @element = @exploratoryEditor.getElement()
-
-    @travelAgent = new CommitTravelAgent(@)
-    @variantFactory = new VariantFactory(@filePath, @, @undoAgent, @metaFolder, @travelAgent, @annotationAgent)
-    @masterVariant = @variantFactory.buildMasterVariant(@exploratoryEditor, @masterVariant)
-    @travelAgent.setMasterVariant(@masterVariant)
-    @annotationAgent.setMasterVariant(@masterVariant)
-    @annotationAgent.load (annot) =>
-      if annot?
-        @exploratoryEditor.setText(annot)
-      @variantFactory.initVariants(@exploratoryEditor, @masterVariant)
-      @postInit_buildView()
-
-
-    # create a variant manager
-    @variantListeners = new Listeners(@masterVariant, @, @exploratoryEditor)
-    @programProcessor = new ProgramProcessor(@baseFolder, @filePath, @fileName, @)
 
 
 

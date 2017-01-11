@@ -23,7 +23,9 @@ class VariantBranch
   # {active: true, id: id, title: title, subtitle: 0, text: text, date: date, branches: [], commits: [], nested: []}
   constructor: (@model, params) ->
     @branchFolder = null
-    @id = crypto.randomBytes(20).toString('hex')
+    @id = params.id
+    if not @id?
+        @id = crypto.randomBytes(20).toString('hex')
     @title = params?.title
     @subtitle = 0
     @text = params?.text
@@ -76,8 +78,20 @@ class VariantBranch
     @subtitle
 
 
-  getNested: ->
+  getNested:  ->
     @nested
+
+
+  findNested: (varID) ->
+    for nest in @nested
+      nestModel = nest.getModel()
+      if nestModel.getVariantID() == varID
+        return nest
+    return null
+
+
+  addCommit: (commitID, commit) ->
+    @commits[commitID] = commit
 
 
   getCurrentCommit: ->
@@ -248,6 +262,13 @@ class VariantBranch
       return @travelToCommit(@commits.length - 1, insertPoint)
 
 
+
+  setToMetaData: (metaData) ->
+    console.log "Setting to meta data ", metaData.text
+    @model.clearTextInRange()
+    @unravelCommitText(metaData.text)
+
+
   '''
     Starts process of travel to a commit.
     Changes display to show the user's code as it was at the time of a specific commit
@@ -273,11 +294,13 @@ class VariantBranch
     #console.log "Commits of "+@title+":  "+@commits.length
     #console.log commitID
     commit = @commits[commitID]
-    #console.log "commit is:"
-    #console.log commit
+    console.log "commit is:"
+    console.log commit
     #console.log @commits
     @model.getView().getCommitLine().manualSet(commitID)
     text = commit.text
+    console.log "text is:"
+    console.log text
     return @unravelCommitText(text, insertPoint)
 
 
@@ -305,7 +328,7 @@ class VariantBranch
   unravelCommitText: (text, insertPoint) ->
     if not insertPoint?
       insertPoint = @model.getVariantRange().start
-      #console.log "Beginning insert at "+insertPoint
+      console.log "Beginning insert at "+insertPoint
 
     start = insertPoint
 
@@ -315,14 +338,19 @@ class VariantBranch
       if item.varID? #commitID?
         nestID = item.varID
         # then this item is a nested variant
+        found = false
         for nest in @nested
           nestModel = nest.getModel()
           if nestModel.getVariantID() == nestID
+            found = true
             insertPoint = nestModel.travelToCommit(item, insertPoint)
             if nestModel.pendingDestruction == true # temporarily re-instantiate
               console.log "Reinstating "+nestModel.getTitle()
               nest.reinstate()
             break
+        # if not found, this variant hasn't been instantiated, retrieve from file :O
+        if not found
+          console.log "WARNING: MUST INSTANTIATE" #TODO
       else
         range = @model.insertTextInRange(insertPoint, item.text, 'skip')
         insertPoint = range.end
@@ -361,8 +389,8 @@ class VariantBranch
       #console.log "UNCHANGED"
       commit = @commits[@commits.length - 1]
       commit['output'].push output
-    console.log "Returning commit!"
-    console.log commit
+    #console.log "Returning commit!"
+    #console.log commit
     #@git-utils -- commit
     return commit
 
@@ -382,7 +410,7 @@ class VariantBranch
     #@git-utils commit
     # return a reference, so that others can find this commit
     commit = {date: date, text: chunks, varID: @model.getVariantID(), branchID: @id, commitID: @commits.length, output: []}
-    commit.output.push output
+    commit.output.push output.key
     @commits.push commit
     #console.log "Done commit for ", @title, ":"
     #console.log commit
@@ -473,15 +501,3 @@ class VariantBranch
         if startA > startB
           return 1
         return 0
-
-
-
-  testConvertJSONVariant: (v, nestParent) ->
-    variantView = v
-    root = v.rootVersion
-    if root?
-      variantView = @model.getView().makeNewFromJson(v)
-      variantView.buildVariantDiv()
-      if nestParent?
-        variantView.getModel().setNestedParent([nestParent, @model.getView()])
-    variantView

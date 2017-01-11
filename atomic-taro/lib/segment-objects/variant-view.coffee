@@ -22,6 +22,7 @@ class VariantView
     @sourceEditor = params.sourceEditor
     @root = params.taroView
     @undoAgent = params.undoAgent
+    @metaFolder = params.metaFolder
     #@provenanceAgent = params.provAgent
     @travelAgent = params.travelAgent
 
@@ -41,32 +42,25 @@ class VariantView
     @diffPanels = null
 
 
-  '''
-    Alternative constructor. Used in the senario where variant box has an unitialized
-    nested variant box in a version that was not loaded at startup. Meaning, it wasn't
-    showing annotations in the code, since it wasn't the current version at startup, so
-    it's not built until later. Returns a new variant box given save data and the current
-    parent variant box view @.
-  '''
-  makeNewFromJson: (json) ->
-    variantView = new VariantView({sourceEditor: @sourceEditor, taroView: @root, undoAgent: @undoAgent})
-    variantView.getModel().deserialize(json)
-    variantView
+
+  buildBabyFromDir: (item) ->
+    babyView = new VariantView({metaData: item, sourceEditor: @sourceEditor, taroView: @root, undoAgent: @undoAgent, metaFolder: @metaFolder, travelAgent: @travelAgent})
+    return babyView
 
 
   '''
     Shared by both constructors, sets up global div variables but does not build all
     components until later when the save data is loaded.
   '''
-  initialize:  ->
-    #footer bar that simply marks the end
-    # @footerBar = document.createElement('div')
-    # @footerBar.classList.add('atomic-taro_editor-footer-box')
-    #
-    # @headerElement = new HeaderElement(@model, @)
-    # @commitLine = null
-    # @branchMap = null
-    # @diffPanels = null
+  # initialize:  ->
+  #   #footer bar that simply marks the end
+  #   # @footerBar = document.createElement('div')
+  #   # @footerBar.classList.add('atomic-taro_editor-footer-box')
+  #   #
+  #   # @headerElement = new HeaderElement(@model, @)
+  #   # @commitLine = null
+  #   # @branchMap = null
+  #   # @diffPanels = null
 
 
   getCommitLine: ->
