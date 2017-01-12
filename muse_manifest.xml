@@ -1,7 +1,10 @@
-<manifest alg="2" build="2017.0.0.363" opt="true" iceEnabled="true" iceMarkupVersion="2" iceEnabledOptions="link,responsive,cachebuster" exportTarget="other" domain="https://mkery.github.io/Variolite" resolutions="1x" timestamp="1481845871965">
+<manifest alg="2" build="2017.0.0.363" opt="true" iceEnabled="true" iceMarkupVersion="2" iceEnabledOptions="link,responsive,cachebuster" exportTarget="other" domain="https://mkery.github.io/Variolite" resolutions="1x" timestamp="1484261984683">
   <folder name="css">
-    <file name="site_global.css" crc="4214342048"/>
-    <file name="index.css" crc="505227705" ref="index"/>
+    <file name="site_global.css" crc="309028595"/>
+    <file name="index.css" crc="4102617299" ref="index"/>
+  </folder>
+  <folder name="assets">
+    <file name="variolite-supporting-exploratory-programming.pdf" crc="3884985097" seo="true" mt="1483735745000"/>
   </folder>
   <folder name="scripts">
     <file name="jquery-1.8.3.min.js" crc="209076791" ref="index"/>
@@ -17,6 +20,8 @@
     <file name="sample_of_variolite,_olympic_peninsula,_washington_usa.jpg" crc="4121477732" seo="true" ref="index"/>
     <file name="artwork-8.svg" crc="4246789460" seo="true" ref="index"/>
     <file name="artwork 8_poster_.png" crc="121363209" ref="index"/>
+    <file name="pasted image 352x179.png" crc="4133222045" seo="true" ref="index"/>
+    <file name="natproglogo.jpg" crc="4141506616" seo="true" ref="index"/>
   </folder>
-  <file name="index.html" crc="3908665819" seo="true" mt="1481845685793" redirect="true"/>
+  <file name="index.html" crc="3915964957" seo="true" mt="1484261600231" redirect="true"/>
 </manifest>
