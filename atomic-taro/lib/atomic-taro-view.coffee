@@ -100,7 +100,6 @@ class AtomicTaroView
     variant informaiton may still be loading.
   '''
   initializeView: (metadata) ->
-    @initCursorListeners()
     @element = @exploratoryEditor.getElement()
 
     @travelAgent = new CommitTravelAgent(@)
@@ -114,8 +113,7 @@ class AtomicTaroView
     # create a variant manager
     @variantListeners = new Listeners(@masterVariant, @, @exploratoryEditor)
     @programProcessor = new ProgramProcessor(@baseFolder, @filePath, @fileName, @)
-    #@postInit_buildView() #TODO in wrong place
-
+    @postInit_buildView() #TODO in wrong place
 
 
 
@@ -276,6 +274,7 @@ class AtomicTaroView
   '''
   postInit_buildView: ->
       #@element.appendChild(@exploratoryEditor.getElement())
+      @initCursorListeners()
       wrapWidth = @getWrapLineX(@exploratoryEditor)
 
       @masterVariant.buildVariantDiv(wrapWidth)
@@ -306,6 +305,7 @@ class AtomicTaroView
     @exploratoryEditor.onDidChangeCursorPosition (ev) =>
       cursorPosition = ev.newBufferPosition
       active = @variantListeners.getFocusedVariant()
+      #console.log "active focused variant is ", active
       if active?
         activeMarker = active.getMarker()
         if !activeMarker.getBufferRange().containsPoint(cursorPosition)
@@ -319,7 +319,7 @@ class AtomicTaroView
 
   wrapNewVariant: ->
     #console.log "WRAP NEW VARIANT"
-    @variantFactory.wrapNewVariant(@exploratoryEditor, @masterVariant)
+    @variantMetaAgent.wrapNewVariant(@exploratoryEditor, @masterVariant)
 
 
   '''
@@ -333,4 +333,5 @@ class AtomicTaroView
   '''
   saveVariants: (e) ->
     #@exploratoryEditor.save()
-    @annotationAgent.save()
+    #@annotationAgent.save()
+    # TODO

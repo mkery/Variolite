@@ -90,8 +90,9 @@ class VariantBranch
     return null
 
 
-  addCommit: (commitID, commit) ->
+  addAndSetCommit: (commitID, commit) ->
     @commits[commitID] = commit
+    @currentCommit = commitID
 
 
   getCurrentCommit: ->

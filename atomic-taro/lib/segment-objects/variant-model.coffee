@@ -55,7 +55,6 @@ class VariantModel
 
 
   freshNewRevisionTree: (params) ->
-    # TODO do not need to re-generate id for variant that has one!
     @variantID = params.id
     if not @variantID?
         @variantID = crypto.randomBytes(20).toString('hex')
