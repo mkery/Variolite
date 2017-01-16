@@ -2,6 +2,7 @@
 {Point, Range} = require 'atom'
 Variant = require './segment-objects/variant-model'
 VariantView = require './segment-objects/variant-view'
+VariantBranch = require './segment-objects/variant-branch'
 MainMenuHeader = require './segment-objects/main-menu-header'
 fs = require 'fs'
 
@@ -13,7 +14,7 @@ class VariantMetaAgent
     # nothing
 
 
-  buildMasterVariant: ->
+  buildMasterVariant: (metaData) ->
     # First, wrap the entire file in a variant by default
     wholeFile = [new Point(0,0), new Point(10000000, 10000000)]
     range = @editor.getBuffer().clipRange(wholeFile)
@@ -23,7 +24,7 @@ class VariantMetaAgent
     altHeader = new MainMenuHeader()
     altHeader.setTaroView(@taroView)
     altFooter = document.createElement('div')
-    variant = new VariantView({id: 0, sourceEditor: @editor, marker: marker, altHeader: altHeader, altFooter: altFooter, title: fileName, taroView: @taroView, undoAgent: @undoAgent, metaFolder: @metaFolder, travelAgent: @travelAgent})
+    variant = new VariantView({metaData: metaData, id: 0, sourceEditor: @editor, marker: marker, altHeader: altHeader, altFooter: altFooter, title: fileName, taroView: @taroView, undoAgent: @undoAgent, metaFolder: @metaFolder, travelAgent: @travelAgent})
     masterVariant = @buildVariant(range.start, range.end, marker, fileName, variant)
     masterVariant
 
@@ -61,28 +62,50 @@ class VariantMetaAgent
     return variant
 
 
+
+  saveVariants: (variant) ->
+    # save any changes to any of the other branches/variants that aren't currently showing
+    # save the current state of each variant showing
+    variant.getModel().saveVariant()
+
+
+
+
   unpackMetaData: (variant, metaData) ->
     insertPoint = variant.getModel().getVariantRange().start # the top of the file initially
     variant.getModel().clearTextInRange() # clear all text. Fix in the future, this will wreck out of tool changes
-    @unravelInit(variant, insertPoint, metaData.text) # write all code from the metadata
+    insertPoint = @unravelInit(variant, insertPoint, metaData.text) # write all code from the metadata
+    newRange = new Range(variant.getModel().getVariantRange().start, insertPoint)
+    variant.getModel().setRange(newRange)
+    @postProcess(variant)
 
 
   unravelInit: (variant, insertPoint, text) ->
     start = insertPoint # top of the file initially
     model = variant.getModel()
+    childBuildQueue = []
 
     for item in text
       if item.varID? # OK, this is a nested variant, so let's go look for its data file
-        insertPoint = @loadVariantBox(variant, item, insertPoint)
-
+        before = insertPoint
+        [insertPoint, childVariant] = @loadVariantBox(variant, item, insertPoint)
+        newRange = new Range(before, insertPoint)
+        childVariant.getModel().setRange(newRange)
+        childBuildQueue.push childVariant
       else # plain text, so just insert it.
         range = model.insertTextInRange(insertPoint, item.text, 'skip')
         insertPoint = range.end
 
-    after = model.insertTextInRange(insertPoint, " ", 'skip')
-    newRange = [start, new Point(insertPoint.row - 1, Number.MAX_SAFE_INTEGER)]
-    newRange = model.clipRange(newRange)
+    for child in childBuildQueue
+      @postProcess(child, variant)
 
+    return insertPoint # where we should next start writing this file
+
+
+
+  postProcess: (variant, parentVariant) ->
+    model = variant.getModel()
+    newRange = model.range
     #console.log "New range for "+model.getCurrentVersion().title+" is "
     #console.log newRange
 
@@ -95,22 +118,23 @@ class VariantMetaAgent
       model.setRange(newRange)
       model.setHeaderRange(newRange)
 
-    insertPoint = after.end
-    return insertPoint # where we should next start writing this file
-
+    if parentVariant?
+      parentVariant.getModel().addNested(variant)
 
 
   loadVariantBox: (parentVariant, metaData, insertPoint) ->
     varID = metaData.varID
     branchID = metaData.branchID
     commitID = metaData.commitID
+    commitFileID = commitID
+    if commitID == -1
+      commitFileID = "M"
 
     # 1. make a new variant box
     babyVariant = parentVariant.buildBabyFromDir(metaData)
-    parentVariant.getModel().addNested(babyVariant)
 
     # 3. load the commit
-    commitFile = @metaFolder+"/"+varID.substring(0, 11)+"/"+branchID+"/"+commitID+".json"
+    commitFile = @metaFolder+"/"+varID.substring(0, 11)+"/"+branchID+"/"+commitFileID+".json"
     contents = []
     try
       data = fs.readFileSync(commitFile, 'utf8')
@@ -119,13 +143,14 @@ class VariantMetaAgent
     catch err
       console.log "No meta data found for nested variant!", err
 
-    curBranch = babyVariant.getModel().getCurrentVersion()
-    curBranch.addAndSetCommit(commitID, contents)
+    if commitID != -1
+      curBranch = babyVariant.getModel().getCurrentVersion()
+      curBranch.addAndSetCommit(commitID, contents)
 
     # 4. add this variant's contents into the editor
     insertPoint = @unravelInit(babyVariant, insertPoint, contents.text)
 
-    return insertPoint
+    return [insertPoint, babyVariant]
 
 
 

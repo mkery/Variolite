@@ -58,11 +58,14 @@ class VariantModel
     @variantID = params.id
     if not @variantID?
         @variantID = crypto.randomBytes(20).toString('hex')
-        @variantFolder = params.metaFolder + "/" + @variantID.substring(0, 11)
+
+    if @variantID.length > 12
+      @variantFolder = params.metaFolder + "/" + @variantID.substring(0, 11)
     else
       @variantFolder = params.metaFolder + "/" + @variantID
-    console.log "Trying to make a folder at: ",@variantFolder
-    @mkdirSync(@variantFolder) # If folder does not exist, creates a new folder
+
+    #console.log "Trying to make a folder at: ",@variantFolder
+    #@mkdirSync(@variantFolder) # If folder does not exist, creates a new folder
 
     title = params.title
     title ?= "v0"
@@ -73,25 +76,36 @@ class VariantModel
       params = {title: title, text: text, date: date, id: 0}
 
     @currentBranch = new VariantBranch(@, params)
-    branchFolder = @variantFolder + "/" + @currentBranch.getID()
-    @mkdirSync(branchFolder) # If folder does not exist, creates a new folder
-    @currentBranch.setFolder(branchFolder)
     @branches.push @currentBranch
 
 
 
   unpackMetaData: (item, metaFolder) ->
     @variantID = item.varID
-    @variantFolder = metaFolder + "/" + @variantID
+    if @variantID.length > 12
+      @variantFolder = metaFolder + "/" + @variantID.substring(0, 11)
+    else
+      @variantFolder = metaFolder + "/" + @variantID
 
     branchID = item.branchID
     date = item.date
     title = "b0" #TODO
     @currentBranch = new VariantBranch(@, {title: title, date: date, id: branchID})
-    branchFolder = @variantFolder + "/" + @currentBranch.getID()
+    branchFolder = @variantFolder + "/" + branchID
     @currentBranch.setFolder(branchFolder)
     @branches.push @currentBranch
 
+
+  saveVariant: ->
+    console.log "Trying to make a folder at: ",@variantFolder
+    @mkdirSync(@variantFolder) # If folder does not exist, creates a new folder
+    console.log "Branch folder is ", @branchFolder
+    if @currentBranch.branchFolder == null
+        branchFolder = @variantFolder + "/" + @currentBranch.getID()
+        console.log "setting branch folder ", branchFolder
+        @mkdirSync(branchFolder) # If folder does not exist, creates a new folder
+        @currentBranch.setFolder(branchFolder)
+    @getCurrentVersion().writeCurrentState()
 
 
   '''
@@ -155,7 +169,12 @@ class VariantModel
     Sets the range of this variant
   '''
   setRange: (newRange) ->
-    @marker.setBufferRange(newRange)
+    @range = newRange
+    @marker?.setBufferRange(newRange)
+
+
+  setPendingRange: (newRange) ->
+    @range = newRange
 
 
   '''
@@ -163,7 +182,12 @@ class VariantModel
   '''
   setHeaderRange: (newRange) ->
     if @headerMarker?
-      @headerMarker.setBufferRange([newRange.start, new Point(newRange.end.row - 1, newRange.end.column)])
+      hRange = null
+      if newRange.end.row != newRange.start.row
+        hRange = [newRange.start, new Point(newRange.end.row - 1, newRange.end.column)]
+      else
+        hRange = newRange
+      @headerMarker.setBufferRange(hRange)
 
 
   '''
@@ -207,7 +231,7 @@ class VariantModel
     #   are we in the present traveling back?
     else
       if @currentBranch.getCurrentCommit() == @currentBranch.NO_COMMIT
-        console.log "FROM PRESENT TO PAST"
+        console.log "FROM PRESENT TO PAST"#, commitData
         @currentBranch.recordCurrentState(commitID)
 
       return @currentBranch.travelToCommit(commitData, insertPoint)

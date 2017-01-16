@@ -2,7 +2,6 @@
 {Point, Range} = require 'atom'
 Variant = require './segment-objects/variant-model'
 VariantView = require './segment-objects/variant-view'
-AnnotationProcessorBuffer = require './annotation-processor-buffer'
 AtomicTaroToolPane = require './right-panel/atomic-taro-tool-pane'
 
 

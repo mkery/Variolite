@@ -19,6 +19,7 @@ Represents a single variant of exploratory code.
 module.exports =
 class VariantBranch
   NO_COMMIT : -1
+  NO_COMMIT_FILE: "M"
 
   # {active: true, id: id, title: title, subtitle: 0, text: text, date: date, branches: [], commits: [], nested: []}
   constructor: (@model, params) ->
@@ -84,8 +85,7 @@ class VariantBranch
 
   findNested: (varID) ->
     for nest in @nested
-      nestModel = nest.getModel()
-      if nestModel.getVariantID() == varID
+      if nest.getModel().getVariantID() == varID
         return nest
     return null
 
@@ -153,6 +153,10 @@ class VariantBranch
     @branches.push newBranch
 
 
+  getBranchFolder: ->
+    @branchFolder
+
+
   getCurrentState: ->
     @currentState
 
@@ -212,7 +216,7 @@ class VariantBranch
   '''
   roleCall: (commitData) ->
     toAdd = []
-    #console.log "ROLE CALL on ", commitData
+    console.log "ROLE CALL on ", commitData
 
     for nested in @getNested()
       cleared = false
@@ -257,7 +261,9 @@ class VariantBranch
       @model.getView().getCommitLine().slideToPresent()
       # make sure we have the correct set of nested variants
       #nestedToActivate = @roleCall(@currentState)
-      return @unravelCommitText(@currentState.text, insertPoint)
+      insertPoint =  @unravelCommitText(@currentState.text, insertPoint)
+      @unravelPostProcess(@model.getView())
+      return insertPoint
     else
       #console.log "traveling to commit "
       return @travelToCommit(@commits.length - 1, insertPoint)
@@ -268,6 +274,7 @@ class VariantBranch
     console.log "Setting to meta data ", metaData.text
     @model.clearTextInRange()
     @unravelCommitText(metaData.text)
+    @unravelPostProcess(@model.getView())
 
 
   '''
@@ -282,7 +289,7 @@ class VariantBranch
       @model.clearTextInRange()
       #console.log "CLEARED TEXT"
     # make sure we have the correct set of nested variants
-    nestedToActivate = @roleCall(commitData)
+    nestedToActivate = @roleCall(@commits[commitID])
     console.log "Traveling to commit ", commitData
     @travel(commitID, insertPoint)
 
@@ -295,14 +302,16 @@ class VariantBranch
     #console.log "Commits of "+@title+":  "+@commits.length
     #console.log commitID
     commit = @commits[commitID]
-    console.log "commit is:"
-    console.log commit
+    #console.log "commit is:"
+    #console.log commit
     #console.log @commits
     @model.getView().getCommitLine().manualSet(commitID)
     text = commit.text
-    console.log "text is:"
-    console.log text
-    return @unravelCommitText(text, insertPoint)
+    #console.log "text is:"
+    #console.log text
+    insertPoint =  @unravelCommitText(text, insertPoint)
+    @unravelPostProcess(@model.getView())
+    return insertPoint
 
 
   '''
@@ -315,11 +324,20 @@ class VariantBranch
       @currentCommit = destinationCommit
 
     @currentState = null # erase what current state was there previosly
-    @currentState = {varID: @model.getVariantID(), branchID: @id, text: @chunk(false, destinationCommit)}
+    @currentState = {varID: @model.getVariantID(), commitID: @NO_COMMIT, branchID: @id, text: @chunk(false, destinationCommit)}
     @text = @currentState.text
     #console.log "Recorded state for "+@title
     #console.log @currentState
     @currentState
+
+
+  writeCurrentState: ->
+    @recordCurrentState()
+    fs.writeFile (@branchFolder+"/"+@NO_COMMIT_FILE+".json"), JSON.stringify(@currentState), (error) ->
+      console.error("Error writing file current state", error) if error
+
+    for nest in @nested
+      nest.getModel().saveVariant()
 
 
   '''
@@ -332,40 +350,42 @@ class VariantBranch
       console.log "Beginning insert at "+insertPoint
 
     start = insertPoint
-
-    subCommits = []
+    childBuildQueue = []
 
     for item in text
-      if item.varID? #commitID?
-        nestID = item.varID
-        # then this item is a nested variant
-        found = false
-        for nest in @nested
-          nestModel = nest.getModel()
-          if nestModel.getVariantID() == nestID
-            found = true
-            insertPoint = nestModel.travelToCommit(item, insertPoint)
-            if nestModel.pendingDestruction == true # temporarily re-instantiate
-              console.log "Reinstating "+nestModel.getTitle()
-              nest.reinstate()
-            break
-        # if not found, this variant hasn't been instantiated, retrieve from file :O
-        if not found
+      if item.varID? # then this item is a nested variant
+        before = insertPoint
+        child = @findNested(item.varID)
+        if child?
+          nestModel = child.getModel()
+          insertPoint = nestModel.travelToCommit(item, insertPoint)
+          if nestModel.pendingDestruction == true # temporarily re-instantiate
+            console.log "Reinstating "+nestModel.getTitle()
+            nest.reinstate()
+        else # if not found, this variant hasn't been instantiated, retrieve from file :O
           console.log "WARNING: MUST INSTANTIATE" #TODO
-      else
+
+        newRange = new Range(before, insertPoint)
+        child.getModel().setPendingRange(newRange)
+        childBuildQueue.push child
+
+      else # item is plain text
         range = @model.insertTextInRange(insertPoint, item.text, 'skip')
         insertPoint = range.end
 
-    after = @model.insertTextInRange(insertPoint, " ", 'skip')
-    newRange = [start, new Point(insertPoint.row, insertPoint.column)]
-    newRange = @model.clipRange(newRange)
-    #console.log "New range for "+@currentVersion.title+" is "
-    #console.log newRange
-    @model.setRange(newRange)
-    @model.setHeaderRange(newRange)
+    for child in childBuildQueue
+      @unravelPostProcess(child)
 
-    insertPoint = after.end
-    return insertPoint
+    return insertPoint # where we should next start writing this file
+
+
+  unravelPostProcess: (variant) ->
+    model = variant.getModel()
+    newRange = model.range
+
+    model.setRange(newRange)
+    model.setHeaderRange(newRange)
+
 
 
 
@@ -384,6 +404,7 @@ class VariantBranch
       @latestCommit = @model.getTextInVariantRange()
       commit = @commitChunk(@model.dateNow(), output) # chunks the current state so that it can be quickly reloaded
       @writeCommitToFile(commit)
+
 
     # if nothing has changed, point to the latest commit
     else

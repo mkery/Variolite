@@ -79,7 +79,7 @@ class AtomicTaroView
   '''
   deserialize:  ->
     # TODO set to most recent commit!
-    baseCommitFile = @metaFolder+"/0/0/0.json" # the top level commit, default branch
+    baseCommitFile = @metaFolder+"/0/0/M.json" # the top level commit, default branch
     console.log "trying to open ", baseCommitFile
     data = null
     try
@@ -104,7 +104,7 @@ class AtomicTaroView
 
     @travelAgent = new CommitTravelAgent(@)
     @variantMetaAgent = new VariantMetaAgent(@, @undoAgent, @metaFolder, @travelAgent, @exploratoryEditor)
-    @masterVariant = @variantMetaAgent.buildMasterVariant()
+    @masterVariant = @variantMetaAgent.buildMasterVariant(metadata)
     if metadata?
       @variantMetaAgent.unpackMetaData(@masterVariant, metadata)
 
@@ -332,6 +332,4 @@ class AtomicTaroView
     Since atom doesn't know how to save our editor, we manually set this up
   '''
   saveVariants: (e) ->
-    #@exploratoryEditor.save()
-    #@annotationAgent.save()
-    # TODO
+    @variantMetaAgent.saveVariants(@masterVariant)

@@ -1,0 +1,1 @@
+{"varID":"4e676725d74daa8cba66b4cf8b0f8fb6e394c8ea","commitID":-1,"branchID":0,"text":[{"text":"def distance(x0, y0, x1, y1):\n\treturn math.sqrt((x1-x0)**2 + (y1-y0)**2)"}]}

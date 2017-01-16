@@ -104,14 +104,14 @@ module.exports = AtomicTaro =
         #console.log "TARO VIEW FOUND ", editor.taroView
         #view = editor.taroView
         view.saveVariants(e)
-        cereal = view.serialize()
+        '''cereal = view.serialize()
         lastIndex = view.filePath.lastIndexOf('/')
         folder = view.filePath.substring(0, lastIndex)
         fileName = view.filePath.substring(lastIndex + 1).split(".")[0]
         console.log cereal
         fs.writeFile (folder+"/"+fileName+".taro"), JSON.stringify(cereal), (error) ->
           console.error("Error writing file", error) if error
-        return
+        return'''
 
   handleSaveAsEvent: (e) ->
     console.log "SAVE AS"

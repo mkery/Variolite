@@ -1,0 +1,1 @@
+{"date":"01/15/2017 8:27pm","text":[{"text":"def distance(x0, y0, x1, y1):\n\treturn math.sqrt((x1-x0)**2 + (y1-y0)**2)"}],"varID":"4e676725d74daa8cba66b4cf8b0f8fb6e394c8ea","branchID":0,"commitID":0,"output":["280c26d6fede8cae03fa0593054df5b858b457ab"]}
